@@ -62,7 +62,7 @@ class MultipartEncoder(object):
             return self._read_remaining()
 
         size = int(size)  # Ensure it is always an integer
-        bytes_length = len(CustomBytesIO)  # Calculate this once
+        bytes_length = len(self._buffer)  # Calculate this once
 
         if size > bytes_length:
             self._load_bytes(size - bytes_length)
@@ -72,8 +72,14 @@ class MultipartEncoder(object):
     def _render_headers(self):
         iter_fields = iter_field_objects(self.fields)
         self._fields_list = [
-            (f.render_headers(), f.data) for f in iter_fields
+            (f.render_headers(), readable_data(f.data)) for f in iter_fields
             ]
+
+
+def readable_data(data):
+    if hasattr(data, 'read'):
+        return data
+    return CustomBytesIO(data)
 
 
 class CustomBytesIO(io.BytesIO):
