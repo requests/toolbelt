@@ -35,9 +35,13 @@ class MultipartEncoder(object):
         return self._len
 
     def _calculate_length(self):
+        boundary_len = len(self.boundary)  # Length of --{boundary}
         self._len = 0
         for (header, data) in self._fields_list:
-            self._len += len(header) + super_len(data)
+            # boundary length + header length + body length + len('\r\n')
+            self._len += boundary_len + len(header) + super_len(data) + 2
+        # Length of trailing boundary '--{boundary}--\r\n'
+        self._len += boundary_len + 4
 
     @property
     def content_type(self):
