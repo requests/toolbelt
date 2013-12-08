@@ -1,26 +1,61 @@
-from uuid import uuid4
+from requests.utils import super_len
 from requests.packages.urllib3.filepost import (iter_field_objects,
                                                 encode_multipart_formdata)
+from uuid import uuid4
 
 import io
 
 
 class MultipartEncoder(object):
-    def __init__(self, fields=None, boundary=None):
-        self.boundary = boundary or uuid4().hex
+    def __init__(self, fields, boundary=None):
+        #: Boundary value either passed in by the user or created
+        self.boundary_value = boundary or uuid4().hex
+        self.boundary = '--{0}\r\n'.format(self.boundary_value).encode()
+
+        #: Length of the body
+        self._len = None
+
+        #: Fields passed in by the user
         self.fields = fields
-        self._field_iter = iter_field_objects(self.fields)
-        self._bytes_io = CustomBytesIO()
+
+        # Our buffer
+        self._buffer = CustomBytesIO()
+
+        # This a list of two-tuples containing the rendered headers and the
+        # data.
+        self._fields_list = []
+
+        # Pre-render the headers so we can calculate the length
+        self._render_headers()
+
+    def __len__(self):
+        if self._len is None:
+            self._calculate_length()
+
+        return self._len
+
+    def _calculate_length(self):
+        self._len = 0
+        for (header, data) in self._fields_list:
+            self._len += len(header) + super_len(data)
 
     @property
     def content_type(self):
-        return str('multipart/form-data; boundary={0}'.format(self.boundary))
+        return str('multipart/form-data; boundary={0}'.format(
+            self.boundary_value
+            ))
 
     def to_string(self):
         return encode_multipart_formdata(self.fields, self.boundary)[0]
 
     def read(self, size=None):
         return self._read_bytes(size)
+
+    def _load_bytes(self, size):
+        written = 0
+        if self._current_data
+        for (headers, data) in self._fields_list:
+            self._current_data = data
 
     def _read_bytes(self, size=None):
         if size is None:
@@ -32,7 +67,13 @@ class MultipartEncoder(object):
         if size > bytes_length:
             self._load_bytes(size - bytes_length)
 
-        return self._bytes_io.read(size)
+        return self._buffer.read(size)
+
+    def _render_headers(self):
+        iter_fields = iter_field_objects(self.fields)
+        self._fields_list = [
+            (f.render_headers(), f.data) for f in iter_fields
+            ]
 
 
 class CustomBytesIO(io.BytesIO):
