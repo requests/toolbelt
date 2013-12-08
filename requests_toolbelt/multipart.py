@@ -25,6 +25,9 @@ class MultipartEncoder(object):
         # data.
         self._fields_list = []
 
+        # Iterator over the fields so we don't lose track of where we are
+        self._fields_iter = None
+
         # Pre-render the headers so we can calculate the length
         self._render_headers()
 
@@ -57,19 +60,39 @@ class MultipartEncoder(object):
 
     def _load_bytes(self, size):
         written = 0
-        if self._current_data
-        for (headers, data) in self._fields_list:
+
+        # Consume previously unconsumed data
+        if (self._current_data is not None and
+                super_len(self._current_data) > 0):
+            written += self._buffer.write(self._current_data.read(size))
+
+        while written < size:
+            try:
+                # Try to get another field tuple
+                (headers, data) = next(self._fields_list)
+            except StopIteration:
+                # We reached the end of the list, so write the closing
+                # boundary
+                self._buffer.write(self.boundary + '--')
+                break
+
+            # We have a tuple, write the headers in their entirety.
+            # They aren't that large, if we write more than was requested, it
+            # should not hurt anyone much.
+            written += self._buffer.write(headers)
             self._current_data = data
+            if written < size:
+                self._buffer.write(self._current_data.read(size - written))
 
     def _read_bytes(self, size=None):
         if size is None:
-            return self._read_remaining()
+            self._load_bytes(float('inf'))
+        else:
+            size = int(size)  # Ensure it is always an integer
+            bytes_length = len(self._buffer)  # Calculate this once
 
-        size = int(size)  # Ensure it is always an integer
-        bytes_length = len(self._buffer)  # Calculate this once
-
-        if size > bytes_length:
-            self._load_bytes(size - bytes_length)
+            if size > bytes_length:
+                self._load_bytes(size - bytes_length)
 
         return self._buffer.read(size)
 
@@ -78,6 +101,7 @@ class MultipartEncoder(object):
         self._fields_list = [
             (f.render_headers(), readable_data(f.data)) for f in iter_fields
             ]
+        self._fields_iter = iter(self._fields_list)
 
 
 def readable_data(data):
