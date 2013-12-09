@@ -12,11 +12,14 @@ class MultipartEncoder(object):
         self.boundary_value = boundary or uuid4().hex
         self.boundary = '--{0}\r\n'.format(self.boundary_value).encode()
 
-        #: Length of the body
-        self._len = None
-
         #: Fields passed in by the user
         self.fields = fields
+
+        # Most recently used data
+        self._current_data = None
+
+        # Length of the body
+        self._len = None
 
         # Our buffer
         self._buffer = CustomBytesIO()
@@ -53,7 +56,7 @@ class MultipartEncoder(object):
             ))
 
     def to_string(self):
-        return encode_multipart_formdata(self.fields, self.boundary)[0]
+        return encode_multipart_formdata(self.fields, self.boundary_value)[0]
 
     def read(self, size=None):
         return self._read_bytes(size)
@@ -69,7 +72,7 @@ class MultipartEncoder(object):
         while written < size:
             try:
                 # Try to get another field tuple
-                (headers, data) = next(self._fields_list)
+                (headers, data) = next(self._fields_iter)
             except StopIteration:
                 # We reached the end of the list, so write the closing
                 # boundary
@@ -86,7 +89,7 @@ class MultipartEncoder(object):
 
     def _read_bytes(self, size=None):
         if size is None:
-            self._load_bytes(float('inf'))
+            self._load_bytes(1e308)  # Almost infinity but not float('inf')
         else:
             size = int(size)  # Ensure it is always an integer
             bytes_length = len(self._buffer)  # Calculate this once
