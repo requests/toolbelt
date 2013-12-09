@@ -10,7 +10,7 @@ class MultipartEncoder(object):
     def __init__(self, fields, boundary=None):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
-        self.boundary = '--{0}\r\n'.format(self.boundary_value).encode()
+        self.boundary = '--{0}'.format(self.boundary_value).encode()
 
         #: Fields passed in by the user
         self.fields = fields
@@ -44,8 +44,8 @@ class MultipartEncoder(object):
         boundary_len = len(self.boundary)  # Length of --{boundary}
         self._len = 0
         for (header, data) in self._fields_list:
-            # boundary length + header length + body length + len('\r\n')
-            self._len += boundary_len + len(header) + super_len(data) + 2
+            # boundary length + header length + body length + len('\r\n') * 2
+            self._len += boundary_len + len(header) + super_len(data) + 4
         # Length of trailing boundary '--{boundary}--\r\n'
         self._len += boundary_len + 4
 
@@ -63,33 +63,63 @@ class MultipartEncoder(object):
 
     def _load_bytes(self, size):
         written = 0
+        orig_position = self._buffer.tell()
 
         # Consume previously unconsumed data
-        if (self._current_data is not None and
-                super_len(self._current_data) > 0):
-            written += self._buffer.write(self._current_data.read(size))
+        written += self._consume_current_data(size)
 
-        while written < size:
-            try:
-                # Try to get another field tuple
-                (headers, data) = next(self._fields_iter)
-            except StopIteration:
-                # We reached the end of the list, so write the closing
-                # boundary
-                self._buffer.write(self.boundary + '--')
+        while size is None or written < size:
+            next_tuple = self._next_tuple()
+            if not next_tuple:
                 break
+
+            headers, data = next_tuple
 
             # We have a tuple, write the headers in their entirety.
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
             written += self._buffer.write(headers)
             self._current_data = data
-            if written < size:
+            if size is not None and written < size:
                 self._buffer.write(self._current_data.read(size - written))
+            else:
+                self._buffer.write(self._current_data.read())
+
+        self._buffer.seek(orig_position, 0)
+
+    def _consume_current_data(self, size):
+        written = 0
+
+        if self._current_data is None:
+            written = self._buffer.write(self.boundary)
+            written += self._buffer.write('\r\n')
+
+        elif (self._current_data is not None and
+                super_len(self._current_data) > 0):
+            written = self._buffer.write(self._current_data.read(size))
+
+        if super_len(self._current_data) == 0:
+            written += self._buffer.write(self.boundary)
+            written += self._buffer.write('\r\n')
+
+        return written
+
+    def _next_tuple(self):
+        next_tuple = tuple()
+
+        try:
+            # Try to get another field tuple
+            next_tuple = next(self._fields_iter)
+        except StopIteration:
+            # We reached the end of the list, so write the closing
+            # boundary
+            self._buffer.write(self.boundary + '--\r\n')
+
+        return next_tuple
 
     def _read_bytes(self, size=None):
         if size is None:
-            self._load_bytes(1e308)  # Almost infinity but not float('inf')
+            self._load_bytes(None)  # Almost infinity but not float('inf')
         else:
             size = int(size)  # Ensure it is always an integer
             bytes_length = len(self._buffer)  # Calculate this once

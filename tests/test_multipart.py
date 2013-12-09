@@ -23,6 +23,11 @@ class TestCustomBytesIO(unittest.TestCase):
         self.instance.write('example text')
         self.instance.read(6) == 'exampl'
 
+    def test_can_get_length(self):
+        self.instance.write('example')
+        self.instance.seek(0, 0)
+        assert len(self.instance) == 7
+
 
 class TestMultipartEncoder(unittest.TestCase):
     def test_to_string(self):
