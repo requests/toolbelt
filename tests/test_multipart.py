@@ -30,12 +30,13 @@ class TestCustomBytesIO(unittest.TestCase):
 
 
 class TestMultipartEncoder(unittest.TestCase):
+    def setUp(self):
+        self.parts = [('field', 'value'), ('other_field', 'other_value')]
+        self.boundary = 'this-is-a-boundary'
+        self.instance = MultipartEncoder(self.parts, boundary=self.boundary)
+
     def test_to_string(self):
-        instance = MultipartEncoder([
-            ('field', 'value'),
-            ('other_field', 'other_value')
-            ], boundary='this-is-a-boundary')
-        assert instance.to_string() == (
+        assert self.instance.to_string() == (
             '--this-is-a-boundary\r\n'
             'Content-Disposition: form-data; name="field"\r\n\r\n'
             'value\r\n'
@@ -46,9 +47,12 @@ class TestMultipartEncoder(unittest.TestCase):
         )
 
     def test_content_type(self):
-        instance = MultipartEncoder({}, boundary='this-is-a-boundary')
         expected = 'multipart/form-data; boundary=this-is-a-boundary'
-        assert instance.content_type == expected
+        assert self.instance.content_type == expected
+
+    def test_encodes_data_the_same(self):
+        import pytest; pytest.set_trace()
+        assert self.instance.to_string() == self.instance.read()
 
 
 if __name__ == '__main__':

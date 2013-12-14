@@ -99,8 +99,7 @@ class MultipartEncoder(object):
             written = self._buffer.write(self._current_data.read(size))
 
         if super_len(self._current_data) == 0:
-            written += self._buffer.write(self.boundary)
-            written += self._buffer.write('\r\n')
+            written += self._buffer.write('\r\n{0}\r\n'.format(self.boundary))
 
         return written
 
@@ -113,7 +112,7 @@ class MultipartEncoder(object):
         except StopIteration:
             # We reached the end of the list, so write the closing
             # boundary
-            self._buffer.write(self.boundary + '--\r\n')
+            self._buffer.write('\r\n{0}--\r\n'.format(self.boundary))
 
         return next_tuple
 
