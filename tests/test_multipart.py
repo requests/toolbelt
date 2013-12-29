@@ -51,7 +51,6 @@ class TestMultipartEncoder(unittest.TestCase):
         assert self.instance.content_type == expected
 
     def test_encodes_data_the_same(self):
-        import pytest; pytest.set_trace()
         assert self.instance.to_string() == self.instance.read()
 
 

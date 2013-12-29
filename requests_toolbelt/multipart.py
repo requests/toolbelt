@@ -81,9 +81,11 @@ class MultipartEncoder(object):
             written += self._buffer.write(headers)
             self._current_data = data
             if size is not None and written < size:
-                self._buffer.write(self._current_data.read(size - written))
+                self._consume_current_data(size - written)
+                #self._buffer.write(self._current_data.read(size - written))
             else:
-                self._buffer.write(self._current_data.read())
+                self._consume_current_data(None)
+                #self._buffer.write(self._current_data.read())
 
         self._buffer.seek(orig_position, 0)
 
@@ -111,8 +113,13 @@ class MultipartEncoder(object):
             next_tuple = next(self._fields_iter)
         except StopIteration:
             # We reached the end of the list, so write the closing
-            # boundary
-            self._buffer.write('\r\n{0}--\r\n'.format(self.boundary))
+            # boundary. The last file tuple wrote a boundary like:
+            # --{boundary}\r\n, so move back two characters, truncate and
+            # write the proper ending.
+            self._buffer.seek(-2, 1)
+            self._buffer.truncate()
+            self._buffer.write('--\r\n')
+            #self._buffer.write('\r\n{0}--\r\n'.format(self.boundary))
 
         return next_tuple
 
