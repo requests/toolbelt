@@ -1,7 +1,15 @@
 import unittest
+import sys
 from mock import patch
 from requests_toolbelt import user_agent
 from requests_toolbelt.user_agent import _implementation_string
+
+
+class Object(object):
+    """
+    A simple mock object that can have attributes added to it.
+    """
+    pass
 
 
 class TestUserAgent(unittest.TestCase):
@@ -19,3 +27,25 @@ class TestImplementationString(unittest.TestCase):
         mock_implementation.return_value = 'CPython'
         mock_version.return_value = '2.7.5'
         assert 'CPython/2.7.5' == _implementation_string()
+
+    @patch('platform.python_implementation')
+    def test_pypy_implementation_final(self, mock_implementation):
+        mock_implementation.return_value = 'PyPy'
+        sys.pypy_version_info = Object()
+        sys.pypy_version_info.major = 2
+        sys.pypy_version_info.minor = 0
+        sys.pypy_version_info.micro = 1
+        sys.pypy_version_info.releaselevel = 'final'
+
+        assert 'PyPy/2.0.1' == _implementation_string()
+
+    @patch('platform.python_implementation')
+    def test_pypy_implementation_non_final(self, mock_implementation):
+        mock_implementation.return_value = 'PyPy'
+        sys.pypy_version_info = Object()
+        sys.pypy_version_info.major = 2
+        sys.pypy_version_info.minor = 0
+        sys.pypy_version_info.micro = 1
+        sys.pypy_version_info.releaselevel = 'beta2'
+
+        assert 'PyPy/2.0.1beta2' == _implementation_string()
