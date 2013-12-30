@@ -49,3 +49,9 @@ class TestImplementationString(unittest.TestCase):
         sys.pypy_version_info.releaselevel = 'beta2'
 
         assert 'PyPy/2.0.1beta2' == _implementation_string()
+
+    @patch('platform.python_implementation')
+    def test_unknown_implementation(self, mock_implementation):
+        mock_implementation.return_value = "Lukasa'sSuperPython"
+
+        assert "Lukasa'sSuperPython/Unknown" == _implementation_string()
