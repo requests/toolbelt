@@ -1,18 +1,18 @@
 requests toolbelt
 =================
 
-This is just a collection of utilities that some users of python-requests 
+This is just a collection of utilities that some users of python-requests
 might need but do not belong in requests proper.
 
 multipart/form-data Encoder
 ---------------------------
 
-The main attraction is a streaming multipart form-data object. It's API looks 
+The main attraction is a streaming multipart form-data object. Its API looks
 like:
 
 .. code::
 
-    from requests_toolkit import MultipartEncoder
+    from requests_toolbelt import MultipartEncoder
 
     import requests
 
@@ -25,12 +25,12 @@ like:
     r = requests.post('http://httpbin.org/post', data=m,
                       headers={'Content-Type': m.content_type})
 
-You can also use it to just plain use ``multipart/form-data`` encoding for 
+You can also use it to just plain use ``multipart/form-data`` encoding for
 requests that do not require files
 
 .. code::
 
-    from requests_toolkit import MultipartEncoder
+    from requests_toolbelt import MultipartEncoder
 
     import requests
 
@@ -55,7 +55,7 @@ User-Agent constructor
 
 .. code::
 
-    from requests_toolkit import user_agent
+    from requests_toolbelt import user_agent
 
     headers = {
         'User-Agent': user_agent('my_package', '0.0.1')
