@@ -10,7 +10,7 @@ class MultipartEncoder(object):
     def __init__(self, fields, boundary=None):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
-        self.boundary = '--{0}'.format(self.boundary_value).encode()
+        self.boundary = '--{0}'.format(self.boundary_value)
 
         #: Fields passed in by the user
         self.fields = fields
@@ -78,7 +78,7 @@ class MultipartEncoder(object):
             # We have a tuple, write the headers in their entirety.
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
-            written += self._buffer.write(headers)
+            written += self._buffer.write(headers.encode())
             self._current_data = data
             if size is not None and written < size:
                 self._consume_current_data(size - written)
@@ -93,15 +93,17 @@ class MultipartEncoder(object):
         written = 0
 
         if self._current_data is None:
-            written = self._buffer.write(self.boundary)
-            written += self._buffer.write('\r\n')
+            written = self._buffer.write(self.boundary.encode())
+            written += self._buffer.write('\r\n'.encode())
 
         elif (self._current_data is not None and
                 super_len(self._current_data) > 0):
             written = self._buffer.write(self._current_data.read(size))
 
         if super_len(self._current_data) == 0:
-            written += self._buffer.write('\r\n{0}\r\n'.format(self.boundary))
+            written += self._buffer.write(
+                '\r\n{0}\r\n'.format(self.boundary).encode()
+                )
 
         return written
 
@@ -118,7 +120,7 @@ class MultipartEncoder(object):
             # write the proper ending.
             self._buffer.seek(-2, 1)
             self._buffer.truncate()
-            self._buffer.write('--\r\n')
+            self._buffer.write('--\r\n'.encode())
             #self._buffer.write('\r\n{0}--\r\n'.format(self.boundary))
 
         return next_tuple
@@ -151,6 +153,8 @@ def readable_data(data):
 
 class CustomBytesIO(io.BytesIO):
     def __init__(self, buffer=None):
+        if hasattr(buffer, 'encode'):
+            buffer = buffer.encode()
         super(CustomBytesIO, self).__init__(buffer)
 
     def __len__(self):

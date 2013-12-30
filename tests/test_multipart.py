@@ -8,23 +8,23 @@ class TestCustomBytesIO(unittest.TestCase):
 
     def test_writable(self):
         assert hasattr(self.instance, 'write')
-        assert self.instance.write('example') == 7
+        assert self.instance.write(b'example') == 7
 
     def test_readable(self):
         assert hasattr(self.instance, 'read')
-        assert self.instance.read() == ''
-        assert self.instance.read(10) == ''
+        assert self.instance.read() == b''
+        assert self.instance.read(10) == b''
 
     def test_can_read_after_writing_to(self):
-        self.instance.write('example text')
-        self.instance.read() == 'example text'
+        self.instance.write(b'example text')
+        self.instance.read() == b'example text'
 
     def test_can_read_some_after_writing_to(self):
-        self.instance.write('example text')
-        self.instance.read(6) == 'exampl'
+        self.instance.write(b'example text')
+        self.instance.read(6) == b'exampl'
 
     def test_can_get_length(self):
-        self.instance.write('example')
+        self.instance.write(b'example')
         self.instance.seek(0, 0)
         assert len(self.instance) == 7
 
@@ -44,13 +44,14 @@ class TestMultipartEncoder(unittest.TestCase):
             'Content-Disposition: form-data; name="other_field"\r\n\r\n'
             'other_value\r\n'
             '--this-is-a-boundary--\r\n'
-        )
+        ).encode()
 
     def test_content_type(self):
         expected = 'multipart/form-data; boundary=this-is-a-boundary'
         assert self.instance.content_type == expected
 
     def test_encodes_data_the_same(self):
+        #import pytest; pytest.set_trace()
         assert self.instance.to_string() == self.instance.read()
 
 
