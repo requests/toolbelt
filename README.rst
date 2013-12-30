@@ -7,7 +7,7 @@ might need but do not belong in requests proper.
 multipart/form-data Encoder
 ---------------------------
 
-The main attraction is a streaming multipart form-data object. It's API looks
+The main attraction is a streaming multipart form-data object. Its API looks
 like:
 
 .. code::
