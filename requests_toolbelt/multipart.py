@@ -163,3 +163,11 @@ class CustomBytesIO(io.BytesIO):
         l = self.tell()
         self.seek(current_pos, 0)
         return l - current_pos
+
+    def write(self, bytes):
+        if len(self) <= 10:  # totally arbitrary
+            old_bytes = self.read()
+            self.seek(0, 0)
+            self.truncate()
+            super(CustomBytesIO, self).write(old_bytes)
+        return super(CustomBytesIO, self).write(bytes)
