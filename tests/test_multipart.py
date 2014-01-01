@@ -28,6 +28,15 @@ class TestCustomBytesIO(unittest.TestCase):
         self.instance.seek(0, 0)
         assert len(self.instance) == 7
 
+    def test_truncates_intelligently(self):
+        self.instance.write(b'abcdefghijklmnopqrstuvwxyzabcd')  # 30 bytes
+        assert self.instance.tell() == 30
+        self.instance.seek(-10, 2)
+        self.instance.smart_truncate()
+        assert len(self.instance) == 10
+        assert self.instance.read() == b'uvwxyzabcd'
+        assert self.instance.tell() == 10
+
 
 class TestMultipartEncoder(unittest.TestCase):
     def setUp(self):
@@ -51,7 +60,6 @@ class TestMultipartEncoder(unittest.TestCase):
         assert self.instance.content_type == expected
 
     def test_encodes_data_the_same(self):
-        #import pytest; pytest.set_trace()
         assert self.instance.to_string() == self.instance.read()
 
 
