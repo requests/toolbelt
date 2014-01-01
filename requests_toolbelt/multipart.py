@@ -88,6 +88,7 @@ class MultipartEncoder(object):
                 #self._buffer.write(self._current_data.read())
 
         self._buffer.seek(orig_position, 0)
+        self._buffer.smart_truncate()
 
     def _consume_current_data(self, size):
         written = 0
@@ -157,9 +158,24 @@ class CustomBytesIO(io.BytesIO):
             buffer = buffer.encode()
         super(CustomBytesIO, self).__init__(buffer)
 
-    def __len__(self):
+    def _get_end(self):
         current_pos = self.tell()
         self.seek(0, 2)
-        l = self.tell()
+        length = self.tell()
         self.seek(current_pos, 0)
-        return l - current_pos
+        return length
+
+    def __len__(self):
+        length = self._get_end()
+        return length - self.tell()
+
+    def smart_truncate(self):
+        to_be_read = len(self)
+        length = self._get_end()
+
+        if length >= 2 * to_be_read:
+            old_bytes = self.read()
+            self.seek(0, 0)
+            self.truncate()
+            self.write(old_bytes)
+            self.seek(0, 0)  # We want to be at the beginning
