@@ -2,6 +2,34 @@ import unittest
 from requests_toolbelt.multipart import CustomBytesIO, MultipartEncoder
 
 
+class LargeFileMock(object):
+    def __init__(self):
+        # Let's keep track of how many bytes we've given
+        self.bytes_read = 0
+        # Our limit (4GB)
+        self.bytes_max = 1024 * 1024 * 1024 * 4
+        # Fake name
+        self.name = 'fake_name.py'
+
+    def __len__(self):
+        return self.bytes_max
+
+    def read(self, size=None):
+        if self.bytes_read >= self.bytes_max:
+            return b''
+
+        if size is None:
+            length = self.bytes_max - self.bytes_read
+        else:
+            length = size
+
+        length = int(length)
+
+        self.bytes_read += length
+
+        return b'a' * length
+
+
 class TestCustomBytesIO(unittest.TestCase):
     def setUp(self):
         self.instance = CustomBytesIO()
@@ -61,6 +89,19 @@ class TestMultipartEncoder(unittest.TestCase):
 
     def test_encodes_data_the_same(self):
         assert self.instance.to_string() == self.instance.read()
+
+    def test_streams_its_data(self):
+        large_file = LargeFileMock()
+        parts = {'some field': 'value',
+                 'some file': large_file,
+                 }
+        encoder = MultipartEncoder(parts)
+        while True:
+            read = encoder.read(1024*1024*512)
+            if not read:
+                break
+
+        assert encoder._buffer.tell() <= 4096
 
 
 if __name__ == '__main__':

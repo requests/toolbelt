@@ -15,6 +15,9 @@ class MultipartEncoder(object):
         #: Fields passed in by the user
         self.fields = fields
 
+        #: State of streaming
+        self.finished = False
+
         # Most recently used data
         self._current_data = None
 
@@ -71,6 +74,7 @@ class MultipartEncoder(object):
         while size is None or written < size:
             next_tuple = self._next_tuple()
             if not next_tuple:
+                self.finished = True
                 break
 
             headers, data = next_tuple
@@ -81,11 +85,9 @@ class MultipartEncoder(object):
             written += self._buffer.write(headers.encode())
             self._current_data = data
             if size is not None and written < size:
-                self._consume_current_data(size - written)
-                #self._buffer.write(self._current_data.read(size - written))
+                written += self._consume_current_data(size - written)
             else:
-                self._consume_current_data(None)
-                #self._buffer.write(self._current_data.read())
+                written += self._consume_current_data(None)
 
         self._buffer.seek(orig_position, 0)
         self._buffer.smart_truncate()
@@ -101,7 +103,7 @@ class MultipartEncoder(object):
                 super_len(self._current_data) > 0):
             written = self._buffer.write(self._current_data.read(size))
 
-        if super_len(self._current_data) == 0:
+        if super_len(self._current_data) == 0 and not self.finished:
             written += self._buffer.write(
                 '\r\n{0}\r\n'.format(self.boundary).encode()
                 )
@@ -119,10 +121,10 @@ class MultipartEncoder(object):
             # boundary. The last file tuple wrote a boundary like:
             # --{boundary}\r\n, so move back two characters, truncate and
             # write the proper ending.
-            self._buffer.seek(-2, 1)
-            self._buffer.truncate()
-            self._buffer.write('--\r\n'.encode())
-            #self._buffer.write('\r\n{0}--\r\n'.format(self.boundary))
+            if not self.finished:
+                self._buffer.seek(-2, 1)
+                self._buffer.truncate()
+                self._buffer.write('--\r\n'.encode())
 
         return next_tuple
 
