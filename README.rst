@@ -62,3 +62,24 @@ User-Agent constructor
         }
 
     r = requests.get('https://api.github.com/users', headers=headers)
+
+
+SSLAdapter
+----------
+
+The ``SSLAdapter`` is an implementation of the adapter proposed over on
+@Lukasa's blog, `here`_. This adapter allows the user to choose one of the SSL
+protocols made available in Python's ``ssl`` module for outgoing HTTPS
+connections.
+
+.. code::
+
+    from requests_toolbelt import SSLAdapter
+
+    import requests
+    import ssl
+
+    s = requests.Session()
+    s.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1))
+
+.. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
