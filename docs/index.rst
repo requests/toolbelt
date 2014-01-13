@@ -6,7 +6,9 @@
 Welcome to requests_toolbelt's documentation!
 =============================================
 
-Contents:
+.. include:: ../README.rst
+    :start-line: 3
+
 
 .. toctree::
    :maxdepth: 2
