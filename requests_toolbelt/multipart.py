@@ -62,7 +62,22 @@ class MultipartEncoder(object):
         return encode_multipart_formdata(self.fields, self.boundary_value)[0]
 
     def read(self, size=None):
-        return self._read_bytes(size)
+        """Read data from the streaming encoder.
+
+        :param int size: (optional), If provided, ``read`` will return exactly
+            that many bytes. If it is not provided, it will return the
+            remaining bytes.
+        :returns: bytes
+        """
+        if size is not None:
+            size = int(size)  # Ensure it is always an integer
+            bytes_length = len(self._buffer)  # Calculate this once
+
+            size -= bytes_length if size > bytes_length else 0
+
+        self._load_bytes(size)
+
+        return self._buffer.read(size)
 
     def _load_bytes(self, size):
         written = 0
@@ -127,17 +142,6 @@ class MultipartEncoder(object):
                 self._buffer.write('--\r\n'.encode())
 
         return next_tuple
-
-    def _read_bytes(self, size=None):
-        if size is not None:
-            size = int(size)  # Ensure it is always an integer
-            bytes_length = len(self._buffer)  # Calculate this once
-
-            size -= bytes_length if size > bytes_length else 0
-
-        self._load_bytes(size)
-
-        return self._buffer.read(size)
 
     def _render_headers(self):
         iter_fields = iter_field_objects(self.fields)
