@@ -100,9 +100,8 @@ class MultipartEncoder(object):
             written += self._buffer.write(headers.encode())
             self._current_data = data
             if size is not None and written < size:
-                written += self._consume_current_data(size - written)
-            else:
-                written += self._consume_current_data(None)
+                size -= written
+            written += self._consume_current_data(size)
 
         self._buffer.seek(orig_position, 0)
         self._buffer.smart_truncate()
