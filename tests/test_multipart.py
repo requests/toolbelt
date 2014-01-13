@@ -103,6 +103,9 @@ class TestMultipartEncoder(unittest.TestCase):
 
         assert encoder._buffer.tell() <= 4096
 
+    def test_length_is_correct(self):
+        assert len(self.instance.to_string()) == len(self.instance)
+
 
 if __name__ == '__main__':
     unittest.main()
