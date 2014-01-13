@@ -129,14 +129,13 @@ class MultipartEncoder(object):
         return next_tuple
 
     def _read_bytes(self, size=None):
-        if size is None:
-            self._load_bytes(None)  # Almost infinity but not float('inf')
-        else:
+        if size is not None:
             size = int(size)  # Ensure it is always an integer
             bytes_length = len(self._buffer)  # Calculate this once
 
-            if size > bytes_length:
-                self._load_bytes(size - bytes_length)
+            size -= bytes_length if size > bytes_length else 0
+
+        self._load_bytes(size)
 
         return self._buffer.read(size)
 
