@@ -93,6 +93,7 @@ connections.
 .. toctree::
    :maxdepth: 2
 
+   user
 
 Indices and tables
 ==================
