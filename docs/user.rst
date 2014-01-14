@@ -71,3 +71,34 @@ into your program like this::
 
 This will override the default Requests user-agent string for all of your HTTP
 requests, replacing it with your own.
+
+
+SSLAdapter
+----------
+
+The ``SSLAdapter`` is the canonical implementation of the adapter proposed on
+Cory Benfield's blog, `here`_. This adapter allows the user to choose one of
+the SSL/TLS protocols made available in Python's ``ssl`` module for outgoing
+HTTPS connections.
+
+In principle, this shouldn't be necessary: compliant SSL servers should be able
+to negotiate the required SSL version. In practice there have been bugs in some
+versions of OpenSSL that mean that this negotiation doesn't go as planned. It
+can be useful to be able to simply plug in a Transport Adapter that can paste
+over the problem.
+
+For example, suppose you're having difficulty with the server that provides TLS
+for GitHub. You can work around it by using the following code::
+
+    from requests_toolbelt import SSLAdapter
+
+    import requests
+    import ssl
+
+    s = requests.Session()
+    s.mount('https://github.com/', SSLAdapter(ssl.PROTOCOL_TLSv1))
+
+Any future requests to GitHub made through that adapter will automatically
+attempt to negotiate TLSv1, and hopefully will succeed.
+
+.. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
