@@ -6,8 +6,8 @@ class LargeFileMock(object):
     def __init__(self):
         # Let's keep track of how many bytes we've given
         self.bytes_read = 0
-        # Our limit (4GB)
-        self.bytes_max = 1024 * 1024 * 1024 * 4
+        # Our limit (1GB)
+        self.bytes_max = 1024 * 1024 * 1024
         # Fake name
         self.name = 'fake_name.py'
 
@@ -96,12 +96,13 @@ class TestMultipartEncoder(unittest.TestCase):
                  'some file': large_file,
                  }
         encoder = MultipartEncoder(parts)
+        read_size = 1024 * 1024 * 128
         while True:
-            read = encoder.read(1024*1024*512)
+            read = encoder.read(read_size)
             if not read:
                 break
 
-        assert encoder._buffer.tell() <= 4096
+        assert encoder._buffer.tell() <= read_size
 
     def test_length_is_correct(self):
         assert len(self.instance.to_string()) == len(self.instance)

@@ -175,9 +175,9 @@ class CustomBytesIO(io.BytesIO):
 
     def smart_truncate(self):
         to_be_read = len(self)
-        length = self._get_end()
+        already_read = self._get_end() - to_be_read
 
-        if length >= 2 * to_be_read:
+        if already_read >= to_be_read:
             old_bytes = self.read()
             self.seek(0, 0)
             self.truncate()
