@@ -22,7 +22,7 @@ The toolbelt contains a class that allows you to build multipart request bodies
 in exactly the format you need, and to avoid reading files into memory. An
 example of how to use it is like this:
 
-.. code::
+::
 
     from requests_toolbelt import MultipartEncoder
     import requests
