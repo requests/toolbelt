@@ -3,17 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to requests_toolbelt's documentation!
-=============================================
+requests toolbelt
+=================
 
-.. include:: ../README.rst
-    :start-line: 3
+This is a collection of utilities that some users of python-requests might need
+but do not belong in requests proper. The library is actively maintained by
+members of the requests core development team, and so reflects the
+functionality most requested by users of the requests library.
 
+To get an overview of what the library contains, consult the :ref:`user <user>`
+documentation.
 
 .. toctree::
    :maxdepth: 2
 
-
+   user
 
 Indices and tables
 ==================
