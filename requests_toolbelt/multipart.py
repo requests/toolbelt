@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+
+requests_toolbelt.multipart
+===========================
+
+This holds all of the implementation details of the MultipartEncoder
+
+"""
+
 from requests.utils import super_len
 from requests.packages.urllib3.filepost import (iter_field_objects,
                                                 encode_multipart_formdata)
@@ -7,6 +17,31 @@ import io
 
 
 class MultipartEncoder(object):
+
+    """
+
+    The ``MultipartEncoder`` oject is a generic interface to the engine that
+    will create a ``multipart/form-data`` body for you.
+
+    The basic usage is::
+
+        import requests
+        from requests_toolbelt import MultipartEncoder
+
+        encoder = MultipartEncoder({'field': 'value',
+                                    'other_field', 'other_value'})
+        r = requests.post('https://httpbin.org/post', data=encoder,
+                          headers={'Content-Type': encoder.content_type})
+
+    If you do not need to take advantage of streaming the post body, you can
+    also do::
+
+        r = requests.post('https://httpbin.org/post',
+                          data=encoder.to_string(),
+                          headers={'Content-Type': encoder.content_type})
+
+    """
+
     def __init__(self, fields, boundary=None):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
