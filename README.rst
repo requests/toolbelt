@@ -8,9 +8,7 @@ multipart/form-data Encoder
 ---------------------------
 
 The main attraction is a streaming multipart form-data object. Its API looks
-like:
-
-.. code::
+like::
 
     from requests_toolbelt import MultipartEncoder
 
@@ -26,9 +24,7 @@ like:
                       headers={'Content-Type': m.content_type})
 
 You can also use it to just plain use ``multipart/form-data`` encoding for
-requests that do not require files
-
-.. code::
+requests that do not require files::
 
     from requests_toolbelt import MultipartEncoder
 
@@ -41,9 +37,7 @@ requests that do not require files
                       headers={'Content-Type': m.content_type})
 
 
-You can also just use it to create the string to examine the data
-
-.. code::
+You can also just use it to create the string to examine the data::
 
     # Assuming `m` is one of the above
 
@@ -53,7 +47,7 @@ You can also just use it to create the string to examine the data
 User-Agent constructor
 ----------------------
 
-.. code::
+You can easily construct your own requests-style User-Agent string::
 
     from requests_toolbelt import user_agent
 
@@ -70,9 +64,7 @@ SSLAdapter
 The ``SSLAdapter`` is an implementation of the adapter proposed over on
 @Lukasa's blog, `here`_. This adapter allows the user to choose one of the SSL
 protocols made available in Python's ``ssl`` module for outgoing HTTPS
-connections.
-
-.. code::
+connections::
 
     from requests_toolbelt import SSLAdapter
 
