@@ -30,7 +30,6 @@ except:
 if not __version__:
     raise RuntimeError('Cannot find version information')
 
-
 setup(
     name="requests-toolbelt",
     version=__version__,
