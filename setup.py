@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
+import sys
 
 from setuptools import setup
+
+if sys.argv[-1].lower() in ("submit", "publish"):
+    os.system("python setup.py bdist_wheel sdist upload")
+    sys.exit()
 
 
 def get_version():
