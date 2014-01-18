@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.0 -- 2014-xx-xx
+0.1.0 -- 2014-01-18
 -------------------
 
 - Add initial implementation of the streaming ``MultipartEncoder``
