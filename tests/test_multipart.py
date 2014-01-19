@@ -14,6 +14,9 @@ class LargeFileMock(object):
     def __len__(self):
         return self.bytes_max
 
+    def tell(self):
+        return self.bytes_read
+
     def read(self, size=None):
         if self.bytes_read >= self.bytes_max:
             return b''
