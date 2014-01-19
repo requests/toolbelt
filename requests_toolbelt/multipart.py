@@ -152,7 +152,9 @@ class MultipartEncoder(object):
                 super_len(self._current_data) > 0):
             written = self._buffer.write(self._current_data.read(size))
 
-        if super_len(self._current_data) == 0 and not self.finished:
+        if (self._current_data is not None and
+                super_len(self._current_data) - self._current_data.tell() == 0 and
+                not self.finished):
             written += self._buffer.write(
                 '\r\n{0}\r\n'.format(self.boundary).encode()
                 )
@@ -217,12 +219,12 @@ class CustomBytesIO(io.BytesIO):
         return length
 
     def __len__(self):
-        length = self._get_end()
-        return length - self.tell()
+        return self._get_end()
 
     def smart_truncate(self):
-        to_be_read = len(self)
-        already_read = self._get_end() - to_be_read
+        length = len(self)
+        to_be_read = length - self.tell()
+        already_read = length - to_be_read
 
         if already_read >= to_be_read:
             old_bytes = self.read()
