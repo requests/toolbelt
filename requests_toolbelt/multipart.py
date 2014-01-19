@@ -133,7 +133,7 @@ class MultipartEncoder(object):
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
             written += self._buffer.write(headers.encode())
-            self._current_data = data
+            self._current_data = self._coerce_data(data)
             if size is not None and written < size:
                 size -= written
             written += self._consume_current_data(size)
@@ -176,6 +176,11 @@ class MultipartEncoder(object):
                 self._buffer.write('--\r\n'.encode())
 
         return next_tuple
+
+    def _coerce_data(self, data):
+        if not isinstance(data, CustomBytesIO) and hasattr(data, 'getvalue'):
+            return CustomBytesIO(data.getvalue())
+        return data
 
     def _render_headers(self):
         iter_fields = iter_field_objects(self.fields)
