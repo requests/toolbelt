@@ -133,7 +133,7 @@ class MultipartEncoder(object):
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
             written += self._buffer.write(headers.encode())
-            self._current_data = self._coerce_data(data)
+            self._current_data = coerce_data(data)
             if size is not None and written < size:
                 size -= written
             written += self._consume_current_data(size)
@@ -177,11 +177,6 @@ class MultipartEncoder(object):
 
         return next_tuple
 
-    def _coerce_data(self, data):
-        if not isinstance(data, CustomBytesIO) and hasattr(data, 'getvalue'):
-            return CustomBytesIO(data.getvalue())
-        return data
-
     def _render_headers(self):
         iter_fields = iter_field_objects(self.fields)
         self._fields_list = [
@@ -193,7 +188,19 @@ class MultipartEncoder(object):
 def readable_data(data):
     if hasattr(data, 'read'):
         return data
+
     return CustomBytesIO(data)
+
+
+def coerce_data(data):
+    if not isinstance(data, CustomBytesIO):
+        if hasattr(data, 'getvalue'):
+            return CustomBytesIO(data.getvalue())
+
+        if hasattr(data, 'fileno'):
+            return FileWrapper(data)
+
+    return data
 
 
 class CustomBytesIO(io.BytesIO):
@@ -223,3 +230,14 @@ class CustomBytesIO(io.BytesIO):
             self.truncate()
             self.write(old_bytes)
             self.seek(0, 0)  # We want to be at the beginning
+
+
+class FileWrapper(object):
+    def __init__(self, file_object):
+        self.fd = file_object
+
+    def __len__(self):
+        return super_len(self.fd) - self.fd.tell()
+
+    def read(self, length=-1):
+        return self.fd.read(length)
