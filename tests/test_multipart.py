@@ -1,4 +1,5 @@
 import unittest
+import io
 from requests_toolbelt.multipart import CustomBytesIO, MultipartEncoder
 
 
@@ -109,6 +110,16 @@ class TestMultipartEncoder(unittest.TestCase):
 
     def test_length_is_correct(self):
         assert len(self.instance.to_string()) == len(self.instance)
+
+    def test_encodes_with_readable_data(self):
+        s = io.BytesIO(b'value')
+        m = MultipartEncoder([('field', s)], boundary=self.boundary)
+        assert m.read() == (
+            '--this-is-a-boundary\r\n'
+            'Content-Disposition: form-data; name="field"\r\n\r\n'
+            'value\r\n'
+            '--this-is-a-boundary--\r\n'
+        ).encode()
 
 
 if __name__ == '__main__':
