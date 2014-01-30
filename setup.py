@@ -13,7 +13,7 @@ if sys.argv[-1].lower() in ("submit", "publish"):
 
 def get_version():
     version = ''
-    with open('github3/__init__.py', 'r') as fd:
+    with open('requests_toolbelt/__init__.py', 'r') as fd:
         reg = re.compile(r'__version__ = [\'"]([^\'"]*)[\'"]')
         for line in fd:
             m = reg.match(line)
