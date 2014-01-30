@@ -119,7 +119,7 @@ class TestMultipartEncoder(unittest.TestCase):
         ).encode()
 
     def test_reads_open_file_objects(self):
-        with open('setup.py') as fd:
+        with open('setup.py', 'rb') as fd:
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.read() is not None
 

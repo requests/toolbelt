@@ -29,7 +29,7 @@ example of how to use it is like this:
 
     m = MultipartEncoder(
         fields={'field0': 'value', 'field1': 'value',
-                'field2': ('filename', open('file.py'), 'text/plain')}
+                'field2': ('filename', open('file.py', 'rb'), 'text/plain')}
         )
 
     r = requests.post('http://httpbin.org/post', data=m,
