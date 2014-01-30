@@ -118,6 +118,11 @@ class TestMultipartEncoder(unittest.TestCase):
             '--this-is-a-boundary--\r\n'
         ).encode()
 
+    def test_reads_open_file_objects(self):
+        with open('setup.py') as fd:
+            m = MultipartEncoder([('field', 'foo'), ('file', fd)])
+            assert m.read() is not None
+
 
 if __name__ == '__main__':
     unittest.main()

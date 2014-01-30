@@ -144,6 +144,10 @@ class MultipartEncoder(object):
     def _consume_current_data(self, size):
         written = 0
 
+        # File objects need an integer size
+        if size is None:
+            size = -1
+
         if self._current_data is None:
             written = self._buffer.write(self.boundary.encode())
             written += self._buffer.write('\r\n'.encode())
