@@ -123,6 +123,13 @@ class TestMultipartEncoder(unittest.TestCase):
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.read() is not None
 
+    def test_reads_open_file_objects_with_a_specified_filename(self):
+        with open('setup.py', 'rb') as fd:
+            m = MultipartEncoder(
+                [('field', 'foo'), ('file', ('filename', fd, 'text/plain'))]
+                )
+            assert m.read() is not None
+
 
 if __name__ == '__main__':
     unittest.main()
