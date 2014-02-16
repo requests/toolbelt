@@ -1,6 +1,7 @@
 import unittest
 import io
 from requests_toolbelt.multipart import CustomBytesIO, MultipartEncoder
+from requests.packages.urllib3.filepost import encode_multipart_formdata
 
 
 class LargeFileMock(object):
@@ -89,7 +90,8 @@ class TestMultipartEncoder(unittest.TestCase):
         assert self.instance.content_type == expected
 
     def test_encodes_data_the_same(self):
-        assert self.instance.to_string() == self.instance.read()
+        encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
+        assert encoded == self.instance.read()
 
     def test_streams_its_data(self):
         large_file = LargeFileMock()
@@ -106,7 +108,8 @@ class TestMultipartEncoder(unittest.TestCase):
         assert encoder._buffer.tell() <= read_size
 
     def test_length_is_correct(self):
-        assert len(self.instance.to_string()) == len(self.instance)
+        encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
+        assert len(encoded) == len(self.instance)
 
     def test_encodes_with_readable_data(self):
         s = io.BytesIO(b'value')
@@ -129,6 +132,11 @@ class TestMultipartEncoder(unittest.TestCase):
                 [('field', 'foo'), ('file', ('filename', fd, 'text/plain'))]
                 )
             assert m.read() is not None
+
+    def test_reads_open_file_objects_using_to_string(self):
+        with open('setup.py', 'rb') as fd:
+            m = MultipartEncoder([('field', 'foo'), ('file', fd)])
+            assert m.to_string() is not None
 
 
 if __name__ == '__main__':

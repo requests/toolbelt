@@ -9,8 +9,7 @@ This holds all of the implementation details of the MultipartEncoder
 """
 
 from requests.utils import super_len
-from requests.packages.urllib3.filepost import (iter_field_objects,
-                                                encode_multipart_formdata)
+from requests.packages.urllib3.filepost import iter_field_objects
 from uuid import uuid4
 
 import io
@@ -94,7 +93,7 @@ class MultipartEncoder(object):
             ))
 
     def to_string(self):
-        return encode_multipart_formdata(self.fields, self.boundary_value)[0]
+        return self.read()
 
     def read(self, size=None):
         """Read data from the streaming encoder.
