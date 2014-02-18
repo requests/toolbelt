@@ -74,6 +74,9 @@ class MultipartEncoder(object):
         # Callback to execute after each read
         self.callback = callback
 
+        # Number of bytes that have been already read
+        self.bytes_read = 0
+
     def __len__(self):
         if self._len is None:
             self._calculate_length()
@@ -111,6 +114,11 @@ class MultipartEncoder(object):
             bytes_length = len(self._buffer)  # Calculate this once
 
             size -= bytes_length if size > bytes_length else 0
+
+            if self.bytes_read + size <= len(self):
+                self.bytes_read += size
+            else:
+                self.bytes_read = len(self)
 
         self._load_bytes(size)
 
