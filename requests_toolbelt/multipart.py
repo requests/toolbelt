@@ -41,7 +41,7 @@ class MultipartEncoder(object):
 
     """
 
-    def __init__(self, fields, boundary=None):
+    def __init__(self, fields, boundary=None, callback=None):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
         self.boundary = '--{0}'.format(self.boundary_value)
@@ -70,6 +70,12 @@ class MultipartEncoder(object):
 
         # Pre-render the headers so we can calculate the length
         self._render_headers()
+
+        # Callback to execute after each read
+        self.callback = callback
+
+        # Number of bytes that have been already read
+        self.bytes_read = 0
 
     def __len__(self):
         if self._len is None:
@@ -109,7 +115,15 @@ class MultipartEncoder(object):
 
             size -= bytes_length if size > bytes_length else 0
 
+            if self.bytes_read + size <= len(self):
+                self.bytes_read += size
+            else:
+                self.bytes_read = len(self)
+
         self._load_bytes(size)
+
+        if self.callback:
+            self.callback(self)
 
         return self._buffer.read(size)
 
