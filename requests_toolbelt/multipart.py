@@ -131,7 +131,7 @@ class MultipartEncoder(object):
             # We have a tuple, write the headers in their entirety.
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
-            written += self._buffer.write(headers.encode())
+            written += self._buffer.write(headers.encode('utf-8'))
             self._current_data = coerce_data(data)
             if size is not None and written < size:
                 size -= written
@@ -148,8 +148,8 @@ class MultipartEncoder(object):
             size = -1
 
         if self._current_data is None:
-            written = self._buffer.write(self.boundary.encode())
-            written += self._buffer.write('\r\n'.encode())
+            written = self._buffer.write(self.boundary.encode('utf-8'))
+            written += self._buffer.write('\r\n'.encode('utf-8'))
 
         elif (self._current_data is not None and
                 super_len(self._current_data) > 0):
@@ -157,7 +157,7 @@ class MultipartEncoder(object):
 
         if super_len(self._current_data) == 0 and not self.finished:
             written += self._buffer.write(
-                '\r\n{0}\r\n'.format(self.boundary).encode()
+                '\r\n{0}\r\n'.format(self.boundary).encode('utf-8')
                 )
 
         return written
@@ -176,7 +176,7 @@ class MultipartEncoder(object):
             if not self.finished:
                 self._buffer.seek(-2, 1)
                 self._buffer.truncate()
-                self._buffer.write('--\r\n'.encode())
+                self._buffer.write('--\r\n'.encode('utf-8'))
 
         return next_tuple
 
@@ -209,7 +209,7 @@ def coerce_data(data):
 class CustomBytesIO(io.BytesIO):
     def __init__(self, buffer=None):
         if hasattr(buffer, 'encode'):
-            buffer = buffer.encode()
+            buffer = buffer.encode('utf-8')
         super(CustomBytesIO, self).__init__(buffer)
 
     def _get_end(self):
