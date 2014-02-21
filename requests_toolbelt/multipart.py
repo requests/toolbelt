@@ -15,6 +15,19 @@ from uuid import uuid4
 import io
 
 
+def encode_with(string, encoding):
+    """Encoding ``string`` with ``encoding`` if necessary.
+
+    :param str string: If string is a bytes object, it will not encode it.
+        Otherwise, this function will encode it with the provided encoding.
+    :param str encoding: The encoding with which to encode string.
+    :returns: encoded bytes object
+    """
+    if string and not isinstance(string, bytes):
+        return string.encode(encoding)
+    return string
+
+
 class MultipartEncoder(object):
 
     """
@@ -41,10 +54,13 @@ class MultipartEncoder(object):
 
     """
 
-    def __init__(self, fields, boundary=None):
+    def __init__(self, fields, boundary=None, encoding='utf-8'):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
         self.boundary = '--{0}'.format(self.boundary_value)
+
+        #: Default encoding
+        self.encoding = encoding
 
         #: Fields passed in by the user
         self.fields = fields
@@ -59,7 +75,7 @@ class MultipartEncoder(object):
         self._len = None
 
         # Our buffer
-        self._buffer = CustomBytesIO()
+        self._buffer = CustomBytesIO(encoding=encoding)
 
         # This a list of two-tuples containing the rendered headers and the
         # data.
@@ -131,8 +147,8 @@ class MultipartEncoder(object):
             # We have a tuple, write the headers in their entirety.
             # They aren't that large, if we write more than was requested, it
             # should not hurt anyone much.
-            written += self._buffer.write(headers.encode('utf-8'))
-            self._current_data = coerce_data(data)
+            written += self._buffer.write(encode_with(headers, self.encoding))
+            self._current_data = coerce_data(data, self.encoding)
             if size is not None and written < size:
                 size -= written
             written += self._consume_current_data(size)
@@ -148,8 +164,10 @@ class MultipartEncoder(object):
             size = -1
 
         if self._current_data is None:
-            written = self._buffer.write(self.boundary.encode('utf-8'))
-            written += self._buffer.write('\r\n'.encode('utf-8'))
+            written = self._buffer.write(
+                encode_with(self.boundary, self.encoding)
+                )
+            written += self._buffer.write(encode_with('\r\n', self.encoding))
 
         elif (self._current_data is not None and
                 super_len(self._current_data) > 0):
@@ -157,7 +175,8 @@ class MultipartEncoder(object):
 
         if super_len(self._current_data) == 0 and not self.finished:
             written += self._buffer.write(
-                '\r\n{0}\r\n'.format(self.boundary).encode('utf-8')
+                encode_with('\r\n{0}\r\n'.format(self.boundary),
+                            self.encoding)
                 )
 
         return written
@@ -176,29 +195,30 @@ class MultipartEncoder(object):
             if not self.finished:
                 self._buffer.seek(-2, 1)
                 self._buffer.truncate()
-                self._buffer.write('--\r\n'.encode('utf-8'))
+                self._buffer.write(encode_with('--\r\n', self.encoding))
 
         return next_tuple
 
     def _render_headers(self):
+        e = self.encoding
         iter_fields = iter_field_objects(self.fields)
         self._fields_list = [
-            (f.render_headers(), readable_data(f.data)) for f in iter_fields
+            (f.render_headers(), readable_data(f.data, e)) for f in iter_fields
             ]
         self._fields_iter = iter(self._fields_list)
 
 
-def readable_data(data):
+def readable_data(data, encoding):
     if hasattr(data, 'read'):
         return data
 
-    return CustomBytesIO(data)
+    return CustomBytesIO(data, encoding)
 
 
-def coerce_data(data):
+def coerce_data(data, encoding):
     if not isinstance(data, CustomBytesIO):
         if hasattr(data, 'getvalue'):
-            return CustomBytesIO(data.getvalue())
+            return CustomBytesIO(data.getvalue(), encoding)
 
         if hasattr(data, 'fileno'):
             return FileWrapper(data)
@@ -207,9 +227,8 @@ def coerce_data(data):
 
 
 class CustomBytesIO(io.BytesIO):
-    def __init__(self, buffer=None):
-        if hasattr(buffer, 'encode'):
-            buffer = buffer.encode('utf-8')
+    def __init__(self, buffer=None, encoding='utf-8'):
+        buffer = encode_with(buffer, encoding)
         super(CustomBytesIO, self).__init__(buffer)
 
     def _get_end(self):
