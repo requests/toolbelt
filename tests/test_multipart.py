@@ -69,7 +69,7 @@ class TestCustomBytesIO(unittest.TestCase):
 
     def test_accepts_encoded_strings_with_unicode(self):
         """Accepts a string with encoded unicode characters."""
-        s = 'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3'
+        s = b'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3'
         self.instance = CustomBytesIO(s)
         assert self.instance.read() == s
 
