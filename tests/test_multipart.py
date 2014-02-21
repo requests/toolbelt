@@ -67,6 +67,12 @@ class TestCustomBytesIO(unittest.TestCase):
         assert self.instance.read() == b'uvwxyzabcd'
         assert self.instance.tell() == 10
 
+    def test_accepts_encoded_strings_with_unicode(self):
+        """Accepts a string with encoded unicode characters."""
+        s = 'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3'
+        self.instance = CustomBytesIO(s)
+        assert self.instance.read() == s
+
 
 class TestMultipartEncoder(unittest.TestCase):
     def setUp(self):
@@ -137,6 +143,20 @@ class TestMultipartEncoder(unittest.TestCase):
         with open('setup.py', 'rb') as fd:
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.to_string() is not None
+
+    def test_handles_encoded_unicode_strings(self):
+        m = MultipartEncoder([
+            ('field',
+             b'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3')
+        ])
+        assert m.read() is not None
+
+    def test_handles_uncode_strings(self):
+        s = b'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3'
+        m = MultipartEncoder([
+            ('field', s.decode('utf-8'))
+        ])
+        assert m.read() is not None
 
 
 if __name__ == '__main__':
