@@ -2,6 +2,7 @@
 import unittest
 import mock
 import requests
+import six
 from requests_toolbelt.multipart import MultipartDecoder
 from requests_toolbelt.multipart import MultipartEncoder
 from requests_toolbelt.multipart import Subpart
