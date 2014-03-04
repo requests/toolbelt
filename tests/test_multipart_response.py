@@ -24,8 +24,8 @@ class TestSubpart(unittest.TestCase):
         )
 
     def setUp(self):
-        self.header_1 = (u'Snowman', u'☃')
-        self.value_1 = u'©'
+        self.header_1 = (six.u('Snowman'), six.u('☃'))
+        self.value_1 = six.u('©')
         self.part1 = Subpart(TestSubpart.make_part_bytes((self.header_1,), self.value_1, 'utf-8'), 'utf-8')
         self.part2 = Subpart(TestSubpart.make_part_bytes((self.header_1,), self.value_1, 'utf-8'), 'utf-8')
         self.part3 = Subpart(TestSubpart.make_part_bytes((self.header_1,), self.value_1, 'utf-16'), 'utf-16')

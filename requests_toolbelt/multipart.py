@@ -294,8 +294,8 @@ class Subpart(object):
         first, self.content = split_on_find(content, b'\r\n\r\n')
         self.content = self.content.rstrip()
         self.headers = CaseInsensitiveDict({
-            split_on_find(line, u': '.encode(encoding))[0]: split_on_find(line, b': ')[1]
-            for line in first.split(u'\r\n'.encode(encoding))
+            split_on_find(line, six.u(': ').encode(encoding))[0]: split_on_find(line, b': ')[1]
+            for line in first.split(six.u('\r\n'.encode(encoding)))
         })
         self.encoding = encoding
 
