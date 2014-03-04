@@ -293,10 +293,13 @@ class Subpart(object):
     def __init__(self, content, encoding):
         first, self.content = split_on_find(content, b'\r\n\r\n')
         self.content = self.content.rstrip()
-        self.headers = CaseInsensitiveDict({
-            split_on_find(line, six.u(': ').encode(encoding))[0]: split_on_find(line, b': ')[1]
-            for line in first.split(six.u('\r\n'.encode(encoding)))
-        })
+        self.headers = CaseInsensitiveDict(dict(
+            (
+                split_on_find(line, six.u(': ').encode(encoding))[0],
+                split_on_find(line, b': ')[1]
+            )
+            for line in first.split(six.u('\r\n').encode(encoding))
+        ))
         self.encoding = encoding
 
     def __eq__(self, other):
@@ -385,10 +388,10 @@ class MultipartDecoder(object):
             mimetype = ct_info[0]
             if mimetype.split('/')[0] != 'multipart':
                 raise NonMultipartContentTypeException("Unexpected mimetype in content-type: '{0}'".format(mimetype))
-            ct_dict = {
-                item.split('=')[0]: item.split('=')[1].strip('"')
+            ct_dict = dict(
+                (item.split('=')[0], item.split('=')[1].strip('"'))
                 for item in ct_info[1:]
-            }
+            )
             if six.PY3:
                 self.boundary = ct_dict['boundary'].encode(self.encoding)
             else:

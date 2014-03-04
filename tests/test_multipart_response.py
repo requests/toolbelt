@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
-import unittest
 import mock
 import requests
 import six
+import sys
 from requests_toolbelt.multipart import MultipartDecoder
 from requests_toolbelt.multipart import MultipartEncoder
 from requests_toolbelt.multipart import Subpart
 from requests_toolbelt.multipart import NonMultipartContentTypeException
 
+major_ver, minor_ver, _, _, _ = sys.version_info
+if major_ver == 2 and minor_ver == 6:
+    import unittest2 as unittest
+else:
+    import unittest
 
 class TestSubpart(unittest.TestCase):
     @classmethod
