@@ -1,4 +1,3 @@
 pytest
 mock
 git+git://github.com/sigmavirus24/betamax
-unittest2

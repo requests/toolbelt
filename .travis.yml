@@ -10,6 +10,7 @@ before_script:
 - pip install -r dev-requirements.txt
 - pip install -U requests"$REQUESTS_VERSION"
 - pip install -U six
+- sh install_unittest2.sh
 
 # test script
 script:  py.test
