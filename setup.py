@@ -43,7 +43,7 @@ setup(
     packages=['requests_toolbelt'],
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,
-    install_requires=['requests>=2.0.1,<=3.0.0'],
+    install_requires=['requests>=2.0.1,<=3.0.0', 'six>=1.4.0,<=2.0.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved',

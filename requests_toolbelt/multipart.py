@@ -4,15 +4,22 @@
 requests_toolbelt.multipart
 ===========================
 
-This holds all of the implementation details of the MultipartEncoder
+This holds all of the implementation details of the MultipartEncoder and MultipartDecoder
 
 """
 
 from requests.utils import super_len
+from requests.utils import guess_json_utf
 from requests.packages.urllib3.filepost import iter_field_objects
 from uuid import uuid4
-
+import six
+from requests.structures import CaseInsensitiveDict
 import io
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 
 def encode_with(string, encoding):
@@ -29,10 +36,9 @@ def encode_with(string, encoding):
 
 
 class MultipartEncoder(object):
-
     """
 
-    The ``MultipartEncoder`` oject is a generic interface to the engine that
+    The ``MultipartEncoder`` object is a generic interface to the engine that
     will create a ``multipart/form-data`` body for you.
 
     The basic usage is::
@@ -106,7 +112,7 @@ class MultipartEncoder(object):
     def content_type(self):
         return str('multipart/form-data; boundary={0}'.format(
             self.boundary_value
-            ))
+        ))
 
     def to_string(self):
         return self.read()
@@ -166,7 +172,7 @@ class MultipartEncoder(object):
         if self._current_data is None:
             written = self._buffer.write(
                 encode_with(self.boundary, self.encoding)
-                )
+            )
             written += self._buffer.write(encode_with('\r\n', self.encoding))
 
         elif (self._current_data is not None and
@@ -177,7 +183,7 @@ class MultipartEncoder(object):
             written += self._buffer.write(
                 encode_with('\r\n{0}\r\n'.format(self.boundary),
                             self.encoding)
-                )
+            )
 
         return written
 
@@ -204,7 +210,7 @@ class MultipartEncoder(object):
         iter_fields = iter_field_objects(self.fields)
         self._fields_list = [
             (f.render_headers(), readable_data(f.data, e)) for f in iter_fields
-            ]
+        ]
         self._fields_iter = iter(self._fields_list)
 
 
@@ -263,3 +269,195 @@ class FileWrapper(object):
 
     def read(self, length=-1):
         return self.fd.read(length)
+
+
+def split_on_find(content, bound):
+        point = content.find(bound)
+        return content[:point], content[point+len(bound):]
+
+
+class Subpart(object):
+    """
+
+    The ``Subpart`` object is a ``Response``-like interface to an individual
+    subpart of a multipart response. It is expected that these will
+    generally be created by objects of the ``MultipartDecoder`` class.
+
+    Like ``Response``, there is a ``CaseInsensiveDict`` object named header,
+    ``content`` to access bytes, ``text`` to access unicode, ``encoding`` to
+     access the unicode codec, and a ``json`` method to access content in JSON
+     as a dict.
+
+    """
+
+    def __init__(self, content, encoding):
+        first, self.content = split_on_find(content, b'\r\n\r\n')
+        self.content = self.content.rstrip()
+        self.headers = CaseInsensitiveDict(dict(
+            (
+                split_on_find(line, six.u(': ').encode(encoding))[0],
+                split_on_find(line, b': ')[1]
+            )
+            for line in first.split(six.u('\r\n').encode(encoding))
+        ))
+        self.encoding = encoding
+
+    def __eq__(self, other):
+        return self.content == other.content
+
+    @property
+    def text(self):
+        return self.content.decode(self.encoding)
+
+    def json(self, **kwargs):
+        """Returns the json-encoded content of a response, if any.
+
+        :param \*\*kwargs: Optional arguments that ``json.loads`` takes.
+        """
+
+        # Basically straight up from requests.models.Response.json()
+        if not self.encoding and len(self.content) > 3:
+            # No encoding set. JSON RFC 4627 section 3 states we should expect
+            # UTF-8, -16 or -32. Detect which one to use; If the detection or
+            # decoding fails, fall back to `self.text` (using chardet to make
+            # a best guess).
+            encoding = guess_json_utf(self.content)
+            if encoding is not None:
+                return json.loads(self.content.decode(encoding), **kwargs)
+        return json.loads(self.text, **kwargs)
+
+
+class NonMultipartContentTypeException(Exception):
+    def __init__(self, *args):
+        if six.PY3:
+            super().__init__(*args)
+        else:
+            super(NonMultipartContentTypeException, self).__init__(*args)
+
+
+class MultipartDecoder(object):
+    """
+
+    The ``MultipartDecoder`` exposes a tuple-like interface to the subparts of
+    a multipart ``Response``. Properties and methods which aren't relevant to
+    this interface are proxied to the ``Response`` associated with it.
+
+    The basic usage is::
+
+        import requests
+        from requests_toolbelt import MultipartDecoder
+
+        response = request.get(url)
+        decoder = MultipartDecoder(response)
+        for part in decoder:
+            print(part.header['content-type'])
+
+
+    """
+
+    def __getattr__(self, item):
+        try:
+            return getattr(self.response, item)
+        except AttributeError:
+            att_err_msg = (
+                "'{0}' object and the '{1}' object it contains"
+                " both have no attribute '{2}'"
+            ).format(
+                type(self), type(self.response), item
+            )
+            raise AttributeError(att_err_msg)
+
+    @classmethod
+    def _fix_last_part(cls, part, end_marker):
+        if end_marker in part:
+            return part.split(end_marker)[0]
+        else:
+            return part
+
+    def __init__(self, response=None):
+        if response is None:
+            self.response = None
+            self.boundary = None
+            self.subparts = None
+        else:
+            self.response = response
+            # extract boundary
+            ct_info = tuple(
+                x.strip() for x in self.headers['content-type'].split(';')
+            )
+            mimetype = ct_info[0]
+            if mimetype.split('/')[0] != 'multipart':
+                raise NonMultipartContentTypeException("Unexpected mimetype in content-type: '{0}'".format(mimetype))
+            ct_dict = dict(
+                (item.split('=')[0], item.split('=')[1].strip('"'))
+                for item in ct_info[1:]
+            )
+            if six.PY3:
+                self.boundary = ct_dict['boundary'].encode(self.encoding)
+            else:
+                self.boundary = ct_dict['boundary']
+            # make subparts
+            self.subparts = [
+                Subpart(
+                    MultipartDecoder._fix_last_part(
+                        x,
+                        b''.join((b'\r\n--', self.boundary, b'--\r\n'))
+                    ),
+                    self.encoding
+                )
+                for x in self.content.split(
+                    b''.join((b'--', self.boundary, b'\r\n'))
+                )
+                if x != b'' and x != b'\r\n'
+            ]
+
+    def __len__(self):
+        return len(self.subparts)
+
+    def __iter__(self):
+        return iter(self.subparts)
+
+    def __contains__(self, item):
+        return item in self.subparts
+
+    def __getitem__(self, key):
+        return self.subparts[key]
+
+    def __add__(self, other):
+        ans = MultipartDecoder()
+        ans.boundary = self.boundary
+        ans.response = self.response
+        ans.subparts = self.subparts + other.subparts
+        return ans
+
+    def __radd__(self, other):
+        ans = MultipartDecoder()
+        ans.boundary = self.boundary
+        ans.response = self.response
+        ans.subparts = other.subparts + self.subparts
+        return ans
+
+    def __iadd__(self, other):
+        self.subparts += other.subparts
+        return self
+
+    def __mul__(self, other):
+        ans = MultipartDecoder()
+        ans.boundary = self.boundary
+        ans.response = self.response
+        ans.subparts = self.subparts * other
+        return ans
+
+    def __rmul__(self, other):
+        ans = MultipartDecoder()
+        ans.boundary = self.boundary
+        ans.response = self.response
+        ans.subparts = other * self.subparts
+        return ans
+
+    def __imul__(self, other):
+        self.subparts = self.subparts * other
+        return self
+
+    def __repr__(self):
+        return repr(self.subparts)
