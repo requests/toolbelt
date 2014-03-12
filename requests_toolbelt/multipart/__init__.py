@@ -14,5 +14,6 @@ __license__ = 'Apache v2.0'
 __copyright__ = 'Copyright 2014 Ian Cordasco, Cory Benfield'
 
 from .encoder import MultipartEncoder
+from .decoder import MultipartDecoder
 
-__all__ = [MultipartEncoder]
+__all__ = [MultipartEncoder, MultipartDecoder]
