@@ -1,29 +1,31 @@
 import unittest
 import io
+import random
 from requests_toolbelt.multipart import CustomBytesIO, MultipartEncoder
 from requests.packages.urllib3.filepost import encode_multipart_formdata
 
 
 class LargeFileMock(object):
-    def __init__(self):
+    def __init__(self, file_size):
         # Let's keep track of how many bytes we've given
         self.bytes_read = 0
         # Our limit (1GB)
-        self.bytes_max = 1024 * 1024 * 1024
+        self.bytes_max = file_size
         # Fake name
         self.name = 'fake_name.py'
 
     def __len__(self):
-        return self.bytes_max
+        return self.bytes_max - self.bytes_read
 
     def read(self, size=None):
-        if self.bytes_read >= self.bytes_max:
+        readable_max = self.bytes_max - self.bytes_read
+        if readable_max <= 0:
             return b''
 
-        if size is None:
-            length = self.bytes_max - self.bytes_read
+        if size is None or size < 0:
+            length = readable_max
         else:
-            length = size
+            length = min(size, readable_max)
 
         length = int(length)
 
@@ -100,7 +102,7 @@ class TestMultipartEncoder(unittest.TestCase):
         assert encoded == self.instance.read()
 
     def test_streams_its_data(self):
-        large_file = LargeFileMock()
+        large_file = LargeFileMock(123456789)
         parts = {'some field': 'value',
                  'some file': large_file,
                  }
@@ -112,6 +114,49 @@ class TestMultipartEncoder(unittest.TestCase):
                 break
 
         assert encoder._buffer.tell() <= read_size
+
+    def test_streams_its_data_with_correct_length(self):
+        for i in range(0, 1000):
+            file_size = random.randint(0, 12345)
+            if random.random() < 0.1:
+                file_size = 0  # sometimes we check with an empty file
+            self.check_read_file_with_chunks(file_size, read_size=1)
+            self.check_read_file_with_chunks(file_size, read_size=2)
+            self.check_read_file_with_chunks(file_size, read_size=3)
+            read_size = random.randint(0, 2*file_size)
+            self.check_read_file_with_chunks(file_size, read_size=1)
+            for read_size in range(file_size - 10, file_size + 200):
+                if read_size < -1 or read_size == 0:
+                    continue
+                self.check_read_file_with_chunks(file_size, read_size)
+
+    def check_read_file_with_chunks(self, file_size, read_size):
+        print "===== Testing with file_size=",file_size,"read_size=",read_size
+        boundary="deterministic-test-boundary"
+        a_file = LargeFileMock(file_size)
+        parts = {'some_field': 'this is the value...',
+                 'some_file': a_file.read(),
+        }
+        expected_bytes = encode_multipart_formdata(parts, boundary)[0]
+        content_length = len(expected_bytes)
+
+        # Now read from our encoder :
+        a_file = LargeFileMock(file_size)
+        parts = {'some_field': 'this is the value...',
+                 'some_file': a_file,
+        }
+        encoder = MultipartEncoder(parts, boundary=boundary)
+        raw_bytes_count = 0
+        while True:
+            data = encoder.read(read_size)
+            if not data:
+                break
+            print "read",len(data),"bytes : ",repr(data)
+            assert data == expected_bytes[raw_bytes_count:raw_bytes_count+len(data)]
+            raw_bytes_count += len(data)
+        if raw_bytes_count != content_length:
+            print "Test failed with file_size=",file_size,"and read_size=",read_size
+        assert raw_bytes_count == content_length
 
     def test_length_is_correct(self):
         encoded = encode_multipart_formdata(self.parts, self.boundary)[0]

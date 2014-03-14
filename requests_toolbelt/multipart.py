@@ -68,6 +68,9 @@ class MultipartEncoder(object):
         #: State of streaming
         self.finished = False
 
+        # Index of current field during iteration
+        self._current_field_number = None
+
         # Most recently used data
         self._current_data = None
 
@@ -119,6 +122,8 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
+        if size is not None and size < 0:
+            size = None
         if size is not None:
             size = int(size)  # Ensure it is always an integer
             bytes_length = len(self._buffer)  # Calculate this once
@@ -132,12 +137,23 @@ class MultipartEncoder(object):
     def _load_bytes(self, size):
         written = 0
         orig_position = self._buffer.tell()
+        # we'll write at the end of _buffer (may not be empty):
+        self._buffer.seek(0, io.SEEK_END)
+
+        # Are we starting ?
+        if self._current_field_number is None:
+            written += self._buffer.write(
+                encode_with(self.boundary, self.encoding)
+            )
+            written += self._buffer.write(encode_with('\r\n', self.encoding))
+            self._current_field_number = 0
 
         # Consume previously unconsumed data
         written += self._consume_current_data(size)
 
         while size is None or written < size:
             next_tuple = self._next_tuple()
+            print "Next tuple : ", next_tuple
             if not next_tuple:
                 self.finished = True
                 break
@@ -163,21 +179,24 @@ class MultipartEncoder(object):
         if size is None:
             size = -1
 
-        if self._current_data is None:
-            written = self._buffer.write(
-                encode_with(self.boundary, self.encoding)
-                )
-            written += self._buffer.write(encode_with('\r\n', self.encoding))
-
-        elif (self._current_data is not None and
-                super_len(self._current_data) > 0):
+        written_separator = False
+        if self._current_data is not None:
+            # and super_len(self._current_data) >= 0):
+            # Read from field, copy to _buffer :
             written = self._buffer.write(self._current_data.read(size))
-
-        if super_len(self._current_data) == 0 and not self.finished:
-            written += self._buffer.write(
-                encode_with('\r\n{0}\r\n'.format(self.boundary),
-                            self.encoding)
-                )
+            print "   written=",written,"  super_len(self._current_data) == ",super_len(self._current_data)
+            if super_len(self._current_data) == 0:
+                # We have consumed all data of this field: forget it, add boundary
+                self._current_data = None
+                written += self._buffer.write(
+                    encode_with('\r\n{0}'.format(self.boundary),
+                                self.encoding)
+                    )
+                # If this is the last separator add -- before \r\n :
+                print "END of field : current_number=",self._current_field_number
+                if self._current_field_number == len(self.fields):
+                    self._buffer.write(encode_with('--', self.encoding))
+                self._buffer.write(encode_with('\r\n', self.encoding))
 
         return written
 
@@ -187,15 +206,9 @@ class MultipartEncoder(object):
         try:
             # Try to get another field tuple
             next_tuple = next(self._fields_iter)
+            self._current_field_number += 1
         except StopIteration:
-            # We reached the end of the list, so write the closing
-            # boundary. The last file tuple wrote a boundary like:
-            # --{boundary}\r\n, so move back two characters, truncate and
-            # write the proper ending.
-            if not self.finished:
-                self._buffer.seek(-2, 1)
-                self._buffer.truncate()
-                self._buffer.write(encode_with('--\r\n', self.encoding))
+            pass
 
         return next_tuple
 
