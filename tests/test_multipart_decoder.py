@@ -13,12 +13,6 @@ from requests_toolbelt.multipart.decoder import (
 from requests_toolbelt.multipart.encoder import encode_with
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-# major_version, _, _, _, _ = sys.version_info
-# if major_version == 3:
-#     from io import BytesIO as IOBuffer
-# else:
-#     from cStringIO import StringIO as IOBuffer
-
 
 class TestBodyPart(unittest.TestCase):
     @classmethod
