@@ -63,6 +63,12 @@ class BodyPart(object):
 
     @property
     def text(self):
+        """
+
+
+        Content of the ``BodyPart`` in unicode.
+
+        """
         return self.content.decode(self.encoding)
 
 
@@ -86,6 +92,18 @@ class MultipartDecoder(object):
         decoder = MultipartDecoder.from_response(response)
         for part in decoder.parts:
             print(part.header['content-type'])
+
+    If the multipart content is not from a response, basic usage is::
+
+        from requests_toolbelt import MultipartDecoder
+
+        decoder = MultipartDecoder(content, content_type)
+        for part in decoder.parts:
+            print(part.header['content-type'])
+
+    For both these usages, there is an optional ``encoding`` parameter. This is
+    a string, which is the name of the unicode codec to use (default is
+    ``'utf-8'``).
 
     """
     def __init__(self, content, content_type, encoding='utf-8'):
