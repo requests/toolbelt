@@ -8,6 +8,8 @@ This holds all the implementation details of the MultipartDecoder
 
 """
 
+import sys
+import email.parser
 from .encoder import encode_with
 from requests.structures import CaseInsensitiveDict
 
@@ -35,16 +37,26 @@ class BodyPart(object):
 
     """
 
+    @staticmethod
+    def _header_parser(string, encoding):
+        major, minor, _, _, _ = sys.version_info
+        if major == 2:
+            return email.parser.HeaderParser().parsestr(string)
+        return email.parser.HeaderParser().parsestr(string.decode(encoding))
+
     def __init__(self, content, encoding):
+        self.encoding = encoding
         headers = {}
         # Split into header section (if any) and the content
         if b'\r\n\r\n' in content:
             first, self.content = _split_on_find(content, b'\r\n\r\n')
             if first != b'':
-                for line in first.split(b'\r\n'):
-                    if b': ' in line:
-                        h_key, h_value = _split_on_find(line, b': ')
-                        headers[h_key] = h_value
+                headers = (
+                    (encode_with(k, encoding), encode_with(v, encoding))
+                    for k, v in BodyPart._header_parser(
+                        first, encoding
+                    ).items()
+                )
         elif b'\r\n' == content[:2]:
             self.content = content[2:]
         else:
@@ -52,7 +64,6 @@ class BodyPart(object):
                 'content neither contains CR-LF-CR-LF, nor starts with CR-LF'
             )
         self.headers = CaseInsensitiveDict(headers)
-        self.encoding = encoding
 
     def __eq__(self, other):
         try:
