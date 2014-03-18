@@ -15,16 +15,16 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 class TestBodyPart(unittest.TestCase):
-    @classmethod
-    def u(cls, content):
+    @staticmethod
+    def u(content):
         major, _, _, _, _ = sys.version_info
         if major == 3:
             return content
         else:
             return unicode(content.replace(r'\\', r'\\\\'), 'unicode_escape')
 
-    @classmethod
-    def bodypart_bytes_from_headers_and_values(cls, headers, value, encoding):
+    @staticmethod
+    def bodypart_bytes_from_headers_and_values(headers, value, encoding):
         return b'\r\n\r\n'.join(
             [
                 b'\r\n'.join(

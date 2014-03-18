@@ -133,8 +133,8 @@ class MultipartDecoder(object):
             if attr.lower() == 'boundary':
                 self.boundary = encode_with(value.strip('"'), self.encoding)
 
-    @classmethod
-    def _fix_last_part(cls, part, end_marker):
+    @staticmethod
+    def _fix_last_part(part, end_marker):
         if end_marker in part:
             return part[:part.find(end_marker)]
         else:
