@@ -80,7 +80,7 @@ class TestBodyPart(unittest.TestCase):
         assert self.part_1.text == self.part_2.text
 
     def test_no_headers(self):
-        sample_1 = b'\r\nNo headers\r\nTwo lines'
+        sample_1 = b'\r\n\r\nNo headers\r\nTwo lines'
         part_3 = BodyPart(sample_1, 'utf-8')
         assert len(part_3.headers) == 0
         assert part_3 == b'No headers\r\nTwo lines'

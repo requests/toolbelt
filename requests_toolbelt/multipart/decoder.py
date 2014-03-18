@@ -54,14 +54,12 @@ class BodyPart(object):
                 headers = (
                     (encode_with(k, encoding), encode_with(v, encoding))
                     for k, v in BodyPart._header_parser(
-                        first, encoding
+                        first.lstrip(), encoding
                     ).items()
                 )
-        elif b'\r\n' == content[:2]:
-            self.content = content[2:]
         else:
             raise ImproperBodyPartContentException(
-                'content neither contains CR-LF-CR-LF, nor starts with CR-LF'
+                'content does not contain CR-LF-CR-LF'
             )
         self.headers = CaseInsensitiveDict(headers)
 
@@ -145,26 +143,25 @@ class MultipartDecoder(object):
                 self.boundary = encode_with(value.strip('"'), self.encoding)
 
     @staticmethod
-    def _fix_last_part(part, end_marker):
-        if end_marker in part:
-            return part[:part.find(end_marker)]
+    def _fix_first_part(part, boundary_marker):
+        bm_len = len(boundary_marker)
+        if boundary_marker == part[:bm_len]:
+            return part[bm_len:]
         else:
             return part
 
     def _parse_body(self):
         self.parts = tuple(
-            [
-                BodyPart(
-                    MultipartDecoder._fix_last_part(
-                        x[:-2], b''.join((b'\r\n--', self.boundary, b'--'))
-                    ),
-                    self.encoding
-                )
-                for x in self.content.split(
-                    b''.join((b'--', self.boundary, b'\r\n'))
-                )
-                if x != b'' and x != b'\r\n'
-            ]
+            BodyPart(
+                MultipartDecoder._fix_first_part(
+                    x, b''.join((b'--', self.boundary))
+                ),
+                self.encoding
+            )
+            for x in self.content.split(
+                b''.join((b'\r\n--', self.boundary))
+            )
+            if x != b'' and x != b'\r\n' and x[:4] != b'--\r\n'
         )
 
     @classmethod
