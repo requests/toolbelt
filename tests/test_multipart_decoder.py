@@ -60,16 +60,16 @@ class TestBodyPart(unittest.TestCase):
             ),
             'utf-8'
         )
-        assert self.part_1 == part_3
+        assert self.part_1.content == part_3.content
 
     def test_equality_content_equals_bytes(self):
-        assert self.part_1 == encode_with(self.value_1, 'utf-8')
+        assert self.part_1.content == encode_with(self.value_1, 'utf-8')
 
     def test_equality_content_should_not_be_equal(self):
-        assert self.part_1 != self.part_2
+        assert self.part_1.content != self.part_2.content
 
     def test_equality_content_does_not_equal_bytes(self):
-        assert self.part_1 != encode_with(self.value_1, 'latin-1')
+        assert self.part_1.content != encode_with(self.value_1, 'latin-1')
 
     def test_changing_encoding_changes_text(self):
         part_2_orig_text = self.part_2.text
@@ -83,7 +83,7 @@ class TestBodyPart(unittest.TestCase):
         sample_1 = b'\r\n\r\nNo headers\r\nTwo lines'
         part_3 = BodyPart(sample_1, 'utf-8')
         assert len(part_3.headers) == 0
-        assert part_3 == b'No headers\r\nTwo lines'
+        assert part_3.content == b'No headers\r\nTwo lines'
 
 
 class TestMultipartDecoder(unittest.TestCase):
@@ -112,7 +112,7 @@ class TestMultipartDecoder(unittest.TestCase):
 
     def test_content_of_parts(self):
         assert all([
-            part == encode_with(s1[1], 'utf-8')
+            part.content == encode_with(s1[1], 'utf-8')
             for part, s1 in zip(self.decoded_1.parts, self.sample_1)
         ])
 
@@ -146,7 +146,9 @@ class TestMultipartDecoder(unittest.TestCase):
         response.content = cnt.getvalue()
         decoder_2 = MultipartDecoder.from_response(response)
         assert decoder_2.content_type == response.headers['content-type']
-        assert decoder_2.parts[0] == b'Body 1, Line 1\r\nBody 1, Line 2'
+        assert (
+            decoder_2.parts[0].content == b'Body 1, Line 1\r\nBody 1, Line 2'
+        )
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
-        assert decoder_2.parts[1] == b'Body 2, Line 1'
+        assert decoder_2.parts[1].content == b'Body 2, Line 1'

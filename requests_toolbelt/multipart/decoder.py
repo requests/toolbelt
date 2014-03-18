@@ -63,13 +63,6 @@ class BodyPart(object):
             )
         self.headers = CaseInsensitiveDict(headers)
 
-    def __eq__(self, other):
-        try:
-            ans = self.content == other.content
-        except AttributeError:
-            ans = self.content == other
-        return ans
-
     @property
     def text(self):
         """
