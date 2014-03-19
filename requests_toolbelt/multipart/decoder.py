@@ -68,12 +68,7 @@ class BodyPart(object):
 
     @property
     def text(self):
-        """
-
-
-        Content of the ``BodyPart`` in unicode.
-
-        """
+        """Content of the ``BodyPart`` in unicode."""
         return self.content.decode(self.encoding)
 
 
