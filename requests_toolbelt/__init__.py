@@ -17,7 +17,12 @@ __version__ = '0.2.0'
 __version_info__ = tuple(int(i) for i in __version__.split('.'))
 
 from .multipart import MultipartEncoder, MultipartDecoder
+from .multipart import ImproperBodyPartContentException
+from .multipart import NonMultipartContentTypeException
 from .ssl_adapter import SSLAdapter
 from .user_agent import user_agent
 
-__all__ = [MultipartEncoder, MultipartDecoder, SSLAdapter, user_agent]
+__all__ = [
+    MultipartEncoder, MultipartDecoder, SSLAdapter, user_agent,
+    ImproperBodyPartContentException, NonMultipartContentTypeException
+]

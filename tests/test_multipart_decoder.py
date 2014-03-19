@@ -6,6 +6,9 @@ import mock
 import pytest
 import requests
 from requests_toolbelt.multipart.decoder import BodyPart
+from requests_toolbelt.multipart.decoder import (
+    ImproperBodyPartContentException
+)
 from requests_toolbelt.multipart.decoder import MultipartDecoder
 from requests_toolbelt.multipart.decoder import (
     NonMultipartContentTypeException
@@ -84,6 +87,11 @@ class TestBodyPart(unittest.TestCase):
         part_3 = BodyPart(sample_1, 'utf-8')
         assert len(part_3.headers) == 0
         assert part_3.content == b'No headers\r\nTwo lines'
+
+    def test_no_crlf_crlf_in_content(self):
+        content = b'no CRLF CRLF here!\r\n'
+        with pytest.raises(ImproperBodyPartContentException):
+            BodyPart(content, 'utf-8')
 
 
 class TestMultipartDecoder(unittest.TestCase):

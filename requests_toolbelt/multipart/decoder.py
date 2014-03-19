@@ -20,8 +20,11 @@ def _split_on_find(content, bound):
 
 
 class ImproperBodyPartContentException(Exception):
-    def __init__(self, *args):
-        super(ImproperBodyPartContentException, self).__init__(*args)
+    pass
+
+
+class NonMultipartContentTypeException(Exception):
+    pass
 
 
 class BodyPart(object):
@@ -72,11 +75,6 @@ class BodyPart(object):
 
         """
         return self.content.decode(self.encoding)
-
-
-class NonMultipartContentTypeException(Exception):
-    def __init__(self, *args):
-        super(NonMultipartContentTypeException, self).__init__(*args)
 
 
 class MultipartDecoder(object):

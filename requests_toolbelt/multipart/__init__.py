@@ -15,5 +15,12 @@ __copyright__ = 'Copyright 2014 Ian Cordasco, Cory Benfield'
 
 from .encoder import MultipartEncoder
 from .decoder import MultipartDecoder
+from .decoder import ImproperBodyPartContentException
+from .decoder import NonMultipartContentTypeException
 
-__all__ = [MultipartEncoder, MultipartDecoder]
+__all__ = [
+    MultipartEncoder,
+    MultipartDecoder,
+    ImproperBodyPartContentException,
+    NonMultipartContentTypeException
+]
