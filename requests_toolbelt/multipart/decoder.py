@@ -137,15 +137,16 @@ class MultipartDecoder(object):
             return part
 
     def _parse_body(self):
+        boundary = b''.join((b'--', self.boundary))
         self.parts = tuple(
             BodyPart(
                 MultipartDecoder._fix_first_part(
-                    x, b''.join((b'--', self.boundary))
+                    x, boundary
                 ),
                 self.encoding
             )
             for x in self.content.split(
-                b''.join((b'\r\n--', self.boundary))
+                b''.join((b'\r\n', boundary))
             )
             if x != b'' and x != b'\r\n' and x[:4] != b'--\r\n'
         )
