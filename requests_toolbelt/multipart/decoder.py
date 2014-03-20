@@ -138,18 +138,16 @@ class MultipartDecoder(object):
 
     def _parse_body(self):
         boundary = b''.join((b'--', self.boundary))
-        self.parts = tuple(
-            BodyPart(
-                MultipartDecoder._fix_first_part(
-                    x, boundary
-                ),
-                self.encoding
-            )
-            for x in self.content.split(
-                b''.join((b'\r\n', boundary))
-            )
-            if x != b'' and x != b'\r\n' and x[:4] != b'--\r\n'
-        )
+
+        def body_part(part):
+            fixed = MultipartDecoder._fix_first_part(part, boundary)
+            return BodyPart(fixed, self.encoding)
+
+        def test_part(part):
+            return part != b'' and part != b'\r\n' and part[:4] != b'--\r\n'
+
+        parts = self.content.split(b''.join((b'\r\n', boundary)))
+        self.parts = tuple(body_part(x) for x in parts if test_part(x))
 
     @classmethod
     def from_response(cls, response, encoding='utf-8'):
