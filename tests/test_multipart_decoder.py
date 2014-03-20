@@ -20,7 +20,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 class TestBodyPart(unittest.TestCase):
     @staticmethod
     def u(content):
-        major, _, _, _, _ = sys.version_info
+        major = sys.version_info[0]
         if major == 3:
             return content
         else:
@@ -119,20 +119,22 @@ class TestMultipartDecoder(unittest.TestCase):
         assert len(self.sample_1) == len(self.decoded_1.parts)
 
     def test_content_of_parts(self):
-        assert all([
-            part.content == encode_with(s1[1], 'utf-8')
-            for part, s1 in zip(self.decoded_1.parts, self.sample_1)
-        ])
+        def parts_equal(part, sample):
+            return part.content == encode_with(sample[1], 'utf-8')
+
+        parts_iter = zip(self.decoded_1.parts, self.sample_1)
+        assert all(parts_equal(part, sample) for part, sample in parts_iter)
 
     def test_header_of_parts(self):
+        def parts_header_equal(part, sample):
+            return part.headers[b'Content-Disposition'] == encode_with(
+                'form-data; name="{0}"'.format(sample[0]), 'utf-8'
+            )
+
+        parts_iter = zip(self.decoded_1.parts, self.sample_1)
         assert all(
-            [
-                part.headers[b'Content-Disposition'] == encode_with(
-                    'form-data; name="{0}"'.format(s1[0]),
-                    'utf-8'
-                )
-                for part, s1 in zip(self.decoded_1.parts, self.sample_1)
-            ]
+            parts_header_equal(part, sample)
+            for part, sample in parts_iter
         )
 
     def test_from_response(self):
