@@ -27,6 +27,17 @@ class NonMultipartContentTypeException(Exception):
     pass
 
 
+def _header_parser(string, encoding):
+    major = sys.version_info[0]
+    if major == 3:
+        string = string.decode(encoding)
+    headers = email.parser.HeaderParser().parsestr(string).items()
+    return (
+        (encode_with(k, encoding), encode_with(v, encoding))
+        for k, v in headers
+    )
+
+
 class BodyPart(object):
     """
 
@@ -40,13 +51,6 @@ class BodyPart(object):
 
     """
 
-    @staticmethod
-    def _header_parser(string, encoding):
-        major, minor, _, _, _ = sys.version_info
-        if major == 2:
-            return email.parser.HeaderParser().parsestr(string)
-        return email.parser.HeaderParser().parsestr(string.decode(encoding))
-
     def __init__(self, content, encoding):
         self.encoding = encoding
         headers = {}
@@ -54,12 +58,7 @@ class BodyPart(object):
         if b'\r\n\r\n' in content:
             first, self.content = _split_on_find(content, b'\r\n\r\n')
             if first != b'':
-                headers = (
-                    (encode_with(k, encoding), encode_with(v, encoding))
-                    for k, v in BodyPart._header_parser(
-                        first.lstrip(), encoding
-                    ).items()
-                )
+                headers = _header_parser(first.lstrip(), encoding)
         else:
             raise ImproperBodyPartContentException(
                 'content does not contain CR-LF-CR-LF'
