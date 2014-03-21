@@ -1,6 +1,6 @@
 import unittest
 import io
-from requests_toolbelt.multipart import CustomBytesIO, MultipartEncoder
+from requests_toolbelt.multipart.encoder import CustomBytesIO, MultipartEncoder
 from requests.packages.urllib3.filepost import encode_multipart_formdata
 
 

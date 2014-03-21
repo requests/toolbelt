@@ -23,3 +23,5 @@ Urllib3
 
 Patches and Suggestions
 ```````````````````````
+
+- Jay De Lanoy <jay@delanoy.co>
