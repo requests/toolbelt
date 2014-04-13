@@ -1,35 +1,40 @@
 requests toolbelt
 =================
 
-This is just a collection of utilities that some users of python-requests
-might need but do not belong in requests proper.
+This is just a collection of utilities for `python-requests`_, 
+but don't really belong in ``requests`` proper.
+
+.. _python-requests: https://github.com/kennethreitz/requests
+
 
 multipart/form-data Encoder
 ---------------------------
 
-The main attraction is a streaming multipart form-data object. Its API looks
-like::
+The main attraction is a streaming multipart form-data object, ``MultipartEncoder``.
+Its API looks like this:
+
+.. code-block:: python
 
     from requests_toolbelt import MultipartEncoder
-
     import requests
 
-
     m = MultipartEncoder(
-        fields={'field0': 'value', 'field1': 'value',
+        fields={'field0': 'value', 
+                'field1': 'value',
                 'field2': ('filename', open('file.py', 'rb'), 'text/plain')}
         )
 
     r = requests.post('http://httpbin.org/post', data=m,
                       headers={'Content-Type': m.content_type})
 
-You can also use it to just plain use ``multipart/form-data`` encoding for
-requests that do not require files::
+
+You can also simply use ``multipart/form-data`` encoding for requests that 
+don't require files:
+
+.. code-block:: python
 
     from requests_toolbelt import MultipartEncoder
-
     import requests
-
 
     m = MultipartEncoder(fields={'field0': 'value', 'field1': 'value'})
 
@@ -37,23 +42,24 @@ requests that do not require files::
                       headers={'Content-Type': m.content_type})
 
 
-You can also just use it to create the string to examine the data::
+Or, just create the string and examine the data:
+
+.. code-block:: python
 
     # Assuming `m` is one of the above
-
     m.to_string()  # Always returns unicode
 
 
 User-Agent constructor
 ----------------------
 
-You can easily construct your own requests-style User-Agent string::
+Easily construct a requests-style ``User-Agent`` string:
+
+.. code-block:: python
 
     from requests_toolbelt import user_agent
 
-    headers = {
-        'User-Agent': user_agent('my_package', '0.0.1')
-        }
+    headers = { 'User-Agent': user_agent('my_package', '0.0.1') }
 
     r = requests.get('https://api.github.com/users', headers=headers)
 
@@ -61,17 +67,17 @@ You can easily construct your own requests-style User-Agent string::
 SSLAdapter
 ----------
 
-The ``SSLAdapter`` is an implementation of the adapter proposed over on
-@Lukasa's blog, `here`_. This adapter allows the user to choose one of the SSL
+The ``SSLAdapter`` is an implementation of `an adaptor proposed by @Lukasa`_. This adapter allows the user to choose one of the SSL
 protocols made available in Python's ``ssl`` module for outgoing HTTPS
-connections::
+connections:
+
+.. code-block:: python
 
     from requests_toolbelt import SSLAdapter
-
     import requests
     import ssl
 
     s = requests.Session()
     s.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1))
 
-.. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
+.. _an adaptor proposed by @Lukasa: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
