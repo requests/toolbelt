@@ -30,16 +30,24 @@ except:
 if not __version__:
     raise RuntimeError('Cannot find version information')
 
+from requests_toolbelt import (
+    __title__,
+    __description__,
+    __author__,
+    __author_email__,
+    __url__,
+)
+
 setup(
-    name="requests-toolbelt",
+    name=__title__,
     version=__version__,
-    description="A utility belt for advanced users of python-requests",
+    description=__description__,
     long_description="\n\n".join([open("README.rst").read(),
                                   open("HISTORY.rst").read()]),
     license=open("LICENSE").read(),
-    author="Ian Cordasco",
-    author_email="graffatcolmingov@gmail.com",
-    url="https://toolbelt.readthedocs.org",
+    author=__author__,
+    author_email=__author_email__,
+    url=__url__,
     packages=['requests_toolbelt'],
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,

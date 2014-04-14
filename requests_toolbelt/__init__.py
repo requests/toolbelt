@@ -10,7 +10,11 @@ See http://toolbelt.rtfd.org/ for documentation
 """
 
 __title__ = 'requests-toolbelt'
+__author__ = 'Ian Cordasco'
+__author_email__ = 'graffatcolmingov@gmail.com'
 __authors__ = 'Ian Cordasco, Cory Benfield'
+__description__ = 'A utility belt for advanced users of python-requests'
+__url__ = 'https://toolbelt.readthedocs.org'
 __license__ = 'Apache v2.0'
 __copyright__ = 'Copyright 2014 Ian Cordasco, Cory Benfield'
 __version__ = '0.2.0'
