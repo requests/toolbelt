@@ -236,6 +236,68 @@ def encode_with(string, encoding):
     return string
 
 
+class MultipartEncoderMonitor(object):
+
+    """
+    An object used to monitor the progress of a :class:`MultipartEncoder`.
+
+    The :class:`MultipartEncoder` should only be responsible for preparing and
+    streaming the data. For anyone who wishes to monitor it, they shouldn't be
+    using that instance to manage that as well. Using this class, they can
+    monitor an encoder and register a callback. The callback receives the
+    instance of the monitor.
+
+    To use this monitor, you construct your :class:`MultipartEncoder` as you
+    normally would.
+
+    .. code-block:: python
+
+        from requests_toolbelt import (MultipartEncoder,
+                                       MultipartEncoderMonitor)
+        import requests
+
+        def callback(encoder, bytes_read):
+            # Do something with this information
+            pass
+
+        m = MultipartEncoder(fields={'field0': 'value0'})
+        monitor = MultipartEncoderMonitor(m, callback)
+        headers = {'Content-Type': montior.content_type}
+        r = requests.post('https://httpbin.org/post', data=monitor,
+                          headers=headers)
+
+    """
+
+    IDENTITY = lambda monitor: monitor
+
+    def __init__(self, encoder, callback=None):
+        #: Instance of the :class:`MultipartEncoder` being monitored
+        self.encoder = encoder
+
+        #: Optionally function to call after a read
+        self.callback = callback or MultipartEncoder.IDENTITY
+
+        #: Number of bytes already read from the :class:`MultipartEncoder`
+        #: instance
+        self.bytes_read = 0
+
+    def __len__(self):
+        return len(self.encoder)
+
+    @property
+    def content_type(self):
+        return self.encoder.content_type
+
+    def to_string(self):
+        return self.read()
+
+    def read(self, size=None):
+        string = self.encoder.read(size)
+        self.bytes_read += len(string)
+        self.callback(self)
+        return string
+
+
 def readable_data(data, encoding):
     """Coerce the data to an object with a ``read`` method."""
     if hasattr(data, 'read'):
