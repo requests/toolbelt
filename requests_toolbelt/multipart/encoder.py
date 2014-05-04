@@ -119,13 +119,14 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
+        amt_to_load = size
         if size is not None:
             size = int(size)  # Ensure it is always an integer
             bytes_length = len(self._buffer)  # Calculate this once
 
-            size -= bytes_length if size > bytes_length else 0
+            amt_to_load = (size - bytes_length) if size > bytes_length else 0
 
-        self._load_bytes(size)
+        self._load_bytes(amt_to_load)
 
         return self._buffer.read(size)
 
@@ -137,24 +138,31 @@ class MultipartEncoder(object):
         written += self._consume_current_data(size)
 
         while size is None or written < size:
-            next_tuple = self._next_tuple()
-            if not next_tuple:
-                self.finished = True
+            written += self._load_new_current_data()
+            if self.finished:
                 break
 
-            headers, data = next_tuple
-
-            # We have a tuple, write the headers in their entirety.
-            # They aren't that large, if we write more than was requested, it
-            # should not hurt anyone much.
-            written += self._buffer.write(encode_with(headers, self.encoding))
-            self._current_data = coerce_data(data, self.encoding)
             if size is not None and written < size:
                 size -= written
             written += self._consume_current_data(size)
 
         self._buffer.seek(orig_position, 0)
         self._buffer.smart_truncate()
+
+    def _load_new_current_data(self):
+        next_tuple = self._next_tuple()
+        if not next_tuple:
+            self.finished = True
+            return 0
+
+        headers, data = next_tuple
+
+        # We have a tuple, write the headers in their entirety.
+        # They aren't that large, if we write more than was requested, it
+        # should not hurt anyone much.
+        written = self._buffer.write(encode_with(headers, self.encoding))
+        self._current_data = coerce_data(data, self.encoding)
+        return written
 
     def _consume_current_data(self, size):
         written = 0
@@ -168,6 +176,7 @@ class MultipartEncoder(object):
                 encode_with(self.boundary, self.encoding)
                 )
             written += self._buffer.write(encode_with('\r\n', self.encoding))
+            written += self._load_new_current_data()
 
         elif (self._current_data is not None and
                 super_len(self._current_data) > 0):
