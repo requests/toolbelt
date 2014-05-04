@@ -40,7 +40,7 @@ setup(
     author="Ian Cordasco",
     author_email="graffatcolmingov@gmail.com",
     url="https://toolbelt.readthedocs.org",
-    packages=['requests_toolbelt'],
+    packages=['requests_toolbelt', 'requests_toolbelt.multipart'],
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,
     install_requires=['requests>=2.0.1,<=3.0.0'],
