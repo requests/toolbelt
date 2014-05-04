@@ -84,6 +84,10 @@ class MultipartEncoder(object):
         # Iterator over the fields so we don't lose track of where we are
         self._fields_iter = None
 
+        # Keep track of whether or not this is the first time read has been
+        # called
+        self._first_read = True
+
         # Pre-render the headers so we can calculate the length
         self._render_headers()
 
@@ -136,14 +140,22 @@ class MultipartEncoder(object):
         orig_position = self._buffer.tell()
         self._buffer.seek(0, 2)
 
+        if self._first_read:
+            self._first_read = False
+            # Set up initial boundary
+            written += self._consume_current_data(size)
+            # Set up self._current_data
+            written += self._load_new_current_data()
+
         # Consume previously unconsumed data
         written += self._consume_current_data(size)
 
         while size is None or written < size:
-            written += self._consume_current_data(size - written)
             written += self._load_new_current_data()
             if self.finished:
                 break
+
+            written += self._consume_current_data(size - written)
 
         self._buffer.seek(orig_position, 0)
 
@@ -176,7 +188,6 @@ class MultipartEncoder(object):
                 encode_with(self.boundary, self.encoding)
                 )
             written += self._buffer.write(encode_with('\r\n', self.encoding))
-            written += self._load_new_current_data()
 
         elif (self._current_data is not None and
                 super_len(self._current_data) > 0):
