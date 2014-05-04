@@ -131,8 +131,10 @@ class MultipartEncoder(object):
         return self._buffer.read(size)
 
     def _load_bytes(self, size):
+        self._buffer.smart_truncate()
         written = 0
         orig_position = self._buffer.tell()
+        self._buffer.seek(0, 2)
 
         # Consume previously unconsumed data
         written += self._consume_current_data(size)
@@ -144,7 +146,6 @@ class MultipartEncoder(object):
                 break
 
         self._buffer.seek(orig_position, 0)
-        self._buffer.smart_truncate()
 
     def _load_new_current_data(self):
         written = 0
