@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 import io
 from requests_toolbelt.multipart.encoder import CustomBytesIO, MultipartEncoder

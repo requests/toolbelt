@@ -37,7 +37,7 @@ setup(
     long_description="\n\n".join([open("README.rst").read(),
                                   open("HISTORY.rst").read()]),
     license=open("LICENSE").read(),
-    author="Ian Cordasco",
+    author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
     url="https://toolbelt.readthedocs.org",
     packages=['requests_toolbelt', 'requests_toolbelt.multipart'],
