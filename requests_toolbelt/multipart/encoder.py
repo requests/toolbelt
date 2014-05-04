@@ -150,17 +150,21 @@ class MultipartEncoder(object):
         self._buffer.smart_truncate()
 
     def _load_new_current_data(self):
+        written = 0
+        if super_len(self._current_data) > 0:
+            written += self._consume_current_data(-1)
+
         next_tuple = self._next_tuple()
         if not next_tuple:
             self.finished = True
-            return 0
+            return written
 
         headers, data = next_tuple
 
         # We have a tuple, write the headers in their entirety.
         # They aren't that large, if we write more than was requested, it
         # should not hurt anyone much.
-        written = self._buffer.write(encode_with(headers, self.encoding))
+        written += self._buffer.write(encode_with(headers, self.encoding))
         self._current_data = coerce_data(data, self.encoding)
         return written
 
