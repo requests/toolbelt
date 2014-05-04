@@ -138,21 +138,16 @@ class MultipartEncoder(object):
         written += self._consume_current_data(size)
 
         while size is None or written < size:
+            written += self._consume_current_data(size - written)
             written += self._load_new_current_data()
             if self.finished:
                 break
-
-            if size is not None and written < size:
-                size -= written
-            written += self._consume_current_data(size)
 
         self._buffer.seek(orig_position, 0)
         self._buffer.smart_truncate()
 
     def _load_new_current_data(self):
         written = 0
-        if super_len(self._current_data) > 0:
-            written += self._consume_current_data(-1)
 
         next_tuple = self._next_tuple()
         if not next_tuple:
