@@ -12,6 +12,7 @@ from requests.utils import super_len
 from requests.packages.urllib3.filepost import iter_field_objects
 from uuid import uuid4
 
+import contextlib
 import io
 
 
@@ -57,6 +58,12 @@ class MultipartEncoder(object):
         #: Encoding of the data being passed in
         self.encoding = encoding
 
+        # Pre-encoded boundary
+        self._encoded_boundary = b''.join([
+            encode_with(self.boundary, self.encoding),
+            encode_with('\r\n', self.encoding)
+            ])
+
         #: Fields provided by the user
         self.fields = fields
 
@@ -72,25 +79,15 @@ class MultipartEncoder(object):
         # Pre-compute each part's headers
         self._precompute_headers()
 
+        # Load boundary into buffer
+        self._write_boundary()
+
     def __len__(self):
-        # If _len isn't already calculated, calculate it and set it
+        # If _len isn't already calculated, calculate, return, and set it
         return self._len or self._calculate_length()
 
     def __repr__(self):
         return '<MultipartEncoder: {0!r}>'.format(self.fields)
-
-    def _precompute_headers(self):
-        """This uses the fields provided by the user and computes the headers.
-
-        It populates the `computed_fields` attribute and uses that to create a
-        generator for iteration.
-        """
-        fields = iter_field_objects(to_list(self.fields))
-        enc = self.encoding
-        self.computed_fields = [
-            (f.render_headers(), readable_data(f.data, enc)) for f in fields
-            ]
-        self._iter_computed = iter(self.computed_fields)
 
     def _calculate_length(self):
         """
@@ -106,6 +103,24 @@ class MultipartEncoder(object):
         # Length of trailing boundary '--{boundary}--\r\n'
         self._len += boundary_len + 4
         return self._len
+
+    def _precompute_headers(self):
+        """This uses the fields provided by the user and computes the headers.
+
+        It populates the `computed_fields` attribute and uses that to create a
+        generator for iteration.
+        """
+        fields = iter_field_objects(to_list(self.fields))
+        enc = self.encoding
+        self.computed_fields = [
+            (f.render_headers(), readable_data(f.data, enc)) for f in fields
+            ]
+        self._iter_computed = iter(self.computed_fields)
+
+    def _write_boundary(self):
+        """Write the boundary to the end of the buffer."""
+        with reset(self._buffer):
+            self._buffer.write(self._encoded_boundary)
 
     @property
     def content_type(self):
@@ -141,13 +156,29 @@ def encode_with(string, encoding):
 
 
 def readable_data(data, encoding):
+    """Coerce the data to an object with a ``read`` method."""
     if hasattr(data, 'read'):
         return data
 
     return CustomBytesIO(data, encoding)
 
 
+@contextlib.contextmanager
+def reset(buffer):
+    """Keep track of the buffer's current position and write to the end.
+
+    This is a context manager meant to be used when adding data to the buffer.
+    It eliminates the need for every function to be concerned with the
+    position of the cursor in the buffer.
+    """
+    original_position = buffer.tell()
+    buffer.seek(0, 2)
+    yield
+    buffer.seek(original_position, 0)
+
+
 def coerce_data(data, encoding):
+    """Ensure that every object's __len__ behaves uniformly."""
     if not isinstance(data, CustomBytesIO):
         if hasattr(data, 'getvalue'):
             return CustomBytesIO(data.getvalue(), encoding)
