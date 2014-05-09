@@ -104,6 +104,31 @@ class MultipartEncoder(object):
         self._len += boundary_len + 4
         return self._len
 
+    def _calculate_load_amount(self, read_size):
+        """This calculates how many bytes need to be added to the buffer.
+
+        When a consumer read's ``x`` from the buffer, there are two cases to
+        satisfy:
+
+            1. Enough data in the buffer to return the requested amount
+            2. Not enough data
+
+        This function uses the amount of unread bytes in the buffer and
+        determines how much the Encoder has to load before it can return the
+        requested amount of bytes.
+
+        :param int read_size: the number of bytes the consumer requests
+        :returns: int -- the number of bytes that must be loaded into the
+            buffer before the read can be satisfied. This will be strictly
+            non-negative
+        """
+        amount = read_size - len(self._buffer)
+        return amount if amount > 0 else 0
+
+    def _load(self, amount):
+        """Load ``amount`` number of bytes into the buffer."""
+        pass
+
     def _precompute_headers(self):
         """This uses the fields provided by the user and computes the headers.
 
@@ -117,21 +142,35 @@ class MultipartEncoder(object):
             ]
         self._iter_computed = iter(self.computed_fields)
 
+    def _write(self, bytes_to_write):
+        """Write the bytes to the end of the buffer.
+
+        :param bytes bytes_to_write: byte-string (or bytearray) to append to
+            the buffer
+        :returns: int -- the number of bytes written
+        """
+        with reset(self._buffer):
+            written = self._buffer.write(bytes_to_write)
+        return written
+
     def _write_boundary(self):
         """Write the boundary to the end of the buffer."""
-        with reset(self._buffer):
-            self._buffer.write(self._encoded_boundary)
+        return self._write(self._encoded_boundary)
+
+    def _write_headers(self, headers):
+        """Write the current part's headers to the buffer."""
+        return self._write(encode_with(headers, self.encoding))
 
     @property
     def content_type(self):
-        return str('multipart/form-data; boundary={0}'.format(
-            self.boundary_value
-            ))
+        return str(
+            'multipart/form-data; boundary={0}'.format(self.boundary_value)
+            )
 
     def to_string(self):
         return self.read()
 
-    def read(self, size=None):
+    def read(self, size=-1):
         """Read data from the streaming encoder.
 
         :param int size: (optional), If provided, ``read`` will return exactly
@@ -139,7 +178,12 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
-        pass
+        bytes_to_load = size
+        if bytes_to_load != -1 and bytes_to_load is not None:
+            bytes_to_load = self._calculate_load_amount(int(size))
+
+        self._load(bytes_to_load)
+        return self._buffer.read(size)
 
 
 def encode_with(string, encoding):
