@@ -67,6 +67,9 @@ class MultipartEncoder(object):
         #: Fields provided by the user
         self.fields = fields
 
+        #: Whether or not the encoder is finished
+        self.finished = False
+
         #: Pre-computed parts of the upload
         self.parts = []
 
@@ -136,6 +139,7 @@ class MultipartEncoder(object):
             written = 0
             if not part:
                 written += self._write_closing_boundary()
+                self.finished = True
                 break
 
             written += part.write_to(self._buffer, amount)
@@ -207,6 +211,9 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
+        if self.finished:
+            return b''
+
         bytes_to_load = size
         if bytes_to_load != -1 and bytes_to_load is not None:
             bytes_to_load = self._calculate_load_amount(int(size))
