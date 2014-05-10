@@ -134,6 +134,7 @@ class MultipartEncoder(object):
 
     def _load(self, amount):
         """Load ``amount`` number of bytes into the buffer."""
+        self._buffer.smart_truncate()
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
