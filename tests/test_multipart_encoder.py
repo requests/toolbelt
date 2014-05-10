@@ -169,6 +169,51 @@ class TestMultipartEncoder(unittest.TestCase):
         ])
         assert m.read() is not None
 
+    def test_regresion_1(self):
+        """Ensure issue #31 doesn't ever happen again."""
+        fields = {
+            "test": "t" * 100
+        }
+
+        for x in range(30):
+            fields['f%d' % x] = (
+                'test', open('tests/test_multipart_encoder.py', 'rb')
+                )
+
+        m = MultipartEncoder(fields=fields)
+        total_size = len(m)
+
+        blocksize = 8192
+        read_so_far = 0
+
+        while True:
+            data = m.read(blocksize)
+            if not data:
+                break
+            read_so_far += len(data)
+
+        assert read_so_far == total_size
+
+    def test_regression_2(self):
+        """Ensure issue #31 doesn't ever happen again."""
+        fields = {
+            "test": "t" * 8100
+        }
+
+        m = MultipartEncoder(fields=fields)
+        total_size = len(m)
+
+        blocksize = 8192
+        read_so_far = 0
+
+        while True:
+            data = m.read(blocksize)
+            if not data:
+                break
+            read_so_far += len(data)
+
+        assert read_so_far == total_size
+
 
 if __name__ == '__main__':
     unittest.main()
