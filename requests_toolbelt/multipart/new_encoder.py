@@ -173,9 +173,7 @@ class MultipartEncoder(object):
             the buffer
         :returns: int -- the number of bytes written
         """
-        with reset(self._buffer):
-            written = self._buffer.write(bytes_to_write)
-        return written
+        return self._buffer.append(bytes_to_write)
 
     def _write_boundary(self):
         """Write the boundary to the end of the buffer."""
@@ -311,13 +309,11 @@ class Part(object):
         """
         written = 0
         if self.headers_unread:
-            with reset(buffer):
-                written += buffer.write(self.headers)
+            written += buffer.append(self.headers)
             self.headers_unread = False
 
         while len(self.body) > 0 and (size == -1 or written < size):
-            with reset(buffer):
-                written += buffer.write(self.body.read(size - written))
+            written += buffer.append(self.body.read(size - written))
 
         return written
 
@@ -337,6 +333,11 @@ class CustomBytesIO(io.BytesIO):
     def __len__(self):
         length = self._get_end()
         return length - self.tell()
+
+    def append(self, bytes):
+        with reset(self):
+            written = self.write(bytes)
+        return written
 
     def smart_truncate(self):
         to_be_read = len(self)
