@@ -13,6 +13,8 @@ class LargeFileMock(object):
         self.bytes_max = 1024 * 1024 * 1024
         # Fake name
         self.name = 'fake_name.py'
+        # Create a fileno attribute
+        self.fileno = None
 
     def __len__(self):
         return self.bytes_max
@@ -27,10 +29,14 @@ class LargeFileMock(object):
             length = size
 
         length = int(length)
+        length = min([length, self.bytes_max - self.bytes_read])
 
         self.bytes_read += length
 
         return b'a' * length
+
+    def tell(self):
+        return self.bytes_read
 
 
 class TestCustomBytesIO(unittest.TestCase):
@@ -106,13 +112,17 @@ class TestMultipartEncoder(unittest.TestCase):
                  'some file': large_file,
                  }
         encoder = MultipartEncoder(parts)
+        total_size = len(encoder)
         read_size = 1024 * 1024 * 128
+        already_read = 0
         while True:
             read = encoder.read(read_size)
+            already_read += len(read)
             if not read:
                 break
 
         assert encoder._buffer.tell() <= read_size
+        assert already_read == total_size
 
     def test_length_is_correct(self):
         encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
