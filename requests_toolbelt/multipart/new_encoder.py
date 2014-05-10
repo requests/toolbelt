@@ -138,17 +138,17 @@ class MultipartEncoder(object):
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
+            if not part.bytes_left_to_write():
+                written += self._write('\r\n')
+                written += self._write_boundary()
+                part = self._next_part()
+
             if not part:
                 written += self._write_closing_boundary()
                 self.finished = True
                 break
 
             written += part.write_to(self._buffer, amount)
-
-            if not part.bytes_left_to_write():
-                written += self._write('\r\n')
-                written += self._write_boundary()
-                part = self._next_part()
 
             if amount != -1:
                 amount -= written
@@ -213,7 +213,7 @@ class MultipartEncoder(object):
         :returns: bytes
         """
         if self.finished:
-            return b''
+            return self._buffer.read(size)
 
         bytes_to_load = size
         if bytes_to_load != -1 and bytes_to_load is not None:
