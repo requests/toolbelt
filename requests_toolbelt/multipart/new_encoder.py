@@ -68,16 +68,19 @@ class MultipartEncoder(object):
         self.fields = fields
 
         #: Pre-computed parts of the upload
-        self.computed_fields = []
+        self.parts = []
 
-        # Pre-computed fields iterator
-        self._iter_computed = iter([])
+        # Pre-computed parts iterator
+        self._iter_parts = iter([])
 
         # Cached computation of the body's length
         self._len = None
 
+        # Our buffer
+        self._buffer = CustomBytesIO(encoding=encoding)
+
         # Pre-compute each part's headers
-        self._precompute_headers()
+        self._prepare_parts()
 
         # Load boundary into buffer
         self._write_boundary()
@@ -95,13 +98,11 @@ class MultipartEncoder(object):
 
         This returns the calculated length so __len__ can be lazy.
         """
-        self._len = 0
         boundary_len = len(self.boundary)  # Length of --{boundary}
-        for (header, data) in self._fields_list:
-            # boundary length + header length + body length + len('\r\n') * 2
-            self._len += boundary_len + len(header) + super_len(data) + 4
-        # Length of trailing boundary '--{boundary}--\r\n'
-        self._len += boundary_len + 4
+        # boundary length + header length + body length + len('\r\n') * 2
+        self._len = sum(
+            (boundary_len + len(p) + 4) for p in self.parts
+            ) + boundary_len + 4
         return self._len
 
     def _calculate_load_amount(self, read_size):
@@ -129,18 +130,16 @@ class MultipartEncoder(object):
         """Load ``amount`` number of bytes into the buffer."""
         pass
 
-    def _precompute_headers(self):
-        """This uses the fields provided by the user and computes the headers.
+    def _prepare_parts(self):
+        """This uses the fields provided by the user and creates Part objects.
 
-        It populates the `computed_fields` attribute and uses that to create a
+        It populates the `parts` attribute and uses that to create a
         generator for iteration.
         """
         fields = iter_field_objects(to_list(self.fields))
         enc = self.encoding
-        self.computed_fields = [
-            (f.render_headers(), readable_data(f.data, enc)) for f in fields
-            ]
-        self._iter_computed = iter(self.computed_fields)
+        self.parts = [Part.from_field(f, enc) for f in fields]
+        self._iter_parts = iter(self.parts)
 
     def _write(self, bytes_to_write):
         """Write the bytes to the end of the buffer.
@@ -230,6 +229,9 @@ def coerce_data(data, encoding):
         if hasattr(data, 'fileno'):
             return FileWrapper(data)
 
+        if not hasattr(data, 'read'):
+            return CustomBytesIO(data, encoding)
+
     return data
 
 
@@ -237,6 +239,39 @@ def to_list(fields):
     if hasattr(fields, 'items'):
         return list(fields.items())
     return list(fields)
+
+
+class Part(object):
+    def __init__(self, headers, body):
+        self.headers = headers
+        self.body = body
+        self.headers_unread = True
+
+    def __len__(self):
+        return len(self.headers) + super_len(self.body)
+
+    @classmethod
+    def from_field(cls, field, encoding):
+        return cls(field.render_headers(), coerce_data(field.data, encoding))
+
+    def bytes_left_to_write(self):
+        to_read = 0
+        if self.headers_unread:
+            to_read += len(self.headers)
+
+        return to_read + len(self.body)
+
+    def write_to(self, buffer, size):
+        written = 0
+        if self.headers_unread:
+            written += buffer.write(self.headers)
+            self.headers_unread = False
+
+        while len(self.body) > 0 and (size == -1 or written < size):
+            with reset(buffer):
+                written += buffer.write(self.body.read(size - written))
+
+        return written
 
 
 class CustomBytesIO(io.BytesIO):
