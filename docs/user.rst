@@ -102,3 +102,22 @@ Any future requests to GitHub made through that adapter will automatically
 attempt to negotiate TLSv1, and hopefully will succeed.
 
 .. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
+
+
+GuessAuth
+---------
+
+The ``GuessAuth`` auth type automatically detects whether to use basic auth or
+digest auth::
+
+    from requests_toolbelt import GuessAuth
+
+    import requests
+
+    requests.get('http://httpbin.org/basic-auth/user/passwd',
+        auth=GuessAuth('user', 'passwd'))
+    requests.get('http://httpbin.org/digest-auth/auth/user/passwd',
+        auth=GuessAuth('user', 'passwd'))
+
+This requires an additional request in case of basic auth, as usually basic
+auth is sent preemptively.

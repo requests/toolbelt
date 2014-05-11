@@ -16,6 +16,7 @@ __copyright__ = 'Copyright 2014 Ian Cordasco, Cory Benfield'
 __version__ = '0.2.0'
 __version_info__ = tuple(int(i) for i in __version__.split('.'))
 
+from .auth import GuessAuth
 from .multipart import MultipartEncoder, MultipartDecoder
 from .multipart import ImproperBodyPartContentException
 from .multipart import NonMultipartContentTypeException
@@ -23,6 +24,6 @@ from .ssl_adapter import SSLAdapter
 from .user_agent import user_agent
 
 __all__ = [
-    MultipartEncoder, MultipartDecoder, SSLAdapter, user_agent,
+    GuessAuth, MultipartEncoder, MultipartDecoder, SSLAdapter, user_agent,
     ImproperBodyPartContentException, NonMultipartContentTypeException
 ]
