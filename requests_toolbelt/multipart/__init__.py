@@ -19,8 +19,8 @@ from .decoder import ImproperBodyPartContentException
 from .decoder import NonMultipartContentTypeException
 
 __all__ = [
-    MultipartEncoder,
-    MultipartDecoder,
-    ImproperBodyPartContentException,
-    NonMultipartContentTypeException
+    'MultipartEncoder',
+    'MultipartDecoder',
+    'ImproperBodyPartContentException',
+    'NonMultipartContentTypeException'
 ]
