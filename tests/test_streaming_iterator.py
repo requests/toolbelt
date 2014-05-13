@@ -21,4 +21,5 @@ class TestStreamingIterator(unittest.TestCase):
         for i in range(0, 4):
             self.uploader.read(8192)
 
+        assert self.uploader.read() == b''
         assert self.uploader.read(8192) == b''
