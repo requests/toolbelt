@@ -1,6 +1,28 @@
 History
 =======
 
+0.3.0 -- 2014-xx-xx
+-------------------
+
+Bug Fixes
+~~~~~~~~~
+
+- Complete rewrite of ``MultipartEncoder`` fixes bug where bytes were lost in
+  uploads
+
+New Features
+~~~~~~~~~~~~
+
+- ``MultipartDecoder`` to accept ``multipart/form-data`` response bodies and
+  parse them into an easy to use object.
+
+- ``SourceAddressAdapter`` to allow users to choose a local address to bind
+  connections to.
+
+- ``GuessAuth`` which accepts a username and password and uses the
+  ``WWW-Authenticate`` header to determine how to authenticate against a
+  server.
+
 0.2.0 -- 2014-02-24
 -------------------
 
