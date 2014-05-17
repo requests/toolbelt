@@ -30,6 +30,13 @@ except:
 if not __version__:
     raise RuntimeError('Cannot find version information')
 
+
+packages = [
+    'requests_toolbelt',
+    'requests_toolbelt.adapters',
+    'requests_toolbelt.multipart',
+]
+
 setup(
     name="requests-toolbelt",
     version=__version__,
@@ -40,7 +47,7 @@ setup(
     author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
     url="https://toolbelt.readthedocs.org",
-    packages=['requests_toolbelt', 'requests_toolbelt.multipart'],
+    packages=packages,
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,
     install_requires=['requests>=2.0.1,<=3.0.0'],
