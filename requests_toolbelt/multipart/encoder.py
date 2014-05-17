@@ -223,19 +223,6 @@ class MultipartEncoder(object):
         return self._buffer.read(size)
 
 
-def encode_with(string, encoding):
-    """Encoding ``string`` with ``encoding`` if necessary.
-
-    :param str string: If string is a bytes object, it will not encode it.
-        Otherwise, this function will encode it with the provided encoding.
-    :param str encoding: The encoding with which to encode string.
-    :returns: encoded bytes object
-    """
-    if string and not isinstance(string, bytes):
-        return string.encode(encoding)
-    return string
-
-
 class MultipartEncoderMonitor(object):
 
     """
@@ -291,11 +278,24 @@ class MultipartEncoderMonitor(object):
     def to_string(self):
         return self.read()
 
-    def read(self, size=None):
+    def read(self, size=-1):
         string = self.encoder.read(size)
         self.bytes_read += len(string)
         self.callback(self)
         return string
+
+
+def encode_with(string, encoding):
+    """Encoding ``string`` with ``encoding`` if necessary.
+
+    :param str string: If string is a bytes object, it will not encode it.
+        Otherwise, this function will encode it with the provided encoding.
+    :param str encoding: The encoding with which to encode string.
+    :returns: encoded bytes object
+    """
+    if string and not isinstance(string, bytes):
+        return string.encode(encoding)
+    return string
 
 
 def readable_data(data, encoding):
