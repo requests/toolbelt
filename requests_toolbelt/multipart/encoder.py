@@ -223,6 +223,9 @@ class MultipartEncoder(object):
         return self._buffer.read(size)
 
 
+IDENTITY = lambda monitor: monitor
+
+
 class MultipartEncoderMonitor(object):
 
     """
@@ -255,14 +258,12 @@ class MultipartEncoderMonitor(object):
 
     """
 
-    IDENTITY = lambda monitor: monitor
-
     def __init__(self, encoder, callback=None):
         #: Instance of the :class:`MultipartEncoder` being monitored
         self.encoder = encoder
 
         #: Optionally function to call after a read
-        self.callback = callback or MultipartEncoder.IDENTITY
+        self.callback = callback or IDENTITY
 
         #: Number of bytes already read from the :class:`MultipartEncoder`
         #: instance
