@@ -9,7 +9,7 @@ Various utilities around authentication.
 """
 
 from requests.auth import HTTPDigestAuth, HTTPBasicAuth, AuthBase
-from requests.cookies import extract_cookies_to_jar
+from requests.cookies import extract_cookies_to_jar, RequestsCookieJar
 
 
 class GuessAuth(AuthBase):
@@ -34,6 +34,8 @@ class GuessAuth(AuthBase):
             r.content
             r.raw.release_conn()
             prep = r.request.copy()
+            if not hasattr(prep, '_cookies'):
+                prep._cookies = RequestsCookieJar()
             extract_cookies_to_jar(prep._cookies, r.request, r.raw)
             prep.prepare_cookies(prep._cookies)
 
