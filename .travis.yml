@@ -18,5 +18,5 @@ notifications:
 
 env:
   matrix:
-  - REQUESTS_VERSION="==2.0.1"
+  - REQUESTS_VERSION="==2.1.0"
   - REQUESTS_VERSION=""  # Latest
