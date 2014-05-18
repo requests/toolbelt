@@ -115,9 +115,9 @@ digest auth::
     import requests
 
     requests.get('http://httpbin.org/basic-auth/user/passwd',
-        auth=GuessAuth('user', 'passwd'))
+                 auth=GuessAuth('user', 'passwd'))
     requests.get('http://httpbin.org/digest-auth/auth/user/passwd',
-        auth=GuessAuth('user', 'passwd'))
+                 auth=GuessAuth('user', 'passwd'))
 
 This requires an additional request in case of basic auth, as usually basic
 auth is sent preemptively.
