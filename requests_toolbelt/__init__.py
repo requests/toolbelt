@@ -18,13 +18,14 @@ __version_info__ = tuple(int(i) for i in __version__.split('.'))
 
 from .adapters import SSLAdapter, SourceAddressAdapter
 from .auth import GuessAuth
-from .multipart import MultipartEncoder, MultipartDecoder
-from .multipart import ImproperBodyPartContentException
-from .multipart import NonMultipartContentTypeException
+from .multipart import (
+    MultipartEncoder, MultipartEncoderMonitor, MultipartDecoder,
+    ImproperBodyPartContentException, NonMultipartContentTypeException
+    )
 from .user_agent import user_agent
 
 __all__ = [
-    'GuessAuth', 'MultipartEncoder', 'MultipartDecoder', 'SSLAdapter',
-    'SourceAddressAdapter', 'user_agent', 'ImproperBodyPartContentException',
-    'NonMultipartContentTypeException'
+    'GuessAuth', 'MultipartEncoder', 'MultipartEncoderMonitor',
+    'MultipartDecoder', 'SSLAdapter', 'SourceAddressAdapter', 'user_agent',
+    'ImproperBodyPartContentException', 'NonMultipartContentTypeException'
 ]

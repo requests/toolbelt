@@ -23,6 +23,10 @@ New Features
   ``WWW-Authenticate`` header to determine how to authenticate against a
   server.
 
+- ``MultipartEncoderMonitor`` wraps an instance of the ``MultipartEncoder``
+  and keeps track of how many bytes were read and will call the provided
+  callback.
+
 0.2.0 -- 2014-02-24
 -------------------
 
