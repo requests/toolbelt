@@ -1,6 +1,6 @@
 """
 requests-toolbelt.multipart
-=================
+===========================
 
 See http://toolbelt.rtfd.org/ for documentation
 
