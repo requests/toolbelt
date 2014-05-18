@@ -256,6 +256,25 @@ class MultipartEncoderMonitor(object):
         r = requests.post('https://httpbin.org/post', data=monitor,
                           headers=headers)
 
+    Alternatively, if your use case is very simple, you can use the following
+    pattern.
+
+    .. code-block:: python
+
+        from requests_toolbelt import MultipartEncoderMonitor
+        import requests
+
+        def callback(encoder, bytes_read):
+            # Do something with this information
+            pass
+
+        monitor = MultipartEncoderMonitor.from_fields(
+            fields={'field0': 'value0'}, callback
+            )
+        headers = {'Content-Type': montior.content_type}
+        r = requests.post('https://httpbin.org/post', data=monitor,
+                          headers=headers)
+
     """
 
     def __init__(self, encoder, callback=None):
@@ -271,6 +290,12 @@ class MultipartEncoderMonitor(object):
 
     def __len__(self):
         return len(self.encoder)
+
+    @classmethod
+    def from_fields(cls, fields, boundary=None, encoding='utf-8',
+                    callback=None):
+        encoder = MultipartEncoder(fields, boundary, encoding)
+        return cls(encoder, callback)
 
     @property
     def content_type(self):

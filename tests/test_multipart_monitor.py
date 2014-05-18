@@ -46,6 +46,14 @@ class TestMultipartEncoderMonitor(unittest.TestCase):
         assert self.monitor.callback == IDENTITY
         assert IDENTITY(1) == 1
 
+    def test_from_fields(self):
+        monitor = MultipartEncoderMonitor.from_fields(
+            self.fields, self.boundary
+            )
+        assert isinstance(monitor, MultipartEncoderMonitor)
+        assert isinstance(monitor.encoder, MultipartEncoder)
+        assert monitor.encoder.boundary_value == self.boundary
+
 
 class Callback(object):
     def __init__(self, monitor):

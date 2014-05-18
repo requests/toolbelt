@@ -40,8 +40,69 @@ This method renders the multipart body into a string. This is useful when
 developing your code, allowing you to confirm that the multipart body has the
 form you expect before you send it on.
 
+The ``toolbelt`` also provides a way to monitor your streaming uploads with 
+the ``MultipartEncoderMonitor``.
+
 .. _support for multipart uploads: http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file
 
+Monitoring Your Streaming Upload
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to stream your ``multipart/form-data`` upload then you're probably 
+in the situation where it might take a while to upload the content. In these 
+cases, it might make sense to be able to monitor the progress of the upload.  
+For this reason, the toolbelt provides the ``MultipartEncoderMonitor``. The 
+monitor wraps an instance of a ``MultipartEncoder`` and is used exactly like 
+the encoder. It provides a similar API with some additions:
+
+- The monitor accepts a function as a callback. The function is called every 
+  time ``requests`` calls ``read`` on the monitor and passes in the monitor as 
+  an argument.
+
+- The monitor tracks how many bytes have been read in the course of the 
+  upload.
+
+You might use the monitor to create a progress bar for the upload. Here is `an 
+example using clint`_ which displays the progress bar.
+
+To use the monitor you would follow a pattern like this::
+
+    from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+    import requests
+
+    def my_callback(monitor):
+        # Your callback function
+        pass
+
+    e = MultipartEncoder(
+        fields={'field0': 'value', 'field1': 'value',
+                'field2': ('filename', open('file.py', 'rb'), 'text/plain')}
+        )
+    m = MultipartEncoderMonitor(e, my_callback)
+
+    r = requests.post('http://httpbin.org/post', data=m,
+                      headers={'Content-Type': m.content_type})
+
+If you have a very simple use case you can also do::
+
+    from requests_toolbelt import MultipartEncoderMonitor
+    import requests
+
+    def my_callback(monitor):
+        # Your callback function
+        pass
+
+    m = MultipartEncoderMonitor.from_fields(
+        fields={'field0': 'value', 'field1': 'value',
+                'field2': ('filename', open('file.py', 'rb'), 'text/plain')},
+        callback=my_callback
+        )
+
+    r = requests.post('http://httpbin.org/post', data=m,
+                      headers={'Content-Type': m.content_type})
+
+
+.. _example using clint: https://gitlab.com/sigmavirus24/toolbelt/blob/master/examples/monitor/progress_bar.py
 
 User-Agent Constructor
 ----------------------
