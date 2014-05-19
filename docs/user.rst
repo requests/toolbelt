@@ -8,8 +8,11 @@ for helping with use-cases that are not directly supported by the core
 ``requests`` library. This section of the documentation contains descriptions
 of the various utilities included in the toolbelt, and how to use them.
 
+Uploading Data
+--------------
+
 Streaming Multipart Data Encoder
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Requests has `support for multipart uploads`_, but the API means that using
 that functionality to build exactly the Multipart upload you want can be
@@ -45,8 +48,8 @@ the ``MultipartEncoderMonitor``.
 
 .. _support for multipart uploads: http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file
 
-Monitoring Your Streaming Upload
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Monitoring Your Streaming Multipart Upload
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you need to stream your ``multipart/form-data`` upload then you're probably 
 in the situation where it might take a while to upload the content. In these 
@@ -103,6 +106,32 @@ If you have a very simple use case you can also do::
 
 
 .. _example using clint: https://gitlab.com/sigmavirus24/toolbelt/blob/master/examples/monitor/progress_bar.py
+
+Streaming Data from a Generator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are cases where you, the user, have a generator of some large quantity
+of data and you already know the size of that data. If you pass the generator
+to ``requests`` via the ``data`` parameter, ``requests`` will assume that you
+want to upload the data in chunks and set a ``Transfer-Encoding`` header value
+of ``chunked``. Often times, this causes the server to behave poorly. If you
+want to avoid this, you can use the ``StreamingIterator``. You pass it the
+size of the data and the generator.
+
+.. code-block:: python
+
+    from requests_toolbelt import StreamingIterator
+
+    generator = some_function()  # Create your generator
+    size = some_function_size()  # Get your generator's size
+    content_type = content_type()  # Get the content-type of the data
+
+    streamer = StreamingIterator(size, generator)
+    r = requests.post('https://httpbin.org/post', data=streamer,
+                      headers={'Content-Type': content_type})
+
+The streamer will handle your generator for you and buffer the data before
+passing it to ``requests``.
 
 User-Agent Constructor
 ----------------------
