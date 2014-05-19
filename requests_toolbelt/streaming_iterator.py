@@ -42,7 +42,7 @@ class StreamingIterator(object):
         r = requests.post(url, data=StreamingIterator(size, iterator))
 
     Naturally, you should also set the `Content-Type` of your upload
-    appropriately but the toolbelt will not attempt to guess that for you.
+    appropriately because the toolbelt will not attempt to guess that for you.
 
     """
 
