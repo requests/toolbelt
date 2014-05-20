@@ -90,8 +90,3 @@ class StreamingIterator(object):
 
         self._load_bytes(size)
         return self._buffer.read(size)
-        # Otherwise we're trying to read a specific size
-        try:
-            return next(self.iterator)
-        except StopIteration:
-            return b''
