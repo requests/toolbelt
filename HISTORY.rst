@@ -1,7 +1,7 @@
 History
 =======
 
-0.3.0 -- 2014-xx-xx
+0.3.0 -- 2014-05-21
 -------------------
 
 Bug Fixes
@@ -27,21 +27,25 @@ New Features
   and keeps track of how many bytes were read and will call the provided
   callback.
 
+- ``StreamingIterator`` will wrap an iterator and stream the upload instead of
+  chunk it, provided you also provide the length of the content you wish to
+  upload.
+
 0.2.0 -- 2014-02-24
 -------------------
 
-- Add ability to tell ``MultipartEncoder`` which encoding to use. By default 
+- Add ability to tell ``MultipartEncoder`` which encoding to use. By default
   it uses 'utf-8'.
 
 - Fix #10 - allow users to install with pip
 
-- Fix #9 - Fix ``MultipartEncoder#to_string`` so that it properly handles file 
+- Fix #9 - Fix ``MultipartEncoder#to_string`` so that it properly handles file
   objects as fields
 
 0.1.2 -- 2014-01-19
 -------------------
 
-- At some point during development we broke how we handle normal file objects.  
+- At some point during development we broke how we handle normal file objects.
   Thanks to @konomae this is now fixed.
 
 0.1.1 -- 2014-01-19
