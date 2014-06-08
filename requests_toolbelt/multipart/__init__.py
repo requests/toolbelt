@@ -1,5 +1,5 @@
 """
-requests-toolbelt.multipart
+requests_toolbelt.multipart
 ===========================
 
 See http://toolbelt.rtfd.org/ for documentation
