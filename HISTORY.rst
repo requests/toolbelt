@@ -1,6 +1,11 @@
 History
 =======
 
+0.3.1 -- 2014-06-23
+-------------------
+
+- Fix the fact that 0.3.0 bundle did not include the ``StreamingIterator``
+
 0.3.0 -- 2014-05-21
 -------------------
 
