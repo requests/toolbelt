@@ -33,6 +33,9 @@ class SSLAdapter(HTTPAdapter):
     default Python SSL module. All subsequent requests that match the adapter
     prefix will use the chosen SSL version instead of the default.
     """
+
+    __attrs__ = HTTPAdapter.__attrs__ + ['ssl_version']
+
     def __init__(self, ssl_version=None, **kwargs):
         self.ssl_version = ssl_version
 
