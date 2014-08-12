@@ -5,7 +5,7 @@ import unittest
 
 class TestStreamingIterator(unittest.TestCase):
     def setUp(self):
-        self.chunks = ['here', 'are', 'some', 'chunks']
+        self.chunks = [b'here', b'are', b'some', b'chunks']
         self.iterator = iter(self.chunks)
         self.size = 17
         self.uploader = StreamingIterator(self.size, self.iterator)
