@@ -7,7 +7,11 @@ This file contains an implementation of the SourceAddressAdapter originally
 demonstrated on the Requests GitHub page.
 """
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.poolmanager import PoolManager
+
+try:
+    from requests.packages.urllib3.poolmanager import PoolManager
+except ImportError:
+    from urllib3.poolmanager import PoolManager
 
 
 class SourceAddressAdapter(HTTPAdapter):
