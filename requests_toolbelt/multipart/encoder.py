@@ -319,7 +319,7 @@ def encode_with(string, encoding):
     :param str encoding: The encoding with which to encode string.
     :returns: encoded bytes object
     """
-    if string and not isinstance(string, bytes):
+    if not (string is None or isinstance(string, bytes)):
         return string.encode(encoding)
     return string
 

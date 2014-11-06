@@ -214,6 +214,16 @@ class TestMultipartEncoder(unittest.TestCase):
 
         assert read_so_far == total_size
 
+    def test_handles_empty_unicode_values(self):
+        """Verify that the Encoder can handle empty unicode strings.
+
+        See https://github.com/sigmavirus24/requests-toolbelt/issues/46 for
+        more context.
+        """
+        fields = [(b'test'.decode('utf-8'), b''.decode('utf-8'))]
+        m = MultipartEncoder(fields=fields)
+        assert len(m.read()) > 0
+
 
 if __name__ == '__main__':
     unittest.main()
