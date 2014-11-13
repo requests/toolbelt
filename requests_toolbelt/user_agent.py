@@ -2,6 +2,7 @@
 import platform
 import sys
 
+
 def user_agent(name, version):
     """
     Returns an internet-friendly user_agent string.
@@ -23,6 +24,7 @@ def user_agent(name, version):
                      _implementation_string(),
                      '%s/%s' % (p_system, p_release)])
 
+
 def _implementation_string():
     """
     Returns a string that provides both the name and the version of the Python
@@ -42,7 +44,9 @@ def _implementation_string():
                                                sys.pypy_version_info.minor,
                                                sys.pypy_version_info.micro)
         if sys.pypy_version_info.releaselevel != 'final':
-            implementation_version = ''.join([implementation_version, sys.pypy_version_info.releaselevel])
+            implementation_version = ''.join([
+                implementation_version, sys.pypy_version_info.releaselevel
+                ])
     elif implementation == 'Jython':
         implementation_version = platform.python_version()  # Complete Guess
     elif implementation == 'IronPython':
