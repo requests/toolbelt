@@ -310,6 +310,12 @@ class MultipartEncoderMonitor(object):
         self.callback(self)
         return string
 
+class MultipartRelatedEncoder(MultipartEncoder):
+    @property
+    def content_type(self):
+        return str(
+            'multipart/related; boundary={0}'.format(self.boundary_value)
+        )
 
 def encode_with(string, encoding):
     """Encoding ``string`` with ``encoding`` if necessary.

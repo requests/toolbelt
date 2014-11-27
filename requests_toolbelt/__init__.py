@@ -19,7 +19,7 @@ __version_info__ = tuple(int(i) for i in __version__.split('.'))
 from .adapters import SSLAdapter, SourceAddressAdapter
 from .auth import GuessAuth
 from .multipart import (
-    MultipartEncoder, MultipartEncoderMonitor, MultipartDecoder,
+    MultipartEncoder, MultipartRelatedEncoder, MultipartEncoderMonitor, MultipartDecoder,
     ImproperBodyPartContentException, NonMultipartContentTypeException
     )
 from .streaming_iterator import StreamingIterator
