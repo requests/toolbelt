@@ -13,13 +13,14 @@ __authors__ = 'Ian Cordasco, Cory Benfield'
 __license__ = 'Apache v2.0'
 __copyright__ = 'Copyright 2014 Ian Cordasco, Cory Benfield'
 
-from .encoder import MultipartEncoder, MultipartEncoderMonitor
+from .encoder import MultipartEncoder, MultipartRelatedEncoder, MultipartEncoderMonitor
 from .decoder import MultipartDecoder
 from .decoder import ImproperBodyPartContentException
 from .decoder import NonMultipartContentTypeException
 
 __all__ = [
     'MultipartEncoder',
+    'MultipartRelatedEncoder',
     'MultipartEncoderMonitor',
     'MultipartDecoder',
     'ImproperBodyPartContentException',
