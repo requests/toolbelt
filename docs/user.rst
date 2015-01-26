@@ -211,3 +211,24 @@ digest auth::
 
 This requires an additional request in case of basic auth, as usually basic
 auth is sent preemptively.
+
+
+HTTPProxyDigestAuth
+-------------------
+
+The ``HTTPProxyDigestAuth`` use digest authentication between the client and
+the proxy.
+
+    import requests
+    from requests_toolbelt import HTTPProxyDigestAuth
+
+
+    proxies = {
+            "http": "http://PROXYSERVER:PROXYPORT",
+            "https": "https://PROXYSERVER:PROXYPORT",
+            }
+    url = "http://toolbelt.rtfd.org/"
+    auth = HTTPProxyDigestAuth("USERNAME", "PASSWORD")
+    requests.get(url, proxies=proxies, auth=auth)
+
+Program would raise error if the username or password is rejected by the proxy.

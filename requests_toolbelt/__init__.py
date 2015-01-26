@@ -29,5 +29,5 @@ __all__ = [
     'GuessAuth', 'MultipartEncoder', 'MultipartEncoderMonitor',
     'MultipartDecoder', 'SSLAdapter', 'SourceAddressAdapter',
     'StreamingIterator', 'user_agent', 'ImproperBodyPartContentException',
-    'NonMultipartContentTypeException'
+    'NonMultipartContentTypeException', 'HTTPProxyDigestAuth'
 ]
