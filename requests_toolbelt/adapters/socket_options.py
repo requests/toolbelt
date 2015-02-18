@@ -7,8 +7,6 @@ from requests import adapters
 from requests.packages.urllib3 import connection
 from requests.packages.urllib3 import poolmanager
 
-_SENTINEL = object()
-
 
 class SocketOptionsAdapter(adapters.HTTPAdapter):
     """An adapter for requests that allows users to specify socket options.
