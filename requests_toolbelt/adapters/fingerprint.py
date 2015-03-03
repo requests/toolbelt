@@ -9,6 +9,7 @@ the fingerprints of SSL certificates presented upon connection.
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 
+
 class FingerprintAdapter(HTTPAdapter):
     """
     A HTTPS Adapter for Python Requests that verifies certificate fingerprints,
@@ -20,7 +21,10 @@ class FingerprintAdapter(HTTPAdapter):
         >>> import ssl
         >>> from requests_toolbelt import FingerprintAdapter
         >>> s = requests.Session()
-        >>> s.mount('https://twitter.com', FingerprintAdapter(twitter_fingerprint))
+        >>> s.mount(
+        ...     'https://twitter.com',
+        ...     FingerprintAdapter(twitter_fingerprint)
+        ... )
 
     The fingerprint should be provided as a hexadecimal string, optionally
     containing colons.
