@@ -11,5 +11,6 @@ See http://toolbelt.rtfd.org/ for documentation
 
 from .ssl import SSLAdapter
 from .source import SourceAddressAdapter
+from .fingerprint import FingerprintAdapter
 
-__all__ = ['SSLAdapter', 'SourceAddressAdapter']
+__all__ = ['SSLAdapter', 'SourceAddressAdapter', 'FingerprintAdapter']
