@@ -223,7 +223,8 @@ class MultipartEncoder(object):
         return self._buffer.read(size)
 
 
-IDENTITY = lambda monitor: monitor
+def IDENTITY(monitor):
+    return monitor
 
 
 class MultipartEncoderMonitor(object):
