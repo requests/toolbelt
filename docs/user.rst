@@ -43,7 +43,7 @@ This method renders the multipart body into a string. This is useful when
 developing your code, allowing you to confirm that the multipart body has the
 form you expect before you send it on.
 
-The ``toolbelt`` also provides a way to monitor your streaming uploads with 
+The ``toolbelt`` also provides a way to monitor your streaming uploads with
 the ``MultipartEncoderMonitor``.
 
 .. _support for multipart uploads: http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file
@@ -51,21 +51,21 @@ the ``MultipartEncoderMonitor``.
 Monitoring Your Streaming Multipart Upload
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you need to stream your ``multipart/form-data`` upload then you're probably 
-in the situation where it might take a while to upload the content. In these 
-cases, it might make sense to be able to monitor the progress of the upload.  
-For this reason, the toolbelt provides the ``MultipartEncoderMonitor``. The 
-monitor wraps an instance of a ``MultipartEncoder`` and is used exactly like 
+If you need to stream your ``multipart/form-data`` upload then you're probably
+in the situation where it might take a while to upload the content. In these
+cases, it might make sense to be able to monitor the progress of the upload.
+For this reason, the toolbelt provides the ``MultipartEncoderMonitor``. The
+monitor wraps an instance of a ``MultipartEncoder`` and is used exactly like
 the encoder. It provides a similar API with some additions:
 
-- The monitor accepts a function as a callback. The function is called every 
-  time ``requests`` calls ``read`` on the monitor and passes in the monitor as 
+- The monitor accepts a function as a callback. The function is called every
+  time ``requests`` calls ``read`` on the monitor and passes in the monitor as
   an argument.
 
-- The monitor tracks how many bytes have been read in the course of the 
+- The monitor tracks how many bytes have been read in the course of the
   upload.
 
-You might use the monitor to create a progress bar for the upload. Here is `an 
+You might use the monitor to create a progress bar for the upload. Here is `an
 example using clint`_ which displays the progress bar.
 
 To use the monitor you would follow a pattern like this::
@@ -162,9 +162,13 @@ into your program like this::
 This will override the default Requests user-agent string for all of your HTTP
 requests, replacing it with your own.
 
+.. _adapters:
+
+Adapters
+--------
 
 SSLAdapter
-----------
+~~~~~~~~~~
 
 The ``SSLAdapter`` is the canonical implementation of the adapter proposed on
 Cory Benfield's blog, `here`_. This adapter allows the user to choose one of
@@ -193,9 +197,99 @@ attempt to negotiate TLSv1, and hopefully will succeed.
 
 .. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 
+.. _authentication:
+
+SocketOptionsAdapter
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 0.4.0
+
+.. note::
+
+    This adapter will only work with requests 2.4.0 or newer. The ability to
+    set arbitrary socket options does not exist prior to requests 2.4.0.
+
+The ``SocketOptionsAdapter`` allows a user to pass specific options to be set
+on created sockets when constructing the Adapter without subclassing. The
+adapter takes advantage of ``urllib3``'s `support`_ for setting arbitrary
+socket options for each ``urllib3.connection.HTTPConnection`` (and
+``HTTPSConnection``).
+
+To pass socket options, you need to send a list of three-item tuples. For
+example, ``requests`` and ``urllib3`` disable `Nagle's Algorithm`_ by default.
+If you need to re-enable it, you would do the following:
+
+.. code-block:: python
+
+    import socket
+    import requests
+    from requests_toolbelt.adapters.socket_options import SocketOptionsAdapter
+
+    nagles = [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 0)]
+    session = requests.Session()
+    for scheme in session.adapters.keys():
+        session.mount(scheme, SocketOptionsAdapter(socket_options=nagles))
+
+This would re-enable Nagle's Algorithm for all ``http://`` and ``https://``
+connections made with that session.
+
+.. autoclass:: requests_toolbelt.adapters.socket_options.SocketOptionsAdapter
+
+.. _support: https://urllib3.readthedocs.org/en/latest/pools.html?highlight=socket_options#urllib3.connection.HTTPConnection.socket_options
+.. _Nagle's Algorithm: https://en.wikipedia.org/wiki/Nagle%27s_algorithm
+
+TCPKeepAliveAdapter
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 0.4.0
+
+.. note::
+
+    This adapter will only work with requests 2.4.0 or newer. The ability to
+    set arbitrary socket options does not exist prior to requests 2.4.0.
+
+The ``TCPKeepAliveAdapter`` allows a user to pass specific keep-alive related
+options as keyword parameters as well as arbitrary socket options.
+
+.. note::
+
+    Different keep-alive related socket options may not be available for your
+    platform. Check the socket module for the availability of the following
+    constants:
+
+    - ``socket.TCP_KEEPIDLE``
+    - ``socket.TCP_KEEPCNT``
+    - ``socket.TCP_KEEPINTVL``
+
+    The adapter will silently ignore any option passed for a non-existent
+    option.
+
+An example usage of the adapter:
+
+.. code-block:: python
+
+    import requests
+    from requests_toolbelt.adapter.socket_options import TCPKeepAliveAdapter
+
+    session = requests.Session()
+    keep_alive = TCPKeepAliveAdapter(idle=120, count=20, interval=30)
+    session.mount('https://region-a.geo-1.compute.hpcloudsvc.com', keep_alive)
+    session.post('https://region-a.geo-1.compute.hpcloudsvc.com/v2/1234abcdef/servers',
+                 # ...
+                 )
+
+In this case we know that creating a server on HP Public Cloud can cause
+requests to hang without using TCP Keep-Alive. So we mount the adapter
+specifically for that domain, instead of adding it to every ``https://`` and
+``http://`` request.
+
+.. autoclass:: requests_toolbelt.adapters.socket_options.TCPKeepAliveAdapter
+
+Authentication
+--------------
 
 GuessAuth
----------
+~~~~~~~~~
 
 The ``GuessAuth`` auth type automatically detects whether to use basic auth or
 digest auth::
