@@ -2,7 +2,7 @@
 import requests
 import unittest
 
-from requests_toolbelt import FingerprintAdapter
+from requests_toolbelt.adapters.fingerprint import FingerprintAdapter
 from . import get_betamax
 
 
@@ -14,7 +14,7 @@ class TestFingerprintAdapter(unittest.TestCase):
         self.session.mount('https://http2bin.org', FingerprintAdapter(self.HTTP2BIN_FINGERPRINT))
         self.recorder = get_betamax(self.session)
 
-    def test_klevas(self):
+    def test_fingerprint(self):
         with self.recorder.use_cassette('http2bin_fingerprint'):
             r = self.session.get('https://http2bin.org/get')
             assert r.status_code == 200
