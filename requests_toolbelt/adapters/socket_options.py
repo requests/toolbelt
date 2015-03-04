@@ -20,7 +20,7 @@ class SocketOptionsAdapter(adapters.HTTPAdapter):
         >>> import requests
         >>> from requests_toolbelt.adapters import socket_options
         >>> s = requests.Session()
-        >>> opts = [(socket.IPROTO_TCP, socket.TCP_NODELAY, 0)]
+        >>> opts = [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 0)]
         >>> adapter = socket_options.SocketOptionsAdapter(socket_options=opts)
         >>> s.mount('http://', adapter)
 
@@ -42,6 +42,7 @@ class SocketOptionsAdapter(adapters.HTTPAdapter):
 
     def init_poolmanager(self, connections, maxsize, block=False):
         if requests.__build__ >= 0x020400:
+            # NOTE(Ian): Perhaps we should raise a warning
             self.poolmanager = poolmanager.PoolManager(
                 num_pools=connections,
                 maxsize=maxsize,
@@ -60,9 +61,10 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
     The adapter sets 4 socket options:
 
     - ``SOL_SOCKET`` ``SO_KEEPALIVE`` - This turns on TCP Keep-Alive
-    - ``IPROTO_TCP`` ``TCP_KEEPIDLE`` 60 - Sets the keep alive time
-    - ``IPROTO_TCP`` ``TCP_KEEPINTVL`` 20 - Sets the keep alive interval
-    - ``IPROTO_TCP`` ``TCP_KEEPCNT`` 5 - Sets the number of keep alive probes
+    - ``IPPROTO_TCP`` ``TCP_KEEPINTVL`` 20 - Sets the keep alive interval
+    - ``IPPROTO_TCP`` ``TCP_KEEPCNT`` 5 - Sets the number of keep alive probes
+    - ``IPPROTO_TCP`` ``TCP_KEEPIDLE`` 60 - Sets the keep alive time if the
+      socket library has the ``TCP_KEEPIDLE`` constant
 
     The latter three can be overridden by keyword arguments (respectively):
 
@@ -80,15 +82,22 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
     """
 
     def __init__(self, **kwargs):
+        socket_options = kwargs.pop('socket_options',
+                                    SocketOptionsAdapter.default_options)
         idle = kwargs.pop('idle', 60)
         interval = kwargs.pop('interval', 20)
         count = kwargs.pop('count', 5)
-        socket_options = SocketOptionsAdapter.default_options + [
+        socket_options = socket_options + [
             (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
-            (socket.IPROTO_TCP, socket.TCP_KEEPIDLE, idle),
-            (socket.IPROTO_TCP, socket.TCP_KEEPINTVL, interval),
-            (socket.IPROTO_TCP, socket.TCP_KEEPCNT, count),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count),
         ]
+
+        # NOTE(Ian): Apparently OSX does not have this constant defined, so we
+        # set it conditionally.
+        if getattr(socket, 'TCP_KEEPIDLE', None) is not None:
+            socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle)]
+
         super(TCPKeepAliveAdapter, self).__init__(
             socket_options=socket_options, **kwargs
         )
