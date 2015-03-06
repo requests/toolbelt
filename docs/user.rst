@@ -314,7 +314,7 @@ The ``HTTPProxyDigestAuth`` use digest authentication between the client and
 the proxy.
 
     import requests
-    from requests_toolbelt import HTTPProxyDigestAuth
+    from requests_toolbelt.auth import HTTPProxyDigestAuth
 
 
     proxies = {
