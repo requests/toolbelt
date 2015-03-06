@@ -9,7 +9,12 @@ This holds all of the implementation details of the MultipartEncoder
 """
 
 from requests.utils import super_len
-from requests.packages.urllib3.filepost import iter_field_objects
+
+try:
+    from requests.packages.urllib3.filepost import iter_field_objects
+except ImportError:
+    from urllib3.filepost import iter_field_objects
+
 from uuid import uuid4
 
 import contextlib
