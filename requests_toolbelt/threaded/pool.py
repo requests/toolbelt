@@ -33,7 +33,7 @@ class Pool(object):
 
         self._queue = queue
         self._processes = num_processes
-        self._initializer = initializer or initializer_identity
+        self._initializer = initializer or identity
         self._auth = auth_generator or identity
         self._pool = [
             thread.SessionThread(self._new_session(), self.queue)
@@ -42,12 +42,8 @@ class Pool(object):
         self._session = session
 
     def _new_session(self):
-        return self._initializer(self._session(), self._auth)
+        return self._auth(self._initializer(self._session()))
 
 
 def identity(session_obj):
     return session_obj
-
-
-def initializer_identity(session_obj, auth_generator):
-    return auth_generator(session_obj)
