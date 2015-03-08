@@ -303,8 +303,10 @@ digest auth::
     requests.get('http://httpbin.org/digest-auth/auth/user/passwd',
                  auth=GuessAuth('user', 'passwd'))
 
-This requires an additional request in case of basic auth, as usually basic
-auth is sent preemptively.
+Detection of the auth type is done via the ``WWW-Authenticate`` header sent by
+the server. This requires an additional request in case of basic auth, as
+usually basic auth is sent preemptively. If the server didn't explicitly
+require authentication, no credentials are sent.
 
 
 HTTPProxyDigestAuth
