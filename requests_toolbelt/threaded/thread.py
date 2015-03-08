@@ -1,5 +1,9 @@
 """Module containing the SessionThread class."""
 import threading
+try:
+    import queue  # Python 3
+except ImportError:
+    import Queue as queue
 import uuid
 
 import requests.exceptions as exc
@@ -24,15 +28,20 @@ class SessionThread(object):
         self._worker.start()
 
     def _make_request(self):
-        kwargs = self._jobs.get()
-        try:
-            response = self._session.request(**kwargs)
-        except exc.RequestException as e:
-            self._exceptions.put((kwargs, e))
-        else:
-            self._responses.put((kwargs, response))
-        finally:
-            self._jobs.task_done()
+        while True:
+            try:
+                kwargs = self._jobs.get_nowait()
+            except queue.Empty:
+                break
+
+            try:
+                response = self._session.request(**kwargs)
+            except exc.RequestException as e:
+                self._exceptions.put((kwargs, e))
+            else:
+                self._responses.put((kwargs, response))
+            finally:
+                self._jobs.task_done()
 
     def is_alive(self):
         """Proxy to the thread's ``is_alive`` method."""

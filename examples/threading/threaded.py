@@ -1,6 +1,6 @@
 try:
     import Queue as queue
-except:
+except ImportError:
     import queue
 
 from requests_toolbelt.threaded import pool
@@ -27,4 +27,12 @@ q.put({
     'files': {'foo': ('', 'bar')}
 })
 
+for i in range(30):
+    q.put({
+        'method': 'GET',
+        'url': 'https://httpbin.org/get',
+        'params': {'i': str(i)},
+    })
+
 p = pool.Pool(q)
+p.join_all()
