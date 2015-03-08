@@ -27,3 +27,5 @@ Patches and Suggestions
 - Jay De Lanoy <jay@delanoy.co>
 
 - Zhaoyu Luo <luozhaoyu90@gmail.com>
+
+- Markus Unterwaditzer <markus@unterwaditzer.net>
