@@ -18,7 +18,10 @@ documentation.
     :maxdepth: 2
 
     adapters
+    authentication
     user
+    user-agent
+    uploading-data
 
 Indices and tables
 ==================
