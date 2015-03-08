@@ -18,10 +18,13 @@ class SourceAddressAdapter(HTTPAdapter):
 
     Example usage:
 
-    >>> import requests
-    >>> from requests_toolbelt import SourceAddressAdapter
-    >>> s = requests.Session()
-    >>> s.mount('http://', SourceAddressAdapter('10.10.10.10'))
+    .. code-block:: python
+
+        import requests
+        from requests_toolbelt.adapters.source import SourceAddressAdapter
+
+        s = requests.Session()
+        s.mount('http://', SourceAddressAdapter('10.10.10.10'))
     """
     def __init__(self, source_address, **kwargs):
         self.source_address = source_address

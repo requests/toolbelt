@@ -15,9 +15,10 @@ To get an overview of what the library contains, consult the :ref:`user <user>`
 documentation.
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   user
+    adapters
+    user
 
 Indices and tables
 ==================
