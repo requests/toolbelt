@@ -30,13 +30,14 @@ example of how to use it is like this:
     from requests_toolbelt import MultipartEncoder
     import requests
 
-    m = MultipartEncoder(
-        fields={'field0': 'value', 'field1': 'value',
-                'field2': ('filename', open('file.py', 'rb'), 'text/plain')}
-        )
+    with open('file.py', 'rb') as f:
+        m = MultipartEncoder(
+            fields={'field0': 'value', 'field1': 'value',
+                    'field2': ('filename', f, 'text/plain')}
+            )
 
-    r = requests.post('http://httpbin.org/post', data=m,
-                      headers={'Content-Type': m.content_type})
+        r = requests.post('http://httpbin.org/post', data=m,
+                          headers={'Content-Type': m.content_type})
 
 The ``MultipartEncoder`` has the ``.to_string()`` convenience method, as well.
 This method renders the multipart body into a string. This is useful when
