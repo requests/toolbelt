@@ -24,12 +24,20 @@ class SessionThread(object):
         self._worker.start()
 
     def _make_request(self):
-        method, kwargs = self._jobs.get()
+        kwargs = self._jobs.get()
         try:
-            response = self._session.request(method, **kwargs)
+            response = self._session.request(**kwargs)
         except exc.RequestException as e:
-            self._exceptions.put((method, kwargs, e))
+            self._exceptions.put((kwargs, e))
         else:
-            self._responses.put((method, kwargs, response))
+            self._responses.put((kwargs, response))
         finally:
             self._jobs.task_done()
+
+    def is_alive(self):
+        """Proxy to the thread's ``is_alive`` method."""
+        return self._worker.is_alive()
+
+    def join(self):
+        """Join this thread to the master thread."""
+        self._worker.join()
