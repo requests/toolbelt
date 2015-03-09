@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-requests_toolbelt.fingerprint_adapter
-=====================================
+"""Submodule containing the implementation for the FingerprintAdapter.
 
 This file contains an implementation of a Transport Adapter that validates
 the fingerprints of SSL certificates presented upon connection.
@@ -17,14 +15,18 @@ class FingerprintAdapter(HTTPAdapter):
 
     Example usage:
 
-        >>> import requests
-        >>> import ssl
-        >>> from requests_toolbelt import FingerprintAdapter
-        >>> s = requests.Session()
-        >>> s.mount(
-        ...     'https://twitter.com',
-        ...     FingerprintAdapter(twitter_fingerprint)
-        ... )
+    .. code-block:: python
+
+        import requests
+        import ssl
+        from requests_toolbelt.adapters.fingerprint import FingerprintAdapter
+
+        twitter_fingerprint = '...'
+        s = requests.Session()
+        s.mount(
+            'https://twitter.com',
+            FingerprintAdapter(twitter_fingerprint)
+        )
 
     The fingerprint should be provided as a hexadecimal string, optionally
     containing colons.

@@ -14,10 +14,24 @@ functionality most requested by users of the requests library.
 To get an overview of what the library contains, consult the :ref:`user <user>`
 documentation.
 
-.. toctree::
-   :maxdepth: 2
+Overview
+--------
 
-   user
+.. toctree::
+    :maxdepth: 1
+
+    user
+
+Full Documentation
+------------------
+
+.. toctree::
+    :maxdepth: 2
+
+    adapters
+    authentication
+    user-agent
+    uploading-data
 
 Indices and tables
 ==================
