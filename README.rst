@@ -11,7 +11,9 @@ multipart/form-data Encoder
 ---------------------------
 
 The main attraction is a streaming multipart form-data object, ``MultipartEncoder``.
-Its API looks like this::
+Its API looks like this:
+
+.. code-block:: python
 
     from requests_toolbelt import MultipartEncoder
     import requests
@@ -25,8 +27,10 @@ Its API looks like this::
                       headers={'Content-Type': m.content_type})
 
 
-You can also use ``multipart/form-data`` encoding for requests that 
-don't require files::
+You can also use ``multipart/form-data`` encoding for requests that don't
+require files:
+
+.. code-block:: python
 
     from requests_toolbelt import MultipartEncoder
     import requests
@@ -37,7 +41,9 @@ don't require files::
                       headers={'Content-Type': m.content_type})
 
 
-Or, you can just create the string and examine the data::
+Or, you can just create the string and examine the data:
+
+.. code-block:: python
 
     # Assuming `m` is one of the above
     m.to_string()  # Always returns unicode
@@ -62,7 +68,9 @@ SSLAdapter
 
 The ``SSLAdapter`` was originally published on `Cory Benfield's blog`_. 
 This adapter allows the user to choose one of the SSL protocols made available 
-in Python's ``ssl`` module for outgoing HTTPS connections::
+in Python's ``ssl`` module for outgoing HTTPS connections:
+
+.. code-block:: python
 
     from requests_toolbelt import SSLAdapter
     import requests
