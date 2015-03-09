@@ -30,8 +30,9 @@ Full Documentation
 
     adapters
     authentication
-    user-agent
+    deprecated
     uploading-data
+    user-agent
 
 Indices and tables
 ==================
