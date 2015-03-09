@@ -16,7 +16,7 @@ from .multipart import (
     ImproperBodyPartContentException, NonMultipartContentTypeException
     )
 from .streaming_iterator import StreamingIterator
-from .user_agent import user_agent
+from .utils.user_agent import user_agent
 
 __title__ = 'requests-toolbelt'
 __authors__ = 'Ian Cordasco, Cory Benfield'
