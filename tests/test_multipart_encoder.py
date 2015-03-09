@@ -224,6 +224,35 @@ class TestMultipartEncoder(unittest.TestCase):
         m = MultipartEncoder(fields=fields)
         assert len(m.read()) > 0
 
+    def test_accepts_custom_content_type(self):
+        """Verify that the Encoder handles custom content-types.
+
+        See https://github.com/sigmavirus24/requests-toolbelt/issues/52
+        """
+        fields = [
+            (b'test'.decode('utf-8'), (b'filename'.decode('utf-8'),
+                                       b'filecontent',
+                                       b'application/json'.decode('utf-8')))
+        ]
+        m = MultipartEncoder(fields=fields)
+        output = m.read().decode('utf-8')
+        assert output.index('Content-Type: application/json\r\n') > 0
+
+    def test_accepts_custom_headers(self):
+        """Verify that the Encoder handles custom headers.
+
+        See https://github.com/sigmavirus24/requests-toolbelt/issues/52
+        """
+        fields = [
+            (b'test'.decode('utf-8'), (b'filename'.decode('utf-8'),
+                                       b'filecontent',
+                                       b'application/json'.decode('utf-8'),
+                                       {'X-My-Header': 'my-value'}))
+        ]
+        m = MultipartEncoder(fields=fields)
+        output = m.read().decode('utf-8')
+        assert output.index('X-My-Header: my-value\r\n') > 0
+
 
 if __name__ == '__main__':
     unittest.main()
