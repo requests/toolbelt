@@ -9,7 +9,7 @@ This holds all of the implementation details of the MultipartEncoder
 """
 
 from requests.utils import super_len
-from requests.packages.urllib3.filepost import iter_field_objects
+from requests.packages.urllib3 import fields
 from uuid import uuid4
 
 import contextlib
@@ -23,7 +23,9 @@ class MultipartEncoder(object):
     The ``MultipartEncoder`` oject is a generic interface to the engine that
     will create a ``multipart/form-data`` body for you.
 
-    The basic usage is::
+    The basic usage is:
+
+    .. code-block:: python
 
         import requests
         from requests_toolbelt import MultipartEncoder
@@ -34,17 +36,33 @@ class MultipartEncoder(object):
                           headers={'Content-Type': encoder.content_type})
 
     If you do not need to take advantage of streaming the post body, you can
-    also do::
+    also do:
+
+    .. code-block:: python
 
         r = requests.post('https://httpbin.org/post',
                           data=encoder.to_string(),
                           headers={'Content-Type': encoder.content_type})
 
     If you want the encoder to use a specific order, you can use an
-    OrderedDict or more simply, a list of tuples::
+    OrderedDict or more simply, a list of tuples:
+
+    .. code-block:: python
 
         encoder = MultipartEncoder([('field', 'value'),
                                     ('other_field', 'other_value')])
+
+    .. versionchanged:: 0.4.0
+
+    You can also provide tuples as part values as you would provide them to
+    requests' ``files`` parameter.
+
+    .. code-block:: python
+
+        encoder = MultipartEncoder({
+            'field': ('file_name', b'{"a": "b"}', 'application/json',
+                      {'X-My-Header': 'my-value'})
+        ])
 
     """
 
@@ -160,15 +178,38 @@ class MultipartEncoder(object):
             p = None
         return p
 
+    def _iter_fields(self):
+        _fields = self.fields
+        if hasattr(self.fields, 'items'):
+            _fields = list(self.fields.items())
+        for k, v in _fields:
+            file_name = None
+            file_type = None
+            file_headers = None
+            if isinstance(v, (list, tuple)):
+                if len(v) == 2:
+                    file_name, file_pointer = v
+                elif len(v) == 3:
+                    file_name, file_pointer, file_type = v
+                else:
+                    file_name, file_pointer, file_type, file_headers = v
+            else:
+                file_pointer = v
+
+            field = fields.RequestField(name=k, data=file_pointer,
+                                        filename=file_name,
+                                        headers=file_headers)
+            field.make_multipart(content_type=file_type)
+            yield field
+
     def _prepare_parts(self):
         """This uses the fields provided by the user and creates Part objects.
 
         It populates the `parts` attribute and uses that to create a
         generator for iteration.
         """
-        fields = iter_field_objects(to_list(self.fields))
         enc = self.encoding
-        self.parts = [Part.from_field(f, enc) for f in fields]
+        self.parts = [Part.from_field(f, enc) for f in self._iter_fields()]
         self._iter_parts = iter(self.parts)
 
     def _write(self, bytes_to_write):
