@@ -9,7 +9,7 @@ This holds all of the implementation details of the Authentication Handler.
 """
 
 from requests.auth import AuthBase, HTTPBasicAuth
-from requests.compat import urlparse
+from requests.compat import urlparse, urlunparse
 
 
 class AuthHandler(AuthBase):
@@ -28,8 +28,8 @@ class AuthHandler(AuthBase):
         import requests
 
         auth = AuthHandler({
-            'api.github.com': ('sigmavirus24', 'fakepassword'),
-            'example.com': HTTPDigestAuth('username', 'password')
+            'https://api.github.com': ('sigmavirus24', 'fakepassword'),
+            'https://example.com': HTTPDigestAuth('username', 'password')
         })
 
         r = requests.get('https://api.github.com/user', auth=auth)
@@ -41,6 +41,13 @@ class AuthHandler(AuthBase):
         s.auth = auth
         r = s.get('https://api.github.com/user')
         # => <Response [200]>
+
+    .. warning::
+
+        :class:`requests.auth.HTTPDigestAuth` is not yet thread-safe. If you
+        use :class:`AuthHandler` across multiple threads you should
+        instantiate a new AuthHandler for each thread with a new
+        HTTPDigestAuth instance for each thread.
 
     """
 
@@ -62,24 +69,34 @@ class AuthHandler(AuthBase):
         for (k, v) in existing_strategies:
             self.add_strategy(k, v)
 
+    @staticmethod
+    def _key_from_url(url):
+        parsed = urlparse(url)
+        return urlunparse((parsed.scheme.lower(),
+                           parsed.netloc.lower(),
+                           '', '', '', ''))
+
     def add_strategy(self, domain, strategy):
         """Add a new domain and authentication strategy.
 
         :param str domain: The domain you wish to match against. For example:
-            ``'api.github.com'``
+            ``'https://api.github.com'``
         :param str strategy: The authentication strategy you wish to use for
             that domain. For example: ``('username', 'password')`` or
             ``requests.HTTPDigestAuth('username', 'password')``
 
-        >>> a = AuthHandler({})
-        >>> a.add_strategy('api.github.com', ('username', 'password'))
+        .. code-block:: python
+
+            a = AuthHandler({})
+            a.add_strategy('https://api.github.com', ('username', 'password'))
 
         """
         # Turn tuples into Basic Authentication objects
         if isinstance(strategy, tuple):
             strategy = HTTPBasicAuth(*strategy)
 
-        self.strategies[domain.lower()] = strategy
+        key = self._key_from_url(domain)
+        self.strategies[key] = strategy
 
     def get_strategy_for(self, url):
         """Retrieve the authentication strategy for a specified URL.
@@ -88,31 +105,33 @@ class AuthHandler(AuthBase):
             example, ``'https://api.github.com/user'``
         :returns: Callable that adds authentication to a request.
 
-        >>> import requests
-        >>> a = AuthHandler({'example.com', ('foo', 'bar')})
-        >>> strategy = a.get_strategy_for('http://example.com/example')
-        >>> isinstance(strategy, requests.auth.HTTPBasicAuth)
-        True
+        .. code-block:: python
+
+            import requests
+            a = AuthHandler({'example.com', ('foo', 'bar')})
+            strategy = a.get_strategy_for('http://example.com/example')
+            assert isinstance(strategy, requests.auth.HTTPBasicAuth)
 
         """
-        parsed = urlparse(url)
-        return self.strategies.get(parsed.netloc.lower(), NullAuthStrategy())
+        key = self._key_from_url(url)
+        return self.strategies.get(key, NullAuthStrategy())
 
     def remove_strategy(self, domain):
         """Remove the domain and strategy from the collection of strategies.
 
         :param str domain: The domain you wish remove. For example,
-            ``'api.github.com'``.
+            ``'https://api.github.com'``.
 
-        >>> a = AuthHandler({'example.com', ('foo', 'bar')})
-        >>> a.remove_strategy('example.com')
-        >>> a.strategies
-        {}
+        .. code-block:: python
+
+            a = AuthHandler({'example.com', ('foo', 'bar')})
+            a.remove_strategy('example.com')
+            assert a.strategies == {}
 
         """
-        domain = domain.lower()
-        if domain in self.strategies:
-            del self.strategies[domain]
+        key = self._key_from_url(domain)
+        if key in self.strategies:
+            del self.strategies[key]
 
 
 class NullAuthStrategy(AuthBase):
