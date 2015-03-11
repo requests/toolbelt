@@ -34,6 +34,7 @@ if not __version__:
 packages = [
     'requests_toolbelt',
     'requests_toolbelt.adapters',
+    'requests_toolbelt.auth',
     'requests_toolbelt.multipart',
     'requests_toolbelt.utils',
 ]

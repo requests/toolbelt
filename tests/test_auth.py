@@ -2,7 +2,7 @@
 import requests
 import unittest
 
-from requests_toolbelt import GuessAuth
+from requests_toolbelt.auth.guess import GuessAuth
 from . import get_betamax
 
 

@@ -20,24 +20,24 @@ addition to those. It provides the following authentication classes:
 
 - :class:`requests_toolbelt.auth.HTTPProxyDigestAuth`
 
-- :class:`requests_toolbelt.auth_handler.AuthHandler`
+- :class:`requests_toolbelt.auth.handler.AuthHandler`
 
 AuthHandler
 -----------
 
-The :class:`~requests_toolbelt.auth_handler.AuthHandler` is a way of using a
+The :class:`~requests_toolbelt.auth.handler.AuthHandler` is a way of using a
 single session with multiple websites that require authentication. If you know
 what websites require a certain kind of authentication and what your
 credentials are.
 
 Take for example a session that needs to authenticate to GitHub's API and
 GitLab's API, you would set up and use your
-:class:`~requests_toolbelt.auth_handler.AuthHandler` like so:
+:class:`~requests_toolbelt.auth.handler.AuthHandler` like so:
 
 .. code-block:: python
 
     import requests
-    from requests_toolbelt.auth_handler import AuthHandler
+    from requests_toolbelt.auth.handler import AuthHandler
 
     def gitlab_auth(request):
         request.headers['PRIVATE-TOKEN'] = 'asecrettoken'
@@ -57,16 +57,16 @@ GitLab's API, you would set up and use your
 .. note::
 
     You **must** provide both the scheme and domain for authentication. The
-    :class:`~requests_toolbelt.auth_handler.AuthHandler` class will check both
+    :class:`~requests_toolbelt.auth.handler.AuthHandler` class will check both
     the scheme and host to ensure your data is not accidentally exposed.
 
-.. autoclass:: requests_toolbelt.auth_handler.AuthHandler
+.. autoclass:: requests_toolbelt.auth.handler.AuthHandler
     :members:
 
 GuessAuth
 ---------
 
-The :class:`~requests_toolbelt.auth.GuessAuth` authentication class
+The :class:`~requests_toolbelt.auth.guess.GuessAuth` authentication class
 automatically detects whether to use basic auth or digest auth:
 
 .. code-block:: python
@@ -84,7 +84,7 @@ the server. This requires an additional request in case of basic auth, as
 usually basic auth is sent preemptively. If the server didn't explicitly
 require authentication, no credentials are sent.
 
-.. autoclass:: requests_toolbelt.auth.GuessAuth
+.. autoclass:: requests_toolbelt.auth.guess.GuessAuth
 
 
 HTTPProxyDigestAuth
@@ -96,7 +96,7 @@ the proxy.
 .. code-block:: python
 
     import requests
-    from requests_toolbelt.auth import HTTPProxyDigestAuth
+    from requests_toolbelt.auth.http_proxy_digest import HTTPProxyDigestAuth
 
 
     proxies = {
@@ -109,4 +109,4 @@ the proxy.
 
 Program would raise error if the username or password is rejected by the proxy.
 
-.. autoclass:: requests_toolbelt.auth.HTTPProxyDigestAuth
+.. autoclass:: requests_toolbelt.auth.http_proxy_digest.HTTPProxyDigestAuth

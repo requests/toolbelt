@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-requests_toolbelt.auth_handler
+requests_toolbelt.auth.handler
 ==============================
 
 This holds all of the implementation details of the Authentication Handler.
@@ -23,7 +23,7 @@ class AuthHandler(AuthBase):
     .. code-block:: python
 
         from requests import HTTPDigestAuth
-        from requests_toolbelt import AuthHandler
+        from requests_toolbelt.auth.handler import AuthHandler
 
         import requests
 
