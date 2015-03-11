@@ -9,7 +9,7 @@ with:
 
 - `OAuth <https://requests-oauthlib.readthedocs.org/en/latest/>`_
 
-- `NTML <https://github.com/requests/request-ntlm>`_
+- `NTLM <https://github.com/requests/request-ntlm>`_
 
 - `Kerberos <https://github.com/requests/requests-kerberos>`_
 
