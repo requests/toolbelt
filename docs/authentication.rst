@@ -20,6 +20,49 @@ addition to those. It provides the following authentication classes:
 
 - :class:`requests_toolbelt.auth.HTTPProxyDigestAuth`
 
+- :class:`requests_toolbelt.auth_handler.AuthHandler`
+
+AuthHandler
+-----------
+
+The :class:`~requests_toolbelt.auth_handler.AuthHandler` is a way of using a
+single session with multiple websites that require authentication. If you know
+what websites require a certain kind of authentication and what your
+credentials are.
+
+Take for example a session that needs to authenticate to GitHub's API and
+GitLab's API, you would set up and use your
+:class:`~requests_toolbelt.auth_handler.AuthHandler` like so:
+
+.. code-block:: python
+
+    import requests
+    from requests_toolbelt.auth_handler import AuthHandler
+
+    def gitlab_auth(request):
+        request.headers['PRIVATE-TOKEN'] = 'asecrettoken'
+
+    handler = AuthHandler({
+        'https://api.github.com': ('sigmavirus24', 'apassword'),
+        'https://gitlab.com': gitlab_auth,
+    })
+
+    session = requests.Session()
+    session.auth = handler
+    r = session.get('https://api.github.com/user')
+    # assert r.ok
+    r2 = session.get('https://gitlab.com/api/v3/projects')
+    # assert r2.ok
+
+.. note::
+
+    You **must** provide both the scheme and domain for authentication. The
+    :class:`~requests_toolbelt.auth_handler.AuthHandler` class will check both
+    the scheme and host to ensure your data is not accidentally exposed.
+
+.. autoclass:: requests_toolbelt.auth_handler.AuthHandler
+    :members:
+
 GuessAuth
 ---------
 
