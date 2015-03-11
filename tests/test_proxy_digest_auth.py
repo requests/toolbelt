@@ -5,14 +5,14 @@
 import unittest
 
 import requests
-import requests_toolbelt
+from requests_toolbelt.auth import http_proxy_digest
 
 
 class TestProxyDigestAuth(unittest.TestCase):
     def setUp(self):
         self.username = "username"
         self.password = "password"
-        self.auth = requests_toolbelt.auth.HTTPProxyDigestAuth(
+        self.auth = http_proxy_digest.HTTPProxyDigestAuth(
             self.username, self.password
         )
         self.auth.last_nonce = "bH3FVAAAAAAg74rL3X8AAI3CyBAAAAAA"

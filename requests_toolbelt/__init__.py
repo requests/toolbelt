@@ -10,7 +10,7 @@ See http://toolbelt.rtfd.org/ for documentation
 """
 
 from .adapters import SSLAdapter, SourceAddressAdapter
-from .auth import GuessAuth
+from .auth.guess import GuessAuth
 from .multipart import (
     MultipartEncoder, MultipartEncoderMonitor, MultipartDecoder,
     ImproperBodyPartContentException, NonMultipartContentTypeException

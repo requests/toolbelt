@@ -1,7 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from requests_toolbelt.auth_handler import AuthHandler
-from requests_toolbelt.auth_handler import NullAuthStrategy
+from requests_toolbelt.auth.handler import AuthHandler
+from requests_toolbelt.auth.handler import NullAuthStrategy
 
 
 def test_turns_tuples_into_basic_auth():
