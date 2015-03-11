@@ -16,9 +16,9 @@ with:
 The :mod:`requests_toolbelt.auth` provides extra authentication features in
 addition to those. It provides the following authentication classes:
 
-- :class:`requests_toolbelt.auth.GuessAuth`
+- :class:`requests_toolbelt.auth.guess.GuessAuth`
 
-- :class:`requests_toolbelt.auth.HTTPProxyDigestAuth`
+- :class:`requests_toolbelt.auth.http_proxy_digest.HTTPProxyDigestAuth`
 
 - :class:`requests_toolbelt.auth.handler.AuthHandler`
 
