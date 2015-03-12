@@ -9,13 +9,16 @@ from requests_toolbelt.utils import stream
 from . import get_betamax
 
 
+preserve_bytes = {'preserve_exact_body_bytes': True}
+
+
 def test_stream_response_to_file_uses_content_disposition():
     s = requests.Session()
     recorder = get_betamax(s)
     url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
            'assets/37944')
     filename = 'github3.py-0.7.1-py2.py3-none-any.whl'
-    with recorder.use_cassette('stream_response_to_file'):
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
         r = s.get(url, headers={'Accept': 'application/octet-stream'})
         stream.stream_response_to_file(r)
 
@@ -29,7 +32,7 @@ def test_stream_response_to_specific_filename():
     url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
            'assets/37944')
     filename = 'github3.py.whl'
-    with recorder.use_cassette('stream_response_to_file'):
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
         r = s.get(url, headers={'Accept': 'application/octet-stream'})
         stream.stream_response_to_file(r, path=filename)
 
@@ -43,7 +46,7 @@ def test_stream_response_to_file_like_object():
     url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
            'assets/37944')
     file_obj = io.BytesIO()
-    with recorder.use_cassette('stream_response_to_file'):
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
         r = s.get(url, headers={'Accept': 'application/octet-stream'})
         stream.stream_response_to_file(r, path=file_obj)
 
