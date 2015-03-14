@@ -19,7 +19,8 @@ def test_stream_response_to_file_uses_content_disposition():
            'assets/37944')
     filename = 'github3.py-0.7.1-py2.py3-none-any.whl'
     with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
-        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                  stream=True)
         stream.stream_response_to_file(r)
 
     assert os.path.exists(filename)
@@ -33,7 +34,8 @@ def test_stream_response_to_specific_filename():
            'assets/37944')
     filename = 'github3.py.whl'
     with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
-        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                  stream=True)
         stream.stream_response_to_file(r, path=filename)
 
     assert os.path.exists(filename)
@@ -47,7 +49,8 @@ def test_stream_response_to_file_like_object():
            'assets/37944')
     file_obj = io.BytesIO()
     with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
-        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                  stream=True)
         stream.stream_response_to_file(r, path=file_obj)
 
     assert 0 < file_obj.tell()
