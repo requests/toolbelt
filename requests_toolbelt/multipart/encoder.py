@@ -64,6 +64,19 @@ class MultipartEncoder(object):
                       {'X-My-Header': 'my-value'})
         ])
 
+    .. warning::
+
+        This object will end up directly in :mod:`httplib`. Currently,
+        :mod:`httplib` has a hard-coded read size of **8192 bytes**. This
+        means that it will loop until the file has been read and your upload
+        could take a while. This is **not** a bug in requests. A feature is
+        being considered for this object to allow you, the user, to specify
+        what size should be returned on a read. If you have opinions on this,
+        please weigh in on `this issue`_.
+
+    .. _this issue:
+        https://github.com/sigmavirus24/requests-toolbelt/issues/75
+
     """
 
     def __init__(self, fields, boundary=None, encoding='utf-8'):
