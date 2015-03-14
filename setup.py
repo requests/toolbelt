@@ -35,6 +35,7 @@ packages = [
     'requests_toolbelt',
     'requests_toolbelt.adapters',
     'requests_toolbelt.auth',
+    'requests_toolbelt.downloadutils',
     'requests_toolbelt.multipart',
     'requests_toolbelt.utils',
 ]

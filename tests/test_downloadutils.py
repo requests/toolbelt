@@ -4,7 +4,7 @@ import os
 import os.path
 
 import requests
-from requests_toolbelt.utils import stream
+from requests_toolbelt.downloadutils import stream
 
 from . import get_betamax
 

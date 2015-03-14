@@ -3,5 +3,5 @@
 
 
 class StreamingError(Exception):
-    """Used in requests_toolbelt.util.stream."""
+    """Used in :mod:`requests_toolbelt.downloadutils.stream`."""
     pass

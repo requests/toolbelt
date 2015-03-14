@@ -46,7 +46,7 @@ def stream_response_to_file(response, path=None):
 
         import requests
         from requests_toolbelt import exceptions
-        from requests_toolbelt.utils import stream
+        from requests_toolbelt.downloadutils import stream
 
         r = requests.get(url, stream=True)
         try:
@@ -62,7 +62,7 @@ def stream_response_to_file(response, path=None):
     .. code-block:: python
 
         import requests
-        from requests_toolbelt.utils import stream
+        from requests_toolbelt.downloadutils import stream
 
         r = requests.get(url, stream=True)
         filename = stream.stream_response_to_file(r, path='myfile')
@@ -74,7 +74,7 @@ def stream_response_to_file(response, path=None):
     .. code-block:: python
 
         import requests
-        from requests_toolbelt.utils import stream
+        from requests_toolbelt.downloadutils import stream
 
         with open('myfile', 'wb') as fd:
             r = requests.get(url, stream=True)
@@ -86,7 +86,7 @@ def stream_response_to_file(response, path=None):
 
         import io
         import requests
-        from requests_toolbelt.utils import stream
+        from requests_toolbelt.downloadutils import stream
 
         b = io.BytesIO()
         r = requests.get(url, stream=True)

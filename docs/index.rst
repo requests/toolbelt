@@ -31,8 +31,8 @@ Full Documentation
     adapters
     authentication
     deprecated
+    downloadutils
     exceptions
-    stream-utils
     uploading-data
     user-agent
 
