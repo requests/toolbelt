@@ -60,6 +60,23 @@ class StreamingIterator(object):
         #: body. See bug #80 for more details
         self.len = self.size
 
+        #: Encoding the input data is using
+        self.encoding = encoding
+
+        #: The iterator used to generate the upload data
+        self.iterator = iterator
+
+        if hasattr(iterator, 'read'):
+            self._file = iterator
+        else:
+            self._file = _IteratorAsBinaryFile(iterator, encoding)
+
+    def read(self, size=-1):
+        return encode_with(self._file.read(size), self.encoding)
+
+
+class _IteratorAsBinaryFile(object):
+    def __init__(self, iterator, encoding='utf-8'):
         #: The iterator used to generate the upload data
         self.iterator = iterator
 
