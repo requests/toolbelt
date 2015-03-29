@@ -11,7 +11,7 @@ from requests.packages.urllib3.poolmanager import PoolManager
 class FingerprintAdapter(HTTPAdapter):
     """
     A HTTPS Adapter for Python Requests that verifies certificate fingerprints,
-    not just certificate hostnames.
+    instead of certificate hostnames.
 
     Example usage:
 
