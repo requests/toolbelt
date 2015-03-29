@@ -26,6 +26,16 @@ q.put({
     'url': 'https://httpbin.org/put',
     'files': {'foo': ('', 'bar')}
 })
+q.put({
+    'method': 'GET',
+    'url': 'https://httpbin.org/stream/100',
+    'stream': True
+})
+q.put({
+    'method': 'GET',
+    'url': 'https://httpbin.org/delay/10',
+    'timeout': 5.0
+})
 
 for i in range(30):
     q.put({
@@ -36,3 +46,6 @@ for i in range(30):
 
 p = pool.Pool(q)
 p.join_all()
+
+responses = list(p.responses())
+exceptions = list(p.exceptions())

@@ -37,6 +37,7 @@ packages = [
     'requests_toolbelt.auth',
     'requests_toolbelt.downloadutils',
     'requests_toolbelt.multipart',
+    'requests_toolbelt.threaded',
     'requests_toolbelt.utils',
 ]
 
