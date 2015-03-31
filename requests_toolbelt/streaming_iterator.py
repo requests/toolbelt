@@ -42,8 +42,18 @@ class StreamingIterator(object):
 
         r = requests.post(url, data=StreamingIterator(size, iterator))
 
+    You can also pass file-like objects to :py:class:`StreamingIterator` in
+    case requests can't determize the filesize itself. This is the case with
+    streaming file objects like ``stdin`` or any sockets. **Wrapping e.g. files
+    that are on disk with ``StreamingIterator`` is unnecessary**, because
+    requests can determize the filesize itself.
+
     Naturally, you should also set the `Content-Type` of your upload
     appropriately because the toolbelt will not attempt to guess that for you.
+
+    .. versionchanged:: 0.4
+
+        Files are accepted as input.
 
     """
 
