@@ -1,77 +1,4 @@
-"""Module that provides the thread pool for :mod:`requests_toolbelt.threaded`.
-
-This module provides three classes:
-
-- :class:`~requests_toolbelt.threaded.pool.Pool`
-- :class:`~requests_toolbelt.threaded.pool.ThreadResponse`
-- :class:`~requests_toolbelt.threaded.pool.ThreadException`
-
-In 98% of the situations you'll want to just use a
-:class:`~requests_toolbelt.threaded.pool.Pool` and you'll treat a
-:class:`~requests_toolbelt.threaded.pool.ThreadResponse` as if it were a
-regular :class:`requests.Response`.
-
-Here's an example:
-
-.. code-block:: python
-
-    # This example assumes Python 3
-    import queue
-    from requests_toolbelt.threaded import pool
-
-    jobs = queue.Queue()
-    urls = [
-        # My list of URLs to get
-    ]
-
-    for url in urls:
-        queue.put({'method': 'GET', 'url': url})
-
-    p = pool.Pool(job_queue=q)
-    p.join_all()
-
-    for response in p.responses():
-        print('GET {0}. Returned {1}.'.format(response.request_kwargs['url'],
-                                              response.status_code))
-
-This is clearly a bit underwhelming. This is why there's a short-cut class
-method to create a :class:`~requests_toolbelt.threaded.pool.Pool` from a list
-of URLs.
-
-.. code-block:: python
-
-    from requests_toolbelt.threaded import pool
-
-    urls = [
-        # My list of URLs to get
-    ]
-
-    p = pool.Pool.from_urls(urls)
-    p.join_all()
-
-    for response in p.responses():
-        print('GET {0}. Returned {1}.'.format(response.request_kwargs['url'],
-                                              response.status_code))
-
-If one of the URLs in your list throws an exception, it will be accessible
-from the :meth:`~Pool.exceptions` generator.
-
-.. code-block:: python
-
-    from requests_toolbelt.threaded import pool
-
-    urls = [
-        # My list of URLs to get
-    ]
-
-    p = pool.Pool.from_urls(urls)
-    p.join_all()
-
-    for exc in p.exceptions():
-        print('GET {0}. Raised {1}.'.format(exc.request_kwargs['url'],
-                                            exc.message))
-
-"""
+"""Module implementing the Pool for :mod:``requests_toolbelt.threaded``."""
 import multiprocessing
 try:
     import queue  # Python 3
@@ -85,8 +12,6 @@ from . import thread
 
 class Pool(object):
     """Pool that manages the threads containing sessions.
-
-    .. todo:: Document format for a queue
 
     :param queue:
         The queue you're expected to use to which you should add items.
