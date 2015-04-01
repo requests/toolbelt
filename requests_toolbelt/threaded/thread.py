@@ -27,6 +27,16 @@ class SessionThread(object):
         self._worker._state = 0
         self._worker.start()
 
+    def _handle_request(self, kwargs):
+        try:
+            response = self._session.request(**kwargs)
+        except exc.RequestException as e:
+            self._exceptions.put((kwargs, e))
+        else:
+            self._responses.put((kwargs, response))
+        finally:
+            self._jobs.task_done()
+
     def _make_request(self):
         while True:
             try:
@@ -34,14 +44,7 @@ class SessionThread(object):
             except queue.Empty:
                 break
 
-            try:
-                response = self._session.request(**kwargs)
-            except exc.RequestException as e:
-                self._exceptions.put((kwargs, e))
-            else:
-                self._responses.put((kwargs, response))
-            finally:
-                self._jobs.task_done()
+            self._handle_request(kwargs)
 
     def is_alive(self):
         """Proxy to the thread's ``is_alive`` method."""
