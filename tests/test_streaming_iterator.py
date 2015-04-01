@@ -1,14 +1,29 @@
+import io
+
 from requests_toolbelt.streaming_iterator import StreamingIterator
 
-import unittest
+import pytest
+
+@pytest.fixture(params=[True, False])
+def get_iterable(request):
+    '''
+    When this fixture is used, the test is run twice -- once with the iterable
+    being a file-like object, once being an iterator.
+    '''
+    is_file = request.param
+    def inner(chunks):
+        if is_file:
+            return io.BytesIO(b''.join(chunks))
+        return iter(chunks)
+    return inner
 
 
-class TestStreamingIterator(unittest.TestCase):
-    def setUp(self):
+class TestStreamingIterator(object):
+    @pytest.fixture(autouse=True)
+    def setup(self, get_iterable):
         self.chunks = [b'here', b'are', b'some', b'chunks']
-        self.iterator = iter(self.chunks)
         self.size = 17
-        self.uploader = StreamingIterator(self.size, self.iterator)
+        self.uploader = StreamingIterator(self.size, get_iterable(self.chunks))
 
     def test_read_returns_all_chunks_in_one(self):
         assert self.uploader.read() == b''.join(self.chunks)
@@ -21,12 +36,13 @@ class TestStreamingIterator(unittest.TestCase):
         assert self.uploader.read(8192) == b''
 
 
-class TestStreamingIteratorWithLargeChunks(unittest.TestCase):
-    def setUp(self):
-        self.letters = ['a', 'b', 'c', 'd', 'e']
+class TestStreamingIteratorWithLargeChunks(object):
+    @pytest.fixture(autouse=True)
+    def setup(self, get_iterable):
+        self.letters = [b'a', b'b', b'c', b'd', b'e']
         self.chunks = (letter * 2000 for letter in self.letters)
         self.size = 5 * 2000
-        self.uploader = StreamingIterator(self.size, self.chunks)
+        self.uploader = StreamingIterator(self.size, get_iterable(self.chunks))
 
     def test_returns_the_amount_requested(self):
         chunk_size = 1000
