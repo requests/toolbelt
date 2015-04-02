@@ -75,7 +75,7 @@ class Pool(object):
         return cls(job_queue=job_queue, **kwargs)
 
     @classmethod
-    def from_urls(cls, urls, request_kwargs, **kwargs):
+    def from_urls(cls, urls, request_kwargs=None, **kwargs):
         """Create a :class:`~Pool` from an iterable of URLs.
 
         :param urls:
@@ -90,7 +90,7 @@ class Pool(object):
         :rtype: :class:`~Pool`
         """
         request_dict = {'method': 'GET'}
-        request_dict.update(request_kwargs)
+        request_dict.update(request_kwargs or {})
         job_queue = queue.Queue()
         for url in urls:
             job = request_dict.copy()
