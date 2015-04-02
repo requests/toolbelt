@@ -33,6 +33,7 @@ Full Documentation
     deprecated
     downloadutils
     exceptions
+    threading
     uploading-data
     user-agent
 
