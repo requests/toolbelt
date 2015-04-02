@@ -116,11 +116,11 @@ class Pool(object):
         :rtype: :class:`~ThreadException`
         """
         try:
-            return ThreadException.from_queue(
-                self._exc_queue.get_nowait()
-            )
+            (request, exc) = self._exc_queue.get_nowait()
         except queue.Empty:
             return None
+        else:
+            return ThreadException(request, exc)
 
     def get_response(self):
         """Get a response from the pool.
@@ -128,11 +128,11 @@ class Pool(object):
         :rtype: :class:`~ThreadResponse`
         """
         try:
-            return ThreadResponse.from_queue(
-                self._response_queue.get_nowait()
-            )
+            (request, response) = self._response_queue.get_nowait()
         except queue.Empty:
             return None
+        else:
+            return ThreadResponse(request, response)
 
     def responses(self):
         """Iterate over all the responses in the pool.
@@ -162,12 +162,6 @@ class ThreadProxy(object):
             return getattr(response, attr)
         else:
             return get(self, attr)
-
-    @classmethod
-    def from_queue(cls, qtuple):
-        """Create an instance of ``cls`` from a queue result."""
-        request_kwargs, proxied_obj = qtuple
-        return cls(request_kwargs, proxied_obj)
 
 
 class ThreadResponse(ThreadProxy):
