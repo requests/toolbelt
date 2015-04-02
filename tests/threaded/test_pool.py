@@ -1,5 +1,8 @@
 """Module containing the tests for requests_toolbelt.threaded.pool."""
-import queue
+try:
+    import queue  # Python 3
+except ImportError:
+    import Queue as queue
 import unittest
 
 import mock
