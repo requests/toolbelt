@@ -63,14 +63,14 @@ class TestCustomBytesIO(unittest.TestCase):
     def test_can_get_length(self):
         self.instance.write(b'example')
         self.instance.seek(0, 0)
-        assert len(self.instance) == 7
+        assert self.instance.len == 7
 
     def test_truncates_intelligently(self):
         self.instance.write(b'abcdefghijklmnopqrstuvwxyzabcd')  # 30 bytes
         assert self.instance.tell() == 30
         self.instance.seek(-10, 2)
         self.instance.smart_truncate()
-        assert len(self.instance) == 10
+        assert self.instance.len == 10
         assert self.instance.read() == b'uvwxyzabcd'
         assert self.instance.tell() == 10
 
@@ -112,7 +112,7 @@ class TestMultipartEncoder(unittest.TestCase):
                  'some file': large_file,
                  }
         encoder = MultipartEncoder(parts)
-        total_size = len(encoder)
+        total_size = encoder.len
         read_size = 1024 * 1024 * 128
         already_read = 0
         while True:
@@ -126,7 +126,7 @@ class TestMultipartEncoder(unittest.TestCase):
 
     def test_length_is_correct(self):
         encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
-        assert len(encoded) == len(self.instance)
+        assert len(encoded) == self.instance.len
 
     def test_encodes_with_readable_data(self):
         s = io.BytesIO(b'value')
@@ -181,7 +181,7 @@ class TestMultipartEncoder(unittest.TestCase):
                 )
 
         m = MultipartEncoder(fields=fields)
-        total_size = len(m)
+        total_size = m.len
 
         blocksize = 8192
         read_so_far = 0
@@ -201,7 +201,7 @@ class TestMultipartEncoder(unittest.TestCase):
         }
 
         m = MultipartEncoder(fields=fields)
-        total_size = len(m)
+        total_size = m.len
 
         blocksize = 8192
         read_so_far = 0

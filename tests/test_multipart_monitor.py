@@ -17,7 +17,7 @@ class TestMultipartEncoderMonitor(unittest.TestCase):
         assert self.monitor.content_type == self.encoder.content_type
 
     def test_length(self):
-        assert len(self.encoder) == len(self.monitor)
+        assert self.encoder.len == self.monitor.len
 
     def test_read(self):
         new_encoder = MultipartEncoder(self.fields, self.boundary)
@@ -32,13 +32,13 @@ class TestMultipartEncoderMonitor(unittest.TestCase):
     def test_callback(self):
         callback = Callback(self.monitor)
         self.monitor.callback = callback
-        chunk_size = int(math.ceil(len(self.encoder) / 4.0))
+        chunk_size = int(math.ceil(self.encoder.len / 4.0))
         while self.monitor.read(chunk_size):
             pass
         assert callback.called == 5
 
     def test_bytes_read(self):
-        bytes_to_read = len(self.encoder)
+        bytes_to_read = self.encoder.len
         self.monitor.read()
         assert self.monitor.bytes_read == bytes_to_read
 

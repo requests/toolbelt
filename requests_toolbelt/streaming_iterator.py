@@ -10,6 +10,7 @@ need to provide the data as an iterator. This class will allow you to specify
 the size and stream the data without using a chunked transfer-encoding.
 
 """
+from requests.utils import super_len
 
 from .multipart.encoder import CustomBytesIO, encode_with
 
@@ -55,6 +56,10 @@ class StreamingIterator(object):
                 'The size of the upload must be a positive integer'
                 )
 
+        #: Attribute that requests will check to determine the length of the
+        #: body. See bug #80 for more details
+        self.len = self.size
+
         #: The iterator used to generate the upload data
         self.iterator = iterator
 
@@ -65,9 +70,6 @@ class StreamingIterator(object):
         # during a read
         self._buffer = CustomBytesIO()
 
-    def __len__(self):
-        return self.size
-
     def _get_bytes(self):
         try:
             return encode_with(next(self.iterator), self.encoding)
@@ -76,7 +78,7 @@ class StreamingIterator(object):
 
     def _load_bytes(self, size):
         self._buffer.smart_truncate()
-        amount_to_load = size - len(self._buffer)
+        amount_to_load = size - super_len(self._buffer)
         bytes_to_append = True
 
         while amount_to_load > 0 and bytes_to_append:

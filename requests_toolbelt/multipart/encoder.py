@@ -122,7 +122,23 @@ class MultipartEncoder(object):
         # Load boundary into buffer
         self._write_boundary()
 
-    def __len__(self):
+    @property
+    def len(self):
+        """Length of the multipart/form-data body.
+
+        requests will first attempt to get the length of the body by calling
+        ``len(body)`` and then by checking for the ``len`` attribute.
+
+        On 32-bit systems, the ``__len__`` method cannot return anything
+        larger than an integer (in C) can hold. If the total size of the body
+        is even slightly larger than 4GB users will see an OverflowError. This
+        manifested itself in `bug #80`_.
+
+        As such, we now calculate the length lazily as a property.
+
+        .. _bug #80:
+            https://github.com/sigmavirus24/requests-toolbelt/issues/80
+        """
         # If _len isn't already calculated, calculate, return, and set it
         return self._len or self._calculate_length()
 
@@ -138,7 +154,7 @@ class MultipartEncoder(object):
         boundary_len = len(self.boundary)  # Length of --{boundary}
         # boundary length + header length + body length + len('\r\n') * 2
         self._len = sum(
-            (boundary_len + len(p) + 4) for p in self.parts
+            (boundary_len + super_len(p) + 4) for p in self.parts
             ) + boundary_len + 4
         return self._len
 
@@ -160,7 +176,7 @@ class MultipartEncoder(object):
             buffer before the read can be satisfied. This will be strictly
             non-negative
         """
-        amount = read_size - len(self._buffer)
+        amount = read_size - super_len(self._buffer)
         return amount if amount > 0 else 0
 
     def _load(self, amount):
@@ -343,8 +359,8 @@ class MultipartEncoderMonitor(object):
         #: instance
         self.bytes_read = 0
 
-    def __len__(self):
-        return len(self.encoder)
+        #: Avoid the same problem in bug #80
+        self.len = self.encoder.len
 
     @classmethod
     def from_fields(cls, fields, boundary=None, encoding='utf-8',
@@ -427,9 +443,7 @@ class Part(object):
         self.headers = headers
         self.body = body
         self.headers_unread = True
-
-    def __len__(self):
-        return len(self.headers) + super_len(self.body)
+        self.len = len(self.headers) + super_len(self.body)
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -448,7 +462,7 @@ class Part(object):
         if self.headers_unread:
             to_read += len(self.headers)
 
-        return (to_read + len(self.body)) > 0
+        return (to_read + super_len(self.body)) > 0
 
     def write_to(self, buffer, size):
         """Write the requested amount of bytes to the buffer provided.
@@ -465,7 +479,7 @@ class Part(object):
             written += buffer.append(self.headers)
             self.headers_unread = False
 
-        while len(self.body) > 0 and (size == -1 or written < size):
+        while super_len(self.body) > 0 and (size == -1 or written < size):
             amount_to_read = size
             if size != -1:
                 amount_to_read = size - written
@@ -486,7 +500,8 @@ class CustomBytesIO(io.BytesIO):
         self.seek(current_pos, 0)
         return length
 
-    def __len__(self):
+    @property
+    def len(self):
         length = self._get_end()
         return length - self.tell()
 
@@ -496,7 +511,7 @@ class CustomBytesIO(io.BytesIO):
         return written
 
     def smart_truncate(self):
-        to_be_read = len(self)
+        to_be_read = super_len(self)
         already_read = self._get_end() - to_be_read
 
         if already_read >= to_be_read:
@@ -511,7 +526,8 @@ class FileWrapper(object):
     def __init__(self, file_object):
         self.fd = file_object
 
-    def __len__(self):
+    @property
+    def len(self):
         return super_len(self.fd) - self.fd.tell()
 
     def read(self, length=-1):
