@@ -124,3 +124,103 @@ class TestPool(unittest.TestCase):
 
         for st in session_threads:
             st.join.assert_called_once_with()
+
+    def test_get_response_returns_thread_response(self):
+        """Ensure that a ThreadResponse is made when there's data."""
+        queues = []
+
+        def _side_effect():
+            q = mock.MagicMock()
+            q.get_nowait.return_value = ({}, None)
+            queues.append(q)
+            return q
+
+        with mock.patch.object(queue, 'Queue', side_effect=_side_effect):
+            with mock.patch.object(thread, 'SessionThread'):
+                p = pool.Pool(None)
+
+        assert len(queues) == 2
+
+        assert isinstance(p.get_response(), pool.ThreadResponse)
+        assert len([q for q in queues if q.get_nowait.called]) == 1
+
+    def test_get_exception_returns_thread_exception(self):
+        """Ensure that a ThreadException is made when there's data."""
+        queues = []
+
+        def _side_effect():
+            q = mock.MagicMock()
+            q.get_nowait.return_value = ({}, None)
+            queues.append(q)
+            return q
+
+        with mock.patch.object(queue, 'Queue', side_effect=_side_effect):
+            with mock.patch.object(thread, 'SessionThread'):
+                p = pool.Pool(None)
+
+        assert len(queues) == 2
+
+        assert isinstance(p.get_exception(), pool.ThreadException)
+        assert len([q for q in queues if q.get_nowait.called]) == 1
+
+    def test_get_response_returns_none_when_queue_is_empty(self):
+        """Ensure that None is returned when the response Queue is empty."""
+        queues = []
+
+        def _side_effect():
+            q = mock.MagicMock()
+            q.get_nowait.side_effect = queue.Empty()
+            queues.append(q)
+            return q
+
+        with mock.patch.object(queue, 'Queue', side_effect=_side_effect):
+            with mock.patch.object(thread, 'SessionThread'):
+                p = pool.Pool(None)
+
+        assert len(queues) == 2
+
+        assert p.get_response() is None
+        assert len([q for q in queues if q.get_nowait.called]) == 1
+
+    def test_get_exception_returns_none_when_queue_is_empty(self):
+        """Ensure that None is returned when the exception Queue is empty."""
+        queues = []
+
+        def _side_effect():
+            q = mock.MagicMock()
+            q.get_nowait.side_effect = queue.Empty()
+            queues.append(q)
+            return q
+
+        with mock.patch.object(queue, 'Queue', side_effect=_side_effect):
+            with mock.patch.object(thread, 'SessionThread'):
+                p = pool.Pool(None)
+
+        assert len(queues) == 2
+
+        assert p.get_exception() is None
+        assert len([q for q in queues if q.get_nowait.called]) == 1
+
+    def test_lists_are_correctly_returned(self):
+        """Ensure that exceptions and responses return correct lists."""
+        def _make_queue():
+            q = queue.Queue()
+            q.put(({}, None))
+            return q
+
+        with mock.patch.object(thread, 'SessionThread'):
+            p = pool.Pool(None)
+
+        # Set up real queues.
+        p._response_queue = _make_queue()
+        p._exc_queue = _make_queue()
+
+        excs = list(p.exceptions())
+        assert len(excs) == 1
+        for exc in excs:
+            assert isinstance(exc, pool.ThreadException)
+
+        resps = list(p.responses())
+        assert len(resps) == 1
+        for resp in resps:
+            assert isinstance(resp, pool.ThreadResponse)
