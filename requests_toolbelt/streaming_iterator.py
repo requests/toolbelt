@@ -50,11 +50,6 @@ class StreamingIterator(object):
 
     Naturally, you should also set the `Content-Type` of your upload
     appropriately because the toolbelt will not attempt to guess that for you.
-
-    .. versionchanged:: 0.4
-
-        Files are accepted as input.
-
     """
 
     def __init__(self, size, iterator, encoding='utf-8'):

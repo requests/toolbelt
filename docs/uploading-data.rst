@@ -139,4 +139,34 @@ the size of the data and the generator.
 The streamer will handle your generator for you and buffer the data before
 passing it to ``requests``.
 
+.. versionchanged:: 0.4.0
+
+    File-like objects can be passed instead of a generator.
+
+If, for example, you need to upload data being piped into standard in, you
+might otherwise do:
+
+.. code-block:: python
+
+    import requests
+    import sys
+
+    r = requests.post(url, data=sys.stdin)
+
+This would stream the data but would use a chunked transfer-encoding. If
+instead, you know the length of the data that is being sent to ``stdin`` and
+you want to prevent the data from being uploaded in chunks, you can use the
+:class:`~requests_toolbelt.streaming_iterator.StreamingIterator` to stream the
+contents of the file without relying on chunking.
+
+.. code-block:: python
+
+    import requests
+    from requests_toolbelt.streaming_iterator import StreamingIterator
+    import sys
+
+    stream = StreamingIterator(size, sys.stdin)
+    r = requests.post(url, data=stream,
+                      headers={'Content-Type': content_type})
+
 .. autoclass:: requests_toolbelt.streaming_iterator.StreamingIterator
