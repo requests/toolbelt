@@ -3,6 +3,8 @@
 Using requests with Threading
 =============================
 
+.. versionadded:: 0.4.0
+
 The toolbelt provides a simple API for using requests with threading.
 
 A requests Session is documented as threadsafe but there are still a couple

@@ -1,6 +1,57 @@
 History
 =======
 
+0.4.0 -- 2015-04-03
+-------------------
+
+For more information about this release, please see `milestone 0.4.0 
+<https://github.com/sigmavirus24/requests-toolbelt/issues/46>`_ on the 
+project's page.
+
+New Features
+~~~~~~~~~~~~
+
+- A naive implemenation of a thread pool is now included in the toolbelt. See 
+  the docs in ``docs/threading.rst`` or on `Read The Docs 
+  <https://toolbelt.readthedocs.org>`_.
+
+- The ``StreamingIterator`` now accepts files (such as ``sys.stdin``) without 
+  a specific length and will properly stream them.
+
+- The ``MultipartEncoder`` now accepts exactly the same format of fields as 
+  requests' ``files`` parameter does. In other words, you can now also pass in 
+  extra headers to add to a part in the body. You can also now specify a 
+  custom ``Content-Type`` for a part.
+
+- An implementation of HTTP Digest Authentication for Proxies is now included.
+
+- A transport adapter that allows a user to specify a specific Certificate 
+  Fingerprint is now included in the toolbelt.
+
+- A transport adapter that simplifies how users specify socket options is now 
+  included.
+
+- A transport adapter that simplifies how users can specify TCP Keep-Alive 
+  options is now included in the toolbelt.
+
+- Deprecated functions from ``requests.utils`` are now included and 
+  maintained.
+
+- An authentication tool that allows users to specify how to authenticate to 
+  several different domains at once is now included.
+
+- A function to save streamed responses to disk by analyzing the 
+  ``Content-Disposition`` header is now included in the toolbelt.
+
+Fixed Bugs
+~~~~~~~~~~
+
+- The ``MultipartEncoder`` will now allow users to upload files larger than 
+  4GB on 32-bit systems.
+
+- The ``MultipartEncoder`` will now accept empty unicode strings for form 
+  values.
+
 0.3.1 -- 2014-06-23
 -------------------
 
