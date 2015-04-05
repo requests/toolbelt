@@ -89,5 +89,12 @@ minor releases of Python 3.3. Please consider upgrading to a later minor
 version or Python 3.4. *There is absolutely nothing this library can do to
 work around that bug.*
 
+Contributing
+------------
+
+Please read the `suggested workflow
+<https://toolbelt.readthedocs.org/en/latest/contributing.html>`_ for
+contributing to this project.
+
 .. _Cory Benfield's blog: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 .. _python-requests: https://github.com/kennethreitz/requests
