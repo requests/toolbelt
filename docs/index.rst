@@ -21,6 +21,7 @@ Overview
     :maxdepth: 1
 
     user
+    contributing
 
 Full Documentation
 ------------------
