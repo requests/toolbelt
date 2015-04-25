@@ -23,7 +23,7 @@ class GuessAuth(auth.AuthBase):
 
             # Consume content and release the original connection
             # to allow our new request to reuse the same one.
-            r.content
+            r.raw.read()
             r.raw.release_conn()
             prep = r.request.copy()
             if not hasattr(prep, '_cookies'):
