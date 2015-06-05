@@ -4,8 +4,9 @@ import socket
 
 import requests
 from requests import adapters
-from requests.packages.urllib3 import connection
-from requests.packages.urllib3 import poolmanager
+
+from .._compat import connection
+from .._compat import poolmanager
 
 
 class SocketOptionsAdapter(adapters.HTTPAdapter):

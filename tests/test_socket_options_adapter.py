@@ -5,7 +5,7 @@ import socket
 
 import mock
 import requests
-from requests.packages.urllib3 import poolmanager
+from requests_toolbelt._compat import poolmanager
 
 from requests_toolbelt.adapters import socket_options
 

@@ -5,7 +5,8 @@ This file contains an implementation of a Transport Adapter that validates
 the fingerprints of SSL certificates presented upon connection.
 """
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.poolmanager import PoolManager
+
+from .._compat import poolmanager
 
 
 class FingerprintAdapter(HTTPAdapter):
@@ -40,7 +41,8 @@ class FingerprintAdapter(HTTPAdapter):
         super(FingerprintAdapter, self).__init__(**kwargs)
 
     def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = PoolManager(num_pools=connections,
-                                       maxsize=maxsize,
-                                       block=block,
-                                       assert_fingerprint=self.fingerprint)
+        self.poolmanager = poolmanager.PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            assert_fingerprint=self.fingerprint)
