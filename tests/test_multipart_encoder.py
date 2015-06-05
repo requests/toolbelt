@@ -2,7 +2,7 @@
 import unittest
 import io
 from requests_toolbelt.multipart.encoder import CustomBytesIO, MultipartEncoder
-from requests.packages.urllib3.filepost import encode_multipart_formdata
+from requests_toolbelt._compat import filepost
 
 
 class LargeFileMock(object):
@@ -103,7 +103,8 @@ class TestMultipartEncoder(unittest.TestCase):
         assert self.instance.content_type == expected
 
     def test_encodes_data_the_same(self):
-        encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
+        encoded = filepost.encode_multipart_formdata(self.parts,
+                                                     self.boundary)[0]
         assert encoded == self.instance.read()
 
     def test_streams_its_data(self):
@@ -125,7 +126,8 @@ class TestMultipartEncoder(unittest.TestCase):
         assert already_read == total_size
 
     def test_length_is_correct(self):
-        encoded = encode_multipart_formdata(self.parts, self.boundary)[0]
+        encoded = filepost.encode_multipart_formdata(self.parts,
+                                                     self.boundary)[0]
         assert len(encoded) == self.instance.len
 
     def test_encodes_with_readable_data(self):

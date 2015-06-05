@@ -7,13 +7,13 @@ requests_toolbelt.multipart.encoder
 This holds all of the implementation details of the MultipartEncoder
 
 """
-
-from requests.utils import super_len
-from requests.packages.urllib3 import fields
-from uuid import uuid4
-
 import contextlib
 import io
+from uuid import uuid4
+
+from requests.utils import super_len
+
+from .._compat import fields
 
 
 class MultipartEncoder(object):
