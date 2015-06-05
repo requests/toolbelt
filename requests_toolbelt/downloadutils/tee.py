@@ -1,7 +1,9 @@
 """Tee function implementations."""
 
+_DEFAULT_CHUNKSIZE = 65536
 
-def tee(response, fileobject):
+
+def tee(response, fileobject, chunksize=_DEFAULT_CHUNKSIZE):
     """Stream the response both to the generator and a file.
 
     This will stream the response body while writing the bytes to
@@ -20,11 +22,14 @@ def tee(response, fileobject):
     :type response: requests.Response
     :param fileobject: Writable file-like object.
     :type fileobject: file, io.BytesIO
+    :param int chunksize: (optional), Size of chunk to attempt to stream.
     """
-    pass
+    for chunk in response.raw.stream(amt=chunksize):
+        fileobject.write(chunk)
+        yield chunk
 
 
-def tee_to_file(response, filename):
+def tee_to_file(response, filename, chunksize=_DEFAULT_CHUNKSIZE):
     """Stream the response both to the generator and a file.
 
     This will open a file named ``filename`` and stream the response body
@@ -41,5 +46,8 @@ def tee_to_file(response, filename):
     :param response: Response from requests.
     :type response: requests.Response
     :param str fileoname: Name of file in which we write the response content.
+    :param int chunksize: (optional), Size of chunk to attempt to stream.
     """
-    pass
+    with open(filename, 'wb') as fd:
+        for chunk in tee(response, fd, chunksize):
+            yield chunk
