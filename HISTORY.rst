@@ -1,6 +1,22 @@
 History
 =======
 
+0.5.0 -- 2015-xx-yy
+-------------------
+
+More information about this release can be found on the `milestone
+<https://github.com/sigmavirus24/requests-toolbelt/issues?utf8=%E2%9C%93&q=is%3Aall+milestone%3A0.5+>`_
+for 0.5.0.
+
+New Features
+~~~~~~~~~~~~
+
+- The ``tee`` submodule was added to ``requests_toolbelt.downloadutils``. It
+  allows you to iterate over the bytes of a response while also writing them
+  to a file. The ``tee.tee`` function, expects you to pass an open file
+  object, while ``tee.tee_to_file`` will use the provided file name to open
+  the file for you.
+
 0.4.0 -- 2015-04-03
 -------------------
 
