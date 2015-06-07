@@ -17,6 +17,12 @@ New Features
   object, while ``tee.tee_to_file`` will use the provided file name to open
   the file for you.
 
+Fixed Bugs
+~~~~~~~~~~
+
+- Now papers over the API differences in versions of requests installed from
+  system packages versus versions of requests installed from PyPI.
+
 0.4.0 -- 2015-04-03
 -------------------
 
