@@ -75,13 +75,12 @@ def test_tee(streamed_response):
     assert fileobject.getvalue() == b'chunkchunkchunkchunkchunkchunkchunkchunk'
 
 
-def test_tee_rejects_StringIO(streamed_response):
-    response = streamed_response
+def test_tee_rejects_StringIO():
     fileobject = io.StringIO()
     with pytest.raises(TypeError):
         # The generator needs to be iterated over before the exception will be
         # raised
-        sum(len(c) for c in tee.tee(response, fileobject))
+        sum(len(c) for c in tee.tee(None, fileobject))
 
 
 def test_tee_to_file(streamed_response):
@@ -92,3 +91,19 @@ def test_tee_to_file(streamed_response):
         )
     assert os.path.exists('tee.txt')
     os.remove('tee.txt')
+
+
+def test_tee_to_bytearray(streamed_response):
+    response = streamed_response
+    arr = bytearray()
+    expected_arr = bytearray(b'chunk' * 8)
+    expected_len = len(expected_arr)
+    assert expected_len == sum(
+        len(c) for c in tee.tee_to_bytearray(response, arr)
+        )
+    assert expected_arr == arr
+
+
+def test_tee_to_bytearray_only_accepts_bytearrays():
+    with pytest.raises(TypeError):
+        tee.tee_to_bytearray(None, object())

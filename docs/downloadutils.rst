@@ -10,4 +10,7 @@ Utilities for Downloading Streaming Reponses
     requests_toolbelt.downloadutils.tee.tee
 
 .. autofunction::
+    requests_toolbelt.downloadutils.tee.tee_to_bytearray
+
+.. autofunction::
     requests_toolbelt.downloadutils.tee.tee_to_file

@@ -3,6 +3,15 @@ import io
 
 _DEFAULT_CHUNKSIZE = 65536
 
+__all__ = ['tee', 'tee_to_file', 'tee_to_bytearray']
+
+
+def _tee(response, callback, chunksize, decode_content):
+    for chunk in response.raw.stream(amt=chunksize,
+                                     decode_content=decode_content):
+        callback(chunk)
+        yield chunk
+
 
 def tee(response, fileobject, chunksize=_DEFAULT_CHUNKSIZE,
         decode_content=None):
@@ -50,10 +59,7 @@ def tee(response, fileobject, chunksize=_DEFAULT_CHUNKSIZE,
                         ', it must be opened with the "b" flag if it is a file'
                         ' or inherit from io.BytesIO.')
 
-    for chunk in response.raw.stream(amt=chunksize,
-                                     decode_content=decode_content):
-        fileobject.write(chunk)
-        yield chunk
+    return _tee(response, fileobject.write, chunksize, decode_content)
 
 
 def tee_to_file(response, filename, chunksize=_DEFAULT_CHUNKSIZE,
@@ -81,3 +87,32 @@ def tee_to_file(response, filename, chunksize=_DEFAULT_CHUNKSIZE,
     with open(filename, 'wb') as fd:
         for chunk in tee(response, fd, chunksize, decode_content):
             yield chunk
+
+
+def tee_to_bytearray(response, bytearr, chunksize=_DEFAULT_CHUNKSIZE,
+                     decode_content=None):
+    """Stream the response both to the generator and a bytearray.
+
+    This will stream the response provided to the function, add them to the
+    provided :class:`bytearray` and yield them to the user.
+
+    Example usage:
+
+    .. code-block:: python
+
+        b = bytearray()
+        resp = requests.get(url, stream=True)
+        for chunk in tee_to_bytearray(resp, b):
+            # do stuff with chunk
+
+    :param response: Response from requests.
+    :type response: requests.Response
+    :param bytearray bytearr: Array to add the streamed bytes to.
+    :param int chunksize: (optional), Size of chunk to attempt to stream.
+    :param bool decode_content: (optional), If True, this will decode the
+        compressed content of the response.
+    """
+    if not isinstance(bytearr, bytearray):
+        raise TypeError('tee_to_bytearray() expects bytearr to be a '
+                        'bytearray')
+    return _tee(response, bytearr.extend, chunksize, decode_content)
