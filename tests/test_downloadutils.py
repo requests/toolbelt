@@ -5,6 +5,8 @@ import os.path
 
 import requests
 from requests_toolbelt.downloadutils import stream
+from requests_toolbelt.downloadutils import tee
+import mock
 
 from . import get_betamax
 
@@ -54,3 +56,23 @@ def test_stream_response_to_file_like_object():
         stream.stream_response_to_file(r, path=file_obj)
 
     assert 0 < file_obj.tell()
+
+
+def test_tee():
+    response = mock.MagicMock()
+    response.raw.stream.return_value = [b'chunk'] * 8
+    expected_len = len('chunk') * 8
+    fileobject = io.BytesIO()
+    assert expected_len == sum(len(c) for c in tee.tee(response, fileobject))
+    assert fileobject.getvalue() == b'chunkchunkchunkchunkchunkchunkchunkchunk'
+
+
+def test_tee_to_file():
+    response = mock.MagicMock()
+    response.raw.stream.return_value = [b'chunk'] * 8
+    expected_len = len('chunk') * 8
+    assert expected_len == sum(
+        len(c) for c in tee.tee_to_file(response, 'tee.txt')
+        )
+    assert os.path.exists('tee.txt')
+    os.remove('tee.txt')
