@@ -7,6 +7,7 @@ import requests
 from requests_toolbelt.downloadutils import stream
 from requests_toolbelt.downloadutils import tee
 import mock
+import pytest
 
 from . import get_betamax
 
@@ -58,18 +59,33 @@ def test_stream_response_to_file_like_object():
     assert 0 < file_obj.tell()
 
 
-def test_tee():
+@pytest.fixture
+def streamed_response(chunks=None):
+    chunks = chunks or [b'chunk'] * 8
     response = mock.MagicMock()
-    response.raw.stream.return_value = [b'chunk'] * 8
+    response.raw.stream.return_value = chunks
+    return response
+
+
+def test_tee(streamed_response):
+    response = streamed_response
     expected_len = len('chunk') * 8
     fileobject = io.BytesIO()
     assert expected_len == sum(len(c) for c in tee.tee(response, fileobject))
     assert fileobject.getvalue() == b'chunkchunkchunkchunkchunkchunkchunkchunk'
 
 
-def test_tee_to_file():
-    response = mock.MagicMock()
-    response.raw.stream.return_value = [b'chunk'] * 8
+def test_tee_rejects_StringIO(streamed_response):
+    response = streamed_response
+    fileobject = io.StringIO()
+    with pytest.raises(TypeError):
+        # The generator needs to be iterated over before the exception will be
+        # raised
+        sum(len(c) for c in tee.tee(response, fileobject))
+
+
+def test_tee_to_file(streamed_response):
+    response = streamed_response
     expected_len = len('chunk') * 8
     assert expected_len == sum(
         len(c) for c in tee.tee_to_file(response, 'tee.txt')
