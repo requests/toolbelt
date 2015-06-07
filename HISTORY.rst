@@ -27,8 +27,8 @@ Fixed Bugs
 -------------------
 
 For more information about this release, please see `milestone 0.4.0 
-<https://github.com/sigmavirus24/requests-toolbelt/issues/46>`_ on the 
-project's page.
+<https://github.com/sigmavirus24/requests-toolbelt/issues?q=milestone%3A0.4>`_
+on the project's page.
 
 New Features
 ~~~~~~~~~~~~
