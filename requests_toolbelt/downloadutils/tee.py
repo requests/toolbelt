@@ -96,6 +96,11 @@ def tee_to_bytearray(response, bytearr, chunksize=_DEFAULT_CHUNKSIZE,
     This will stream the response provided to the function, add them to the
     provided :class:`bytearray` and yield them to the user.
 
+    .. note::
+
+        This uses the :meth:`bytearray.extend` by default instead of passing
+        the bytearray into the ``readinto`` method.
+
     Example usage:
 
     .. code-block:: python
