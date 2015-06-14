@@ -5,13 +5,14 @@ from requests import compat
 
 
 __all__ = ('dump_response',)
-_PrefixSettings = collections.namedtuple('PrefixSettings',
-                                         ['request', 'response'])
 HTTP_VERSIONS = {
     9: b'0.9',
     10: b'1.0',
     11: b'1.1',
 }
+
+_PrefixSettings = collections.namedtuple('PrefixSettings',
+                                         ['request', 'response'])
 
 
 class PrefixSettings(_PrefixSettings):
@@ -40,11 +41,10 @@ def _dump_request_data(request, prefixes, bytearr):
 
     # <prefix>Host: <request-host> OR host header specified by user
     headers = request.headers.copy()
-    host_header = _coerce_to_bytes(headers.pop('Host',
-                                   _coerce_to_bytes(uri.netloc)))
+    host_header = _coerce_to_bytes(headers.pop('Host', uri.netloc))
     bytearr.extend(prefix + b'Host: ' + host_header + b'\r\n')
 
-    for name, value in sorted(headers.items()):
+    for name, value in headers.items():
         bytearr.extend(prefix + _format_header(name, value))
 
     bytearr.extend(prefix + b'\r\n')
@@ -68,11 +68,11 @@ def _dump_response_data(response, prefixes, bytearr):
 
     # <prefix>HTTP/<version_str> <status_code> <reason>
     bytearr.extend(prefix + b'HTTP/' + version_str + b' ' +
-                   str(raw.status).encode() + b' ' +
+                   str(raw.status).encode('ascii') + b' ' +
                    _coerce_to_bytes(raw.reason) + b'\r\n')
 
     headers = raw.headers
-    for name in sorted(headers.keys()):
+    for name in headers.keys():
         for value in headers.getlist(name):
             bytearr.extend(prefix + _format_header(name, value))
 
@@ -117,7 +117,7 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
     :returns: Formatted bytes of request and response information.
     :rtype: :class:`bytearray`
     """
-    data = data_array or bytearray()
+    data = data_array if data_array is not None else bytearray()
     prefixes = PrefixSettings(request_prefix, response_prefix)
 
     if not hasattr(response, 'request'):
