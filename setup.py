@@ -22,10 +22,7 @@ def get_version():
                 break
     return version
 
-try:
-    from requests_toolbelt import __version__
-except:
-    __version__ = get_version()
+__version__ = get_version()
 
 if not __version__:
     raise RuntimeError('Cannot find version information')
