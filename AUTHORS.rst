@@ -29,3 +29,5 @@ Patches and Suggestions
 - Zhaoyu Luo <luozhaoyu90@gmail.com>
 
 - Markus Unterwaditzer <markus@unterwaditzer.net>
+
+- Bryce Boe <bbzbryce@gmail.com> (@bboe)
