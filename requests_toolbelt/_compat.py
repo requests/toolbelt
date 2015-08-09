@@ -8,24 +8,28 @@ urllib3 without providing a shim.
     This module is private. If you use it, and something breaks, you were
     warned
 """
-import sys
-
-
 try:
     from requests.packages.urllib3 import connection
     from requests.packages.urllib3 import fields
     from requests.packages.urllib3 import filepost
     from requests.packages.urllib3 import poolmanager
 except ImportError:
-    from urllib3 import connection  # NOQA
-    from urllib3 import fields  # NOQA
-    from urllib3 import filepost  # NOQA
-    from urllib3 import poolmanager  # NOQA
+    from urllib3 import connection
+    from urllib3 import fields
+    from urllib3 import filepost
+    from urllib3 import poolmanager
 
-# Python version specific names
-is_py2 = (sys.version_info[0] == 2)
 
-if is_py2:
+try:
     basestring = basestring
-else:
+except NameError:
     basestring = (str, bytes)
+
+
+__all__ = (
+    'basestring',
+    'connection',
+    'fields',
+    'filepost',
+    'poolmanager',
+)
