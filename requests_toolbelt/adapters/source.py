@@ -28,7 +28,10 @@ class SourceAddressAdapter(HTTPAdapter):
         s.mount('http://', SourceAddressAdapter('10.10.10.10'))
     """
     def __init__(self, source_address, **kwargs):
-        self.source_address = source_address
+        if isinstance(source_address, basestring):
+            self.source_address = (source_address, 0)
+        else:
+            self.source_address = source_address
 
         super(SourceAddressAdapter, self).__init__(**kwargs)
 
