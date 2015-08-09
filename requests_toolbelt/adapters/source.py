@@ -8,7 +8,7 @@ demonstrated on the Requests GitHub page.
 """
 from requests.adapters import HTTPAdapter
 
-from .._compat import poolmanager
+from .._compat import poolmanager, basestring
 
 
 class SourceAddressAdapter(HTTPAdapter):
