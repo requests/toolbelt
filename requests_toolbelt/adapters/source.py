@@ -30,8 +30,12 @@ class SourceAddressAdapter(HTTPAdapter):
     def __init__(self, source_address, **kwargs):
         if isinstance(source_address, basestring):
             self.source_address = (source_address, 0)
-        else:
+        elif isinstance(source_address, tuple):
             self.source_address = source_address
+        else:
+            raise TypeError(
+                "source_address must be IP address string or (ip, port) tuple"
+            )
 
         super(SourceAddressAdapter, self).__init__(**kwargs)
 
