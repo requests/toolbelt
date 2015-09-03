@@ -34,3 +34,5 @@ def test_source_address_adapter_tuple(poolmanager):
 def test_source_address_adapter_type_error(poolmanager):
     with pytest.raises(TypeError):
         SourceAddressAdapter({'10.10.10.10': 80})
+
+    assert not poolmanager.PoolManager.called
