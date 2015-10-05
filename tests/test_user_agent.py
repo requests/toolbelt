@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import unittest
 import sys
+
 from mock import patch
+import pytest
+
 from requests_toolbelt.utils import user_agent as ua
 
 
@@ -18,6 +21,22 @@ class TestUserAgent(unittest.TestCase):
 
     def test_user_agent_provides_package_version(self):
         assert "0.0.1" in ua.user_agent("my-package", "0.0.1")
+
+    def test_user_agent_builds_extras_appropriately(self):
+        assert "extra/1.0.0" in ua.user_agent(
+            "my-package", "0.0.1", extras=[("extra", "1.0.0")]
+        )
+
+    def test_user_agent_checks_extras_for_tuples_of_incorrect_length(self):
+        with pytest.raises(ValueError):
+            ua.user_agent("my-package", "0.0.1", extras=[
+                ("extra", "1.0.0", "oops")
+            ])
+
+        with pytest.raises(ValueError):
+            ua.user_agent("my-package", "0.0.1", extras=[
+                ("extra",)
+            ])
 
 
 class TestImplementationString(unittest.TestCase):

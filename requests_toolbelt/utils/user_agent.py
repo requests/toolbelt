@@ -3,7 +3,7 @@ import platform
 import sys
 
 
-def user_agent(name, version):
+def user_agent(name, version, extras=None):
     """
     Returns an internet-friendly user_agent string.
 
@@ -12,6 +12,10 @@ def user_agent(name, version):
 
     :param name: The intended name of the user-agent, e.g. "python-requests".
     :param version: The version of the user-agent, e.g. "0.0.1".
+    :param extras: List of two-item tuples that are added to the user-agent
+        string.
+    :returns: Formatted user-agent string
+    :rtype: str
     """
     try:
         p_system = platform.system()
@@ -20,9 +24,24 @@ def user_agent(name, version):
         p_system = 'Unknown'
         p_release = 'Unknown'
 
-    return " ".join(['%s/%s' % (name, version),
-                     _implementation_string(),
-                     '%s/%s' % (p_system, p_release)])
+    if extras is None:
+        extras = []
+
+    if any(len(extra) != 2 for extra in extras):
+        raise ValueError('Extras should be a sequence of two item tuples.')
+
+    format_string = '%s/%s'
+
+    extra_pieces = [
+        format_string % (extra_name, extra_version)
+        for extra_name, extra_version in extras
+    ]
+
+    user_agent_pieces = ([format_string % (name, version)] + extra_pieces +
+                         [_implementation_string(),
+                          '%s/%s' % (p_system, p_release)])
+
+    return " ".join(user_agent_pieces)
 
 
 def _implementation_string():

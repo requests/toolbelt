@@ -28,3 +28,31 @@ into your program like this::
 
 This will override the default Requests user-agent string for all of your HTTP
 requests, replacing it with your own.
+
+Adding Extra Information to Your User-Agent String
+--------------------------------------------------
+
+.. versionadded:: 0.5.0
+
+If you feel it necessary, you can also include versions for other things that
+your client is using. For example if you were building a package and wanted to
+include the package name and version number as well as the version of requests
+and requests-toolbelt you were using you could do the following:
+
+.. code-block:: python
+
+    import requests
+    import requests_toolbelt
+    from requests_toolbelt.utils.user_agent import user_agent as ua
+
+    user_agent = ua.user_agent('mypackage', '0.0.1',
+                               extras=[('requests', requests.__version__),
+                                       ('requests-toolbelt', requests_toolbelt.__version__)])
+
+    s = requests.Session()
+    s.headers['User-Agent'] = user_agent
+
+
+Your user agent will now look like::
+
+    mypackage/0.0.1 requests/2.7.0 requests-toolbelt/0.5.0 CPython/2.7.10 Darwin/13.0.0
