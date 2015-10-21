@@ -31,3 +31,5 @@ Patches and Suggestions
 - Markus Unterwaditzer <markus@unterwaditzer.net>
 
 - Bryce Boe <bbzbryce@gmail.com> (@bboe)
+
+- Dan Lipsitt (https://github.com/DanLipsitt)

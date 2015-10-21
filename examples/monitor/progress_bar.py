@@ -12,7 +12,7 @@ import requests
 
 
 def create_callback(encoder):
-    encoder_len = len(encoder)
+    encoder_len = encoder.len
     bar = ProgressBar(expected_size=encoder_len, filled_char='=')
 
     def callback(monitor):
