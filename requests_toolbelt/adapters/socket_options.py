@@ -33,7 +33,11 @@ class SocketOptionsAdapter(adapters.HTTPAdapter):
 
     """
 
-    default_options = connection.HTTPConnection.default_socket_options
+    default_options = getattr(
+        connection.HTTPConnection,
+        'default_socket_options',
+        [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)]
+    )
 
     def __init__(self, **kwargs):
         self.socket_options = kwargs.pop('socket_options',
