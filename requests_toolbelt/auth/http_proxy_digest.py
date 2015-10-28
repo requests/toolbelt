@@ -2,8 +2,9 @@
 """The module containing HTTPProxyDigestAuth."""
 import re
 
-from requests import auth
 from requests import cookies
+
+from . import _digest_auth_compat as auth
 
 
 class HTTPProxyDigestAuth(auth.HTTPDigestAuth):
@@ -20,6 +21,30 @@ class HTTPProxyDigestAuth(auth.HTTPDigestAuth):
     def __init__(self, *args, **kwargs):
         super(HTTPProxyDigestAuth, self).__init__(*args, **kwargs)
         self.stale_rejects = 0
+
+        self.init_per_thread_state()
+
+    @property
+    def stale_rejects(self):
+        thread_local = getattr(self, '_thread_local', None)
+        if thread_local is None:
+            return self._stale_rejects
+        return thread_local.stale_rejects
+
+    @stale_rejects.setter
+    def stale_rejects(self, value):
+        thread_local = getattr(self, '_thread_local', None)
+        if thread_local is None:
+            self._stale_rejects = value
+        else:
+            thread_local.stale_rejects = value
+
+    def init_per_thread_state(self):
+        try:
+            super(HTTPProxyDigestAuth, self).init_per_thread_state()
+        except AttributeError:
+            # If we're not on requests 2.8.0+ this method does not exist
+            pass
 
     def handle_407(self, r, **kwargs):
         """Handle HTTP 407 only once, otherwise give up
@@ -64,6 +89,7 @@ class HTTPProxyDigestAuth(auth.HTTPDigestAuth):
             return r
 
     def __call__(self, r):
+        self.init_per_thread_state()
         # if we have nonce, then just use it, otherwise server will tell us
         if self.last_nonce:
             r.headers['Proxy-Authorization'] = self.build_digest_header(
