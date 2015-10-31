@@ -22,19 +22,37 @@ class PrefixSettings(_PrefixSettings):
         super(PrefixSettings, self).__init__(request, response)
 
 
+def _get_proxy_information(response):
+    if response.connection.proxy_manager:
+        proxy_info = {}
+        request_url = response.request.url
+        if request_url.startswith('https://'):
+            proxy_info['method'] = 'CONNECT'
+
+        proxy_info['request_path'] = request_url
+        return proxy_info
+    return None
+
+
 def _format_header(name, value):
     return (_coerce_to_bytes(name) + b': ' + _coerce_to_bytes(value) +
             b'\r\n')
 
 
-def _dump_request_data(request, prefixes, bytearr):
+def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
+    if proxy_info is None:
+        proxy_info = {}
     prefix = prefixes.request
-    method = _coerce_to_bytes(request.method)
+    method = _coerce_to_bytes(proxy_info.pop('method', request.method))
     uri = compat.urlparse(request.url)
 
     request_path = _coerce_to_bytes(uri.path)
     if uri.query:
         request_path + b'?' + _coerce_to_bytes(uri.query)
+
+    proxy_url = proxy_info.get('request_path')
+    if proxy_url is not None:
+        request_path = proxy_url
 
     # <prefix><METHOD> <request-path> HTTP/1.1
     bytearr.extend(prefix + method + b' ' + request_path + b' HTTP/1.1\r\n')
@@ -123,7 +141,9 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
     if not hasattr(response, 'request'):
         raise ValueError('Response has no associated request')
 
-    _dump_request_data(response.request, prefixes, data)
+    proxy_info = _get_proxy_information(response)
+    _dump_request_data(response.request, prefixes, data,
+                       proxy_info=proxy_info)
     _dump_response_data(response, prefixes, data)
     return data
 
