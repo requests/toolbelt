@@ -33,3 +33,5 @@ Patches and Suggestions
 - Bryce Boe <bbzbryce@gmail.com> (@bboe)
 
 - Dan Lipsitt (https://github.com/DanLipsitt)
+
+- Cea Stapleton (http://www.ceastapleton.com)

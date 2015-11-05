@@ -79,6 +79,18 @@ in Python's ``ssl`` module for outgoing HTTPS connections:
     s = requests.Session()
     s.mount('https://', SSLAdapter(ssl.PROTOCOL_TLSv1))
 
+cookies/ForgetfulCookieJar
+--------------------------
+
+The ``ForgetfulCookieJar`` prevents a particular requests session from storing 
+cookies:
+
+.. code-block:: python
+
+    from requests-toolbelt.cookies import ForgetfulCookieJar
+
+    session = requests.Session()
+    session.cookies = ForgetfulCookieJar()
 
 Known Issues
 ------------
