@@ -1,5 +1,4 @@
 """The module containing the code for ForgetfulCookieJar."""
-import requests
 from requests.cookies import RequestsCookieJar
 
 
