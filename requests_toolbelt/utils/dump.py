@@ -16,10 +16,10 @@ _PrefixSettings = collections.namedtuple('PrefixSettings',
 
 
 class PrefixSettings(_PrefixSettings):
-    def __init__(self, request, response):
+    def __new__(cls, request, response):
         request = _coerce_to_bytes(request)
         response = _coerce_to_bytes(response)
-        super(PrefixSettings, self).__init__(request, response)
+        return super(PrefixSettings, cls).__new__(cls, request, response)
 
 
 def _get_proxy_information(response):
