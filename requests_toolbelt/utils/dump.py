@@ -4,7 +4,8 @@ import collections
 from requests import compat
 
 
-__all__ = ('dump_response',)
+__all__ = ('dump_response', 'dump_all')
+
 HTTP_VERSIONS = {
     9: b'0.9',
     10: b'1.0',
