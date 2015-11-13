@@ -24,7 +24,7 @@ class PrefixSettings(_PrefixSettings):
 
 
 def _get_proxy_information(response):
-    if response.connection.proxy_manager:
+    if getattr(response.connection, 'proxy_manager', False):
         proxy_info = {}
         request_url = response.request.url
         if request_url.startswith('https://'):
@@ -94,7 +94,7 @@ def _dump_response_data(response, prefixes, bytearr):
     # <prefix>HTTP/<version_str> <status_code> <reason>
     bytearr.extend(prefix + b'HTTP/' + version_str + b' ' +
                    str(raw.status).encode('ascii') + b' ' +
-                   _coerce_to_bytes(raw.reason) + b'\r\n')
+                   _coerce_to_bytes(response.reason) + b'\r\n')
 
     headers = raw.headers
     for name in headers.keys():

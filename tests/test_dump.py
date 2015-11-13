@@ -14,10 +14,14 @@ from requests_toolbelt.utils import dump
 
 import mock
 import pytest
+import requests
+
+from . import get_betamax
 
 HTTP_1_1 = 11
 HTTP_1_0 = 10
 HTTP_0_9 = 9
+HTTP_UNKNOWN = 5000
 
 
 class TestSimplePrivateFunctions(object):
@@ -81,6 +85,7 @@ class RequestResponseMixin(object):
         'connection',
         'content',
         'raw',
+        'reason',
         'request',
         'url',
     ]
@@ -115,11 +120,13 @@ class RequestResponseMixin(object):
         self.response.request = self.request
         self.response.raw = self.httpresponse
 
-    def configure_response(self, content=b'', proxy_manager=None, url=None):
+    def configure_response(self, content=b'', proxy_manager=None, url=None,
+                           reason=b''):
         """Helper function to configure a mocked response."""
         self.adapter.proxy_manager = proxy_manager or {}
         self.response.content = content
         self.response.url = url
+        self.response.reason = reason
 
     def configure_request(self, body=b'', headers=None, method=None,
                           url=None):
@@ -231,6 +238,7 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
         self.configure_response(
             url='https://example.com/redirected',
             content=b'foobarbogus',
+            reason=b'OK',
         )
         self.configure_httpresponse(
             headers={'Content-Type': 'application/json'},
@@ -247,6 +255,56 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
         )
 
         assert b'response:HTTP/1.1 201 OK\r\n' in array
+        assert b'response:Content-Type: application/json\r\n' in array
+
+    def test_dump_response_data_with_older_http_version(self):
+        """Build up the response data into a bytearray."""
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+            reason=b'OK',
+        )
+        self.configure_httpresponse(
+            headers={'Content-Type': 'application/json'},
+            reason=b'OK',
+            status=201,
+            version=HTTP_0_9,
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+        )
+
+        assert b'response:HTTP/0.9 201 OK\r\n' in array
+        assert b'response:Content-Type: application/json\r\n' in array
+
+    def test_dump_response_data_with_unknown_http_version(self):
+        """Build up the response data into a bytearray."""
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+            reason=b'OK',
+        )
+        self.configure_httpresponse(
+            headers={'Content-Type': 'application/json'},
+            reason=b'OK',
+            status=201,
+            version=HTTP_UNKNOWN,
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+        )
+
+        assert b'response:HTTP/? 201 OK\r\n' in array
         assert b'response:Content-Type: application/json\r\n' in array
 
 
@@ -271,6 +329,7 @@ class TestResponsePublicFunctions(RequestResponseMixin):
         self.configure_response(
             url='https://example.com/redirected',
             content=b'foobarbogus',
+            reason=b'OK',
         )
         self.configure_httpresponse(
             headers={'Content-Type': 'application/json'},
@@ -281,3 +340,16 @@ class TestResponsePublicFunctions(RequestResponseMixin):
 
         retarr = dump.dump_response(self.response, data_array=arr)
         assert retarr is arr
+
+
+class TestDumpRealResponses(object):
+
+    """Exercise dump utilities against real data."""
+
+    def test_dump_response(self):
+        session = requests.Session()
+        recorder = get_betamax(session)
+        with recorder.use_cassette('simple_get_request'):
+            response = session.get('https://httpbin.org/get')
+
+        dump.dump_response(response)
