@@ -56,6 +56,22 @@ class TestSimplePrivateFunctions(object):
         )
         assert path == b'/foo/bar'
 
+    def test_build_request_path_with_query_string(self):
+        """Show we include query strings appropriately."""
+        path, _ = dump._build_request_path(
+            'https://example.com/foo/bar?query=data', {}
+        )
+        assert path == b'/foo/bar?query=data'
+
+    def test_build_request_path_with_proxy_info(self):
+        """Show that we defer to the proxy request_path info."""
+        path, _ = dump._build_request_path(
+            'https://example.com/', {
+                'request_path': b'https://example.com/test'
+            }
+        )
+        assert path == b'https://example.com/test'
+
 
 class RequestResponseMixin(object):
 
@@ -113,7 +129,7 @@ class RequestResponseMixin(object):
         self.request.method = method
         self.request.url = url
 
-    def configure_httpresponse(self, headers=None, reason=b'', status=b'',
+    def configure_httpresponse(self, headers=None, reason=b'', status=200,
                                version=HTTP_1_1):
         """Helper function to configure a mocked urllib3 response."""
         self.httpresponse.headers = HTTPHeaderDict(headers or {})
@@ -168,3 +184,100 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             'method': 'CONNECT',
             'request_path': 'https://example.com'
         }
+
+    def test_dump_request_data(self):
+        """Build up the request data into a bytearray."""
+        self.configure_request(
+            url='http://example.com/',
+            method='GET',
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_request_data(
+            request=self.request,
+            prefixes=prefixes,
+            bytearr=array,
+            proxy_info={},
+        )
+
+        assert b'request:GET / HTTP/1.1\r\n' in array
+        assert b'request:Host: example.com\r\n' in array
+
+    def test_dump_request_data_with_proxy_info(self):
+        """Build up the request data into a bytearray."""
+        self.configure_request(
+            url='http://example.com/',
+            method='GET',
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_request_data(
+            request=self.request,
+            prefixes=prefixes,
+            bytearr=array,
+            proxy_info={
+                'request_path': b'fake-request-path',
+                'method': b'CONNECT',
+            },
+        )
+
+        assert b'request:CONNECT fake-request-path HTTP/1.1\r\n' in array
+        assert b'request:Host: example.com\r\n' in array
+
+    def test_dump_response_data(self):
+        """Build up the response data into a bytearray."""
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+        )
+        self.configure_httpresponse(
+            headers={'Content-Type': 'application/json'},
+            reason=b'OK',
+            status=201,
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+        )
+
+        assert b'response:HTTP/1.1 201 OK\r\n' in array
+        assert b'response:Content-Type: application/json\r\n' in array
+
+
+class TestResponsePublicFunctions(RequestResponseMixin):
+
+    """Excercise public functions using responses."""
+
+    def test_dump_response_fails_without_request(self):
+        """Show that a response without a request raises a ValueError."""
+        del self.response.request
+        assert hasattr(self.response, 'request') is False
+
+        with pytest.raises(ValueError):
+            dump.dump_response(self.response)
+
+    def test_dump_response_uses_provided_bytearray(self):
+        """Show that users providing bytearrays receive those back."""
+        self.configure_request(
+            url='http://example.com/',
+            method='GET',
+        )
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+        )
+        self.configure_httpresponse(
+            headers={'Content-Type': 'application/json'},
+            reason=b'OK',
+            status=201,
+        )
+        arr = bytearray()
+
+        retarr = dump.dump_response(self.response, data_array=arr)
+        assert retarr is arr
