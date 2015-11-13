@@ -40,20 +40,26 @@ def _format_header(name, value):
             b'\r\n')
 
 
-def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
-    if proxy_info is None:
-        proxy_info = {}
-    prefix = prefixes.request
-    method = _coerce_to_bytes(proxy_info.pop('method', request.method))
-    uri = compat.urlparse(request.url)
+def _build_request_path(url, proxy_info):
+    uri = compat.urlparse(url)
+    proxy_url = proxy_info.get('request_path')
+    if proxy_url is not None:
+        return proxy_url, uri
 
     request_path = _coerce_to_bytes(uri.path)
     if uri.query:
-        request_path + b'?' + _coerce_to_bytes(uri.query)
+        request_path += b'?' + _coerce_to_bytes(uri.query)
 
-    proxy_url = proxy_info.get('request_path')
-    if proxy_url is not None:
-        request_path = proxy_url
+    return request_path, uri
+
+
+def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
+    if proxy_info is None:
+        proxy_info = {}
+
+    prefix = prefixes.request
+    method = _coerce_to_bytes(proxy_info.pop('method', request.method))
+    request_path, uri = _build_request_path(request.url, proxy_info)
 
     # <prefix><METHOD> <request-path> HTTP/1.1
     bytearr.extend(prefix + method + b' ' + request_path + b' HTTP/1.1\r\n')
