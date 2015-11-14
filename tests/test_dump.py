@@ -352,4 +352,20 @@ class TestDumpRealResponses(object):
         with recorder.use_cassette('simple_get_request'):
             response = session.get('https://httpbin.org/get')
 
-        dump.dump_response(response)
+        arr = dump.dump_response(response)
+        assert b'< GET /get HTTP/1.1\r\n' in arr
+        assert b'< Host: httpbin.org\r\n' in arr
+        # NOTE(sigmavirus24): The ? below is only because Betamax doesn't
+        # preserve which HTTP version the server reports as supporting.
+        # When not using Betamax, there should be a different version
+        # reported.
+        assert b'> HTTP/? 200 OK\r\n' in arr
+        assert b'> Content-Type: application/json\r\n' in arr
+
+    def test_dump_all(self):
+        session = requests.Session()
+        recorder = get_betamax(session)
+        with recorder.use_cassette('redirect_request_for_dump_all'):
+            response = session.get('https://httpbin.org/redirect/5')
+
+        dump.dump_all(response)
