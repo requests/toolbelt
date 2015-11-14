@@ -126,6 +126,7 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
 
         resp = requests.get('https://api.github.com/users/sigmavirus24')
         data = dump.dump_response(resp)
+        print(data.decode('utf-8'))
 
     :param response:
         The response to format
@@ -169,6 +170,7 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> '):
 
         resp = requests.get('https://httpbin.org/redirect/5')
         data = dump.dump_all(resp)
+        print(data.decode('utf-8'))
 
     :param response:
         The response to format
