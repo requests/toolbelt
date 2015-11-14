@@ -368,4 +368,15 @@ class TestDumpRealResponses(object):
         with recorder.use_cassette('redirect_request_for_dump_all'):
             response = session.get('https://httpbin.org/redirect/5')
 
-        dump.dump_all(response)
+        arr = dump.dump_all(response)
+        assert b'< GET /redirect/5 HTTP/1.1\r\n' in arr
+        assert b'> Location: /relative-redirect/4\r\n' in arr
+        assert b'< GET /relative-redirect/4 HTTP/1.1\r\n' in arr
+        assert b'> Location: /relative-redirect/3\r\n' in arr
+        assert b'< GET /relative-redirect/3 HTTP/1.1\r\n' in arr
+        assert b'> Location: /relative-redirect/2\r\n' in arr
+        assert b'< GET /relative-redirect/2 HTTP/1.1\r\n' in arr
+        assert b'> Location: /relative-redirect/1\r\n' in arr
+        assert b'< GET /relative-redirect/1 HTTP/1.1\r\n' in arr
+        assert b'> Location: /get\r\n' in arr
+        assert b'< GET /get HTTP/1.1\r\n' in arr
