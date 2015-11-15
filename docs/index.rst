@@ -33,6 +33,7 @@ Full Documentation
     authentication
     deprecated
     downloadutils
+    dumputils
     exceptions
     threading
     uploading-data
