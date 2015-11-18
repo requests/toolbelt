@@ -57,3 +57,22 @@ library. See the following references:
 .. _inspiration:
     https://hg.python.org/cpython/file/8ef4f75a8018/Lib/multiprocessing/pool.py#l340
 """
+from . import pool
+from .._compat import queue
+
+
+def map(requests, **kwargs):
+    if not all(isinstance(r, dict) for r in requests):
+        raise ValueError('map expects a list of dictionaries.')
+
+    # Build our queue of requests
+    job_queue = queue.Queue()
+    for request in requests:
+        job_queue.put(request)
+
+    threadpool = pool.Pool(
+        job_queue=job_queue,
+        **kwargs
+    )
+    threadpool.join_all()
+    return threadpool.responses(), threadpool.exceptions()

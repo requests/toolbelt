@@ -1,13 +1,9 @@
 """Module implementing the Pool for :mod:``requests_toolbelt.threaded``."""
 import multiprocessing
-try:
-    import queue  # Python 3
-except ImportError:
-    import Queue as queue
-
 import requests
 
 from . import thread
+from .._compat import queue
 
 
 class Pool(object):
