@@ -134,6 +134,31 @@ The :class:`~Pool` object takes 4 other keyword arguments:
   :class:`requests.Sesssion` like object. It will not be passed any arguments
   because a :class:`requests.Session` does not accept any arguments.
 
+Finally, if you don't want to worry about Queue or Pool management, you can
+try the following:
+
+.. code-block:: python
+
+    from requests_toolbelt import threaded
+
+    requests = [{
+        'method': 'GET',
+        'url': 'https://httpbin.org/get',
+        # ...
+    }, {
+        # ...
+    }, {
+        # ...
+    }]
+
+    responses_generator, exceptions_generator = threaded.map(requests)
+    for response in responses_generator:
+       # Do something
+
+API and Module Auto-Generated Documentation
+-------------------------------------------
+
+.. automodule:: requests_toolbelt.threaded
 
 .. autoclass:: requests_toolbelt.threaded.pool.Pool
     :members:

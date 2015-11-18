@@ -45,6 +45,8 @@ creating a callback function:
     responses, errors = threaded.map(urls_to_get,
                                      initializer=initialize_session)
 
+.. autofunction:: requests_toolbelt.threaded.map
+
 Inspiration is blatantly drawn from the standard library's multiprocessing
 library. See the following references:
 
@@ -62,6 +64,23 @@ from .._compat import queue
 
 
 def map(requests, **kwargs):
+    r"""Simple interface to the threaded Pool object.
+
+    This function takes a list of dictionaries representing requests to make
+    using Sessions in threads and returns a tuple where the first item is
+    a generator of successful responses and the second is a generator of
+    exceptions.
+
+    :param list requests:
+        Collection of dictionaries representing requests to make with the Pool
+        object.
+    :param \*\*kwargs:
+        Keyword arguments that are passed to the
+        :class:`~requests_toolbelt.threaded.pool.Pool` object.
+    :returns: Tuple of responses and exceptions from the pool
+    :rtype: (:class:`~requests_toolbelt.threaded.pool.ThreadResponse`,
+        :class:`~requests_toolbelt.threaded.pool.ThreadException`)
+    """
     if not all(isinstance(r, dict) for r in requests):
         raise ValueError('map expects a list of dictionaries.')
 
@@ -70,9 +89,9 @@ def map(requests, **kwargs):
     for request in requests:
         job_queue.put(request)
 
-    threadpool = pool.Pool(
-        job_queue=job_queue,
-        **kwargs
-    )
+    # Ensure the user doesn't try to pass their own job_queue
+    kwargs['job_queue'] = job_queue
+
+    threadpool = pool.Pool(**kwargs)
     threadpool.join_all()
     return threadpool.responses(), threadpool.exceptions()
