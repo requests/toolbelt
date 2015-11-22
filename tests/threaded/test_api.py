@@ -33,6 +33,15 @@ def test_raises_a_value_error_for_non_dictionaries():
         threaded.map([[], []])
 
 
+def test_raises_a_value_error_for_falsey_requests():
+    """Assert that the requests param is truthy."""
+    with pytest.raises(ValueError):
+        threaded.map([])
+
+    with pytest.raises(ValueError):
+        threaded.map(None)
+
+
 def test_passes_on_kwargs():
     """Verify that we pass on kwargs to the Pool constructor."""
     mocked_pool = mock.Mock(spec=['join_all', 'responses', 'exceptions'])
