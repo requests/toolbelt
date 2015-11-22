@@ -81,7 +81,7 @@ def map(requests, **kwargs):
     :rtype: (:class:`~requests_toolbelt.threaded.pool.ThreadResponse`,
         :class:`~requests_toolbelt.threaded.pool.ThreadException`)
     """
-    if not all(isinstance(r, dict) for r in requests):
+    if not (requests and all(isinstance(r, dict) for r in requests)):
         raise ValueError('map expects a list of dictionaries.')
 
     # Build our queue of requests
