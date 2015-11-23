@@ -7,7 +7,7 @@ from .._compat import urlencode as _urlencode
 __all__ = ('urlencode',)
 
 
-def urlencode(query, doseq=False, safe='', encoding=None, errors=None):
+def urlencode(query, *args, **kwargs):
     """Enhanced urlencode method for handling nested queries.
 
     When using this to send data in the body of a request, make sure you
@@ -54,13 +54,7 @@ def urlencode(query, doseq=False, safe='', encoding=None, errors=None):
     while any(isinstance(v, expand_classes) for _, v in query_list):
         query_list = _expand_query_values(query_list)
 
-    try:
-        return _urlencode(query_list,
-                          doseq=doseq,
-                          encoding=encoding,
-                          errors=errors)
-    except TypeError:  # Python 2
-        return _urlencode(query_list, doseq=doseq)
+    return _urlencode(query_list, *args, **kwargs)
 
 
 def _to_kv_list(dict_or_list):
