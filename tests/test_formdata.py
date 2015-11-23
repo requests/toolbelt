@@ -6,6 +6,8 @@ except ImportError:
 
 from requests_toolbelt.utils.formdata import urlencode
 
+import pytest
+
 dict_query = {
     'first_nested': {
         'second_nested': {
@@ -34,6 +36,20 @@ list_query = [
     ('outter', 'outter_value'),
 ]
 
+mixed_dict_query = {
+    'first_nested': {
+        'second_nested': [
+            ('third_nested', {
+                'fourth0': 'fourth_value0',
+                'fourth1': 'fourth_value1',
+            }),
+            ('third0', 'third_value0'),
+        ],
+        'second0': 'second_value0',
+    },
+    'outter': 'outter_value',
+}
+
 expected_parsed_query = {
     'first_nested[second0]': ['second_value0'],
     'first_nested[second_nested][third0]': ['third_value0'],
@@ -43,15 +59,9 @@ expected_parsed_query = {
 }
 
 
-def test_urlencode_flattens_nested_dict_structures():
-    """Show that when parsed, the dict structure is conveniently flat."""
-    parsed = parse_qs(urlencode(dict_query))
-
-    assert parsed == expected_parsed_query
-
-
-def test_urlencode_flattens_nested_list_structures():
-    """Show that when parsed, the list structure is conveniently flat."""
-    parsed = parse_qs(urlencode(list_query))
+@pytest.mark.parametrize("query", [dict_query, list_query, mixed_dict_query])
+def test_urlencode_flattens_nested_structures(query):
+    """Show that when parsed, the structure is conveniently flat."""
+    parsed = parse_qs(urlencode(query))
 
     assert parsed == expected_parsed_query
