@@ -77,5 +77,5 @@ def _expand_query_values(original_query_list):
         else:
             key_fmt = key + '[%s]'
             value_list = _to_kv_list(value)
-            query_list.extend([(key_fmt % k, v) for k, v in value_list])
+            query_list.extend((key_fmt % k, v) for k, v in value_list)
     return query_list
