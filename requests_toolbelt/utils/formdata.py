@@ -47,7 +47,7 @@ def urlencode(query, *args, **kwargs):
     expand_classes = (dict, list, tuple)
     original_query_list = _to_kv_list(query)
 
-    if not all(len(i) for i in original_query_list):
+    if not all(len(i) == 2 for i in original_query_list):
         raise ValueError("Expected query to be able to be converted to a "
                          "list comprised of length 2 tuples.")
 
