@@ -26,8 +26,10 @@ PY3 = sys.version_info > (3, 0)
 
 if PY3:
     import queue
+    from urllib.parse import urlencode
 else:
     import Queue as queue
+    from urllib import urlencode
 
 try:
     basestring = basestring
@@ -272,4 +274,5 @@ __all__ = (
     'poolmanager',
     'HTTPHeaderDict',
     'queue',
+    'urlencode',
 )
