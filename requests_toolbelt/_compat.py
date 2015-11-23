@@ -22,13 +22,17 @@ except ImportError:
     from urllib3 import filepost
     from urllib3 import poolmanager
 
+PY3 = sys.version_info > (3, 0)
+
+if PY3:
+    import queue
+else:
+    import Queue as queue
 
 try:
     basestring = basestring
 except NameError:
     basestring = (str, bytes)
-
-PY3 = sys.version_info > (3, 0)
 
 
 class HTTPHeaderDict(MutableMapping):
@@ -267,4 +271,5 @@ __all__ = (
     'filepost',
     'poolmanager',
     'HTTPHeaderDict',
+    'queue',
 )

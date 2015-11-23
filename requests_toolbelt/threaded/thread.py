@@ -1,12 +1,10 @@
 """Module containing the SessionThread class."""
 import threading
-try:
-    import queue  # Python 3
-except ImportError:
-    import Queue as queue
 import uuid
 
 import requests.exceptions as exc
+
+from .._compat import queue
 
 
 class SessionThread(object):
