@@ -48,7 +48,8 @@ def urlencode(query, *args, **kwargs):
     original_query_list = _to_kv_list(query)
 
     if not all(len(i) for i in original_query_list):
-        raise ValueError("Expected items to have a length of two.")
+        raise ValueError("Expected query to be able to be converted to a "
+                         "list comprised of length 2 tuples.")
 
     query_list = original_query_list
     while any(isinstance(v, expand_classes) for _, v in query_list):
