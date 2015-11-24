@@ -34,6 +34,7 @@ Full Documentation
     deprecated
     downloadutils
     dumputils
+    formdata
     exceptions
     threading
     uploading-data

@@ -8,7 +8,12 @@ __all__ = ('urlencode',)
 
 
 def urlencode(query, *args, **kwargs):
-    """Enhanced urlencode method for handling nested queries.
+    """Handle nested form-data queries and serialize them appropriately.
+
+    There are times when a website expects a nested form data query to be sent
+    but, the standard library's urlencode function does not appropriately
+    handle the nested structures. In that case, you need this function which
+    will flatten the structure first and then properly encode it for you.
 
     When using this to send data in the body of a request, make sure you
     specify the appropriate Content-Type header for the request.
