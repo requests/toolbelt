@@ -13,7 +13,7 @@ def urlencode(query, *args, **kwargs):
     When using this to send data in the body of a request, make sure you
     specify the appropriate Content-Type header for the request.
 
-    .. code-block::
+    .. code-block:: python
 
         import requests
         from requests_toolbelt.utils import formdata
@@ -36,10 +36,33 @@ def urlencode(query, *args, **kwargs):
             },
         )
 
-    For parameter and return information, see the official `urlencode`_
-    documentation. (On Python 2, the ``safe``, ``encoding``, and ``errors``
-    parameters are ignored since they are not passed to the original
-    ``urllib.urlencode`` function.
+    Similarly, you can specify a list of nested tuples, e.g.,
+
+    .. code-block:: python
+
+        import requests
+        from requests_toolbelt.utils import formdata
+
+        query = [
+            ('my_list', [
+                ('foo', 'bar'),
+                ('biz', 'baz'),
+            ]),
+            ('a', 'b'),
+        ]
+
+        resp = requests.get(url, params=formdata.urlencode(query))
+        # or
+        resp = requests.post(
+            url,
+            data=formdata.urlencode(query),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+        )
+
+    For additional parameter and return information, see the official
+    `urlencode`_ documentation.
 
     .. _urlencode:
         https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlencode
