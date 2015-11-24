@@ -65,3 +65,12 @@ def test_urlencode_flattens_nested_structures(query):
     parsed = parse_qs(urlencode(query))
 
     assert parsed == expected_parsed_query
+
+
+def test_urlencode_catches_invalid_input():
+    """Show that queries are loosely validated."""
+    with pytest.raises(ValueError):
+        urlencode(['fo'])
+
+    with pytest.raises(ValueError):
+        urlencode([('foo', 'bar', 'bogus')])
