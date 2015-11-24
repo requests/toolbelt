@@ -11,6 +11,8 @@ urllib3 without providing a shim.
 from collections import Mapping, MutableMapping
 import sys
 
+import requests
+
 try:
     from requests.packages.urllib3 import connection
     from requests.packages.urllib3 import fields
@@ -21,6 +23,14 @@ except ImportError:
     from urllib3 import fields
     from urllib3 import filepost
     from urllib3 import poolmanager
+
+if requests.__build__ < 0x020800:
+    gaecontrib = None
+else:
+    try:
+        from requests.packages.urllib3.contrib import appengine as gaecontrib
+    except ImportError:
+        from urllib3.contrib import appengine as gaecontrib
 
 PY3 = sys.version_info > (3, 0)
 
@@ -275,4 +285,5 @@ __all__ = (
     'HTTPHeaderDict',
     'queue',
     'urlencode',
+    'gaecontrib',
 )
