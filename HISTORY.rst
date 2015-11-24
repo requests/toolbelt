@@ -1,7 +1,7 @@
 History
 =======
 
-0.5.0 -- 2015-xx-yy
+0.5.0 -- 2015-11-24
 -------------------
 
 More information about this release can be found on the `milestone
@@ -17,11 +17,28 @@ New Features
   object, while ``tee.tee_to_file`` will use the provided file name to open
   the file for you.
 
+- Added a new parameter to ``requests_toolbelt.utils.user_agent`` that allows
+  the user to specify additional items.
+
+- Added nested form-data helper,
+  ``requests_toolbelt.utils.formdata.urlencode``.
+
+- Added the ``ForgetfulCookieJar`` to ``requests_toolbelt.cookies``.
+
+- Added utilities for dumping the information about a request-response cycle
+  in ``requests_toolbelt.utils.dump``.
+
+- Implemented the API described in the ``requests_toolbelt.threaded`` module
+  docstring, i.e., added ``requests_toolbelt.threaded.map`` as an available
+  function.
+
 Fixed Bugs
 ~~~~~~~~~~
 
 - Now papers over the API differences in versions of requests installed from
   system packages versus versions of requests installed from PyPI.
+
+- Allow string types for ``SourceAddressAdapter``.
 
 0.4.0 -- 2015-04-03
 -------------------
