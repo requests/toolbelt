@@ -32,7 +32,7 @@ class AppEngineAdapter(adapters.HTTPAdapter):
         >>>
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, validate_certificate=True, *args, **kwargs):
         if gaecontrib is None:
             raise exc.VersionMismatchError(
                 "The toolbelt requires at least Requests 2.8.0 to be "
@@ -40,11 +40,10 @@ class AppEngineAdapter(adapters.HTTPAdapter):
                     requests.__version__
                 )
             )
+        self._validate_certificate = validate_certificate
         super(AppEngineAdapter, self).__init__(self, *args, **kwargs)
 
     def init_poolmanager(self, connections, maxsize, block=False):
         self.poolmanager = gaecontrib.AppEngineManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            )
+            validate_certificate=self._validate_certificate
+        )
