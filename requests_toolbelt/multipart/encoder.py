@@ -9,6 +9,7 @@ This holds all of the implementation details of the MultipartEncoder
 """
 import contextlib
 import io
+import os
 from uuid import uuid4
 
 from requests.utils import super_len
@@ -154,7 +155,7 @@ class MultipartEncoder(object):
         boundary_len = len(self.boundary)  # Length of --{boundary}
         # boundary length + header length + body length + len('\r\n') * 2
         self._len = sum(
-            (boundary_len + super_len(p) + 4) for p in self.parts
+            (boundary_len + total_len(p) + 4) for p in self.parts
             ) + boundary_len + 4
         return self._len
 
@@ -176,7 +177,7 @@ class MultipartEncoder(object):
             buffer before the read can be satisfied. This will be strictly
             non-negative
         """
-        amount = read_size - super_len(self._buffer)
+        amount = read_size - total_len(self._buffer)
         return amount if amount > 0 else 0
 
     def _load(self, amount):
@@ -403,6 +404,26 @@ def readable_data(data, encoding):
     return CustomBytesIO(data, encoding)
 
 
+def total_len(o):
+    if hasattr(o, '__len__'):
+        return len(o)
+
+    if hasattr(o, 'len'):
+        return o.len
+
+    if hasattr(o, 'fileno'):
+        try:
+            fileno = o.fileno()
+        except io.UnsupportedOperation:
+            pass
+        else:
+            return os.fstat(fileno).st_size
+
+    if hasattr(o, 'getvalue'):
+        # e.g. BytesIO, cStringIO.StringIO
+        return len(o.getvalue())
+
+
 @contextlib.contextmanager
 def reset(buffer):
     """Keep track of the buffer's current position and write to the end.
@@ -443,7 +464,7 @@ class Part(object):
         self.headers = headers
         self.body = body
         self.headers_unread = True
-        self.len = len(self.headers) + super_len(self.body)
+        self.len = len(self.headers) + total_len(self.body)
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -462,7 +483,7 @@ class Part(object):
         if self.headers_unread:
             to_read += len(self.headers)
 
-        return (to_read + super_len(self.body)) > 0
+        return (to_read + total_len(self.body)) > 0
 
     def write_to(self, buffer, size):
         """Write the requested amount of bytes to the buffer provided.
@@ -479,7 +500,7 @@ class Part(object):
             written += buffer.append(self.headers)
             self.headers_unread = False
 
-        while super_len(self.body) > 0 and (size == -1 or written < size):
+        while total_len(self.body) > 0 and (size == -1 or written < size):
             amount_to_read = size
             if size != -1:
                 amount_to_read = size - written
@@ -511,7 +532,7 @@ class CustomBytesIO(io.BytesIO):
         return written
 
     def smart_truncate(self):
-        to_be_read = super_len(self)
+        to_be_read = total_len(self)
         already_read = self._get_end() - to_be_read
 
         if already_read >= to_be_read:
@@ -528,7 +549,7 @@ class FileWrapper(object):
 
     @property
     def len(self):
-        return super_len(self.fd) - self.fd.tell()
+        return total_len(self.fd) - self.fd.tell()
 
     def read(self, length=-1):
         return self.fd.read(length)
