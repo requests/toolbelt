@@ -12,8 +12,6 @@ import io
 import os
 from uuid import uuid4
 
-from requests.utils import super_len
-
 from .._compat import fields
 
 
