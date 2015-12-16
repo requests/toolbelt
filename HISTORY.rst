@@ -1,6 +1,21 @@
 History
 =======
 
+0.5.1 -- 2015-12-16
+-------------------
+
+More information about this release can be found on the `0.5.1 milestone`_.
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Now papers over the differences in requests' ``super_len`` function from
+  versions prior to 2.9.0 and versions 2.9.0 and later.
+
+
+.. _0.5.1 milestone:
+    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.5.1
+
 0.5.0 -- 2015-11-24
 -------------------
 
