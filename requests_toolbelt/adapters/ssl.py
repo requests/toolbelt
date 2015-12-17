@@ -48,3 +48,7 @@ class SSLAdapter(HTTPAdapter):
             maxsize=maxsize,
             block=block,
             ssl_version=self.ssl_version)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        kwargs['ssl_version'] = self.ssl_version
+        return super(SSLAdapter, self).proxy_manager_for(*args, **kwargs)
