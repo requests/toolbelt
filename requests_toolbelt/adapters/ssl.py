@@ -33,6 +33,12 @@ class SSLAdapter(HTTPAdapter):
     You can replace the chosen protocol with any that are available in the
     default Python SSL module. All subsequent requests that match the adapter
     prefix will use the chosen SSL version instead of the default.
+
+    This adapter will also attempt to change the SSL/TLS version negotiated by
+    Requests when using a proxy. However, this may not always be possible:
+    prior to Requests v2.4.0 the adapter did not have access to the proxy setup
+    code. In earlier versions of Requests, this adapter will not function
+    properly when used with proxies.
     """
 
     __attrs__ = HTTPAdapter.__attrs__ + ['ssl_version']

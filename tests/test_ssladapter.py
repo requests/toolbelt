@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import mock
+import os
+import pytest
 import requests
 import unittest
 
@@ -18,6 +20,8 @@ class TestSSLAdapter(unittest.TestCase):
             r = self.session.get('https://klevas.vu.lt/')
             assert r.status_code == 200
 
+    @pytest.mark.skipif(requests.__build__ < 0x020400,
+                        reason="Requires Requests v2.4.0 or later")
     @mock.patch('requests.packages.urllib3.poolmanager.ProxyManager')
     def test_proxies(self, ProxyManager):
         a = SSLAdapter('SSLv3')
