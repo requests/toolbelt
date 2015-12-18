@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import mock
-import os
 import pytest
 import requests
 import unittest
