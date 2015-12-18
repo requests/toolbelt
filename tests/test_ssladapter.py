@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import mock
 import requests
 import unittest
 
@@ -16,3 +17,12 @@ class TestSSLAdapter(unittest.TestCase):
         with self.recorder.use_cassette('klevas_vu_lt_ssl3'):
             r = self.session.get('https://klevas.vu.lt/')
             assert r.status_code == 200
+
+    @mock.patch('requests.packages.urllib3.poolmanager.ProxyManager')
+    def test_proxies(self, ProxyManager):
+        a = SSLAdapter('SSLv3')
+        a.proxy_manager_for('http://127.0.0.1:8888')
+
+        assert ProxyManager.call_count == 1
+        kwargs = ProxyManager.call_args_list[0][1]
+        assert kwargs['ssl_version'] == 'SSLv3'
