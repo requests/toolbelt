@@ -9,6 +9,8 @@ in this blog post:
 https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 
 """
+import requests
+
 from requests.adapters import HTTPAdapter
 
 from .._compat import poolmanager
@@ -55,6 +57,10 @@ class SSLAdapter(HTTPAdapter):
             block=block,
             ssl_version=self.ssl_version)
 
-    def proxy_manager_for(self, *args, **kwargs):
-        kwargs['ssl_version'] = self.ssl_version
-        return super(SSLAdapter, self).proxy_manager_for(*args, **kwargs)
+    if requests.__build__ >= 0x020400:
+        # Earlier versions of requests either don't have this method or, worse,
+        # don't allow passing arbitrary keyword arguments. As a result, only
+        # conditionally define this method.
+        def proxy_manager_for(self, *args, **kwargs):
+            kwargs['ssl_version'] = self.ssl_version
+            return super(SSLAdapter, self).proxy_manager_for(*args, **kwargs)
