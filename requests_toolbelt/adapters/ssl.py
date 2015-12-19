@@ -9,6 +9,8 @@ in this blog post:
 https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 
 """
+import requests
+
 from requests.adapters import HTTPAdapter
 
 from .._compat import poolmanager
@@ -33,6 +35,12 @@ class SSLAdapter(HTTPAdapter):
     You can replace the chosen protocol with any that are available in the
     default Python SSL module. All subsequent requests that match the adapter
     prefix will use the chosen SSL version instead of the default.
+
+    This adapter will also attempt to change the SSL/TLS version negotiated by
+    Requests when using a proxy. However, this may not always be possible:
+    prior to Requests v2.4.0 the adapter did not have access to the proxy setup
+    code. In earlier versions of Requests, this adapter will not function
+    properly when used with proxies.
     """
 
     __attrs__ = HTTPAdapter.__attrs__ + ['ssl_version']
@@ -48,3 +56,11 @@ class SSLAdapter(HTTPAdapter):
             maxsize=maxsize,
             block=block,
             ssl_version=self.ssl_version)
+
+    if requests.__build__ >= 0x020400:
+        # Earlier versions of requests either don't have this method or, worse,
+        # don't allow passing arbitrary keyword arguments. As a result, only
+        # conditionally define this method.
+        def proxy_manager_for(self, *args, **kwargs):
+            kwargs['ssl_version'] = self.ssl_version
+            return super(SSLAdapter, self).proxy_manager_for(*args, **kwargs)
