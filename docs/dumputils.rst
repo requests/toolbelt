@@ -1,7 +1,7 @@
 .. _dumputils:
 
-Utilities for Dumping Information About Reponses
-================================================
+Utilities for Dumping Information About Responses
+=================================================
 
 Occasionally, it is helpful to know almost exactly what data was sent to a
 server and what data was received. It can also be challenging at times to
