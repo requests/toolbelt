@@ -2,7 +2,7 @@
 """The module containing HTTPProxyDigestAuth."""
 import re
 
-from requests import cookies
+from requests import cookies, utils
 
 from . import _digest_auth_compat as auth
 
@@ -57,7 +57,7 @@ class HTTPProxyDigestAuth(auth.HTTPDigestAuth):
                 raise IOError(
                     "proxy server violated RFC 7235:"
                     "407 response MUST contain header proxy-authenticate")
-            self.chal = cookies.parse_dict_header(
+            self.chal = utils.parse_dict_header(
                 self._pat.sub('', r.headers['proxy-authenticate'], count=1))
 
             # if we present the user/passwd and still get rejected

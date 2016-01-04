@@ -35,3 +35,6 @@ Patches and Suggestions
 - Dan Lipsitt (https://github.com/DanLipsitt)
 
 - Cea Stapleton (http://www.ceastapleton.com)
+
+- Patrick Creech <pcreech@redhat.com>
+
