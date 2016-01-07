@@ -87,6 +87,36 @@ require authentication, no credentials are sent.
 .. autoclass:: requests_toolbelt.auth.guess.GuessAuth
 
 
+GuessProxyAuth
+--------------
+
+The :class:`~requests_toolbelt.auth.guess.GuessProxyAuth` handler will
+automatically detect whether to use basic authentication or digest authentication
+when authenticating to the provided proxy.
+
+.. code-block:: python
+
+    import requests
+    from requests_toolbelt.auth.guess import GuessProxyAuth
+
+    proxies = {
+        "http": "http://PROXYSERVER:PROXYPORT",
+        "https": "http://PROXYSERVER:PROXYPORT",
+    }
+    requests.get('http://httpbin.org/basic-auth/user/passwd',
+                 auth=GuessProxyAuth('user', 'passwd', 'proxyusr', 'proxypass'),
+                 proxies=proxies)
+    requests.get('http://httpbin.org/digest-auth/auth/user/passwd',
+                 auth=GuessProxyAuth('user', 'passwd', 'proxyusr', 'proxypass'),
+                 proxies=proxies)
+
+Detection of the auth type is done via the ``Proxy-Authenticate`` header sent by
+the server. This requires an additional request in case of basic auth, as
+usually basic auth is sent preemptively. If the server didn't explicitly
+require authentication, no credentials are sent.
+
+.. autoclass:: requests_toolbelt.auth.guess.GuessProxyAuth
+
 HTTPProxyDigestAuth
 -------------------
 
