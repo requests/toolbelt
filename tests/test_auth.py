@@ -4,7 +4,9 @@ import unittest
 import mock
 
 from requests_toolbelt.auth.guess import GuessAuth, GuessProxyAuth
+from requests_toolbelt.auth.http_proxy_digest import HTTPProxyDigestAuth
 from . import get_betamax
+import betamax
 
 
 class TestGuessAuth(unittest.TestCase):
@@ -75,3 +77,54 @@ class TestGuessProxyAuth(unittest.TestCase):
         guess_auth.handle_407(r, *kwargs)
 
         proxy_auth_call.assert_called_with(req)
+
+
+class ProxyAuthHeaderMatcher(betamax.BaseMatcher):
+    name = 'proxy-auth-header'
+    def match(self, request, recorded_request):
+        requested = self.get_proxy_auth(request.headers)
+        recorded = self.get_proxy_auth(recorded_request['headers'])
+        return requested == recorded
+
+    def get_proxy_auth(self, headers):
+        from betamax.cassette.util import from_list
+        auth = from_list(headers.get('Proxy-Authorization', ''))
+        if not auth.startswith('Digest '):
+            return auth
+        else:
+            # exclude cnonce and response, same as DigestAuthMatcher does
+            excludes = ('cnonce', 'response')
+            parts = auth.strip('Digest ').split(', ')
+            return 'Digest ' + ', '.join(p for p in parts if not p.startswith(excludes))
+betamax.Betamax.register_request_matcher(ProxyAuthHeaderMatcher)
+
+
+class TestHTTPProxyDigestAuth(unittest.TestCase):
+    def setUp(self):
+        self.session = requests.Session()
+        self.recorder = get_betamax(self.session)
+
+    def cassette(self, name):
+        return self.recorder.use_cassette(
+            'httpbin_get_proxy_' + name + '_challenge',
+            match_requests_on=['method', 'uri', 'proxy-auth-header']
+        )
+
+    def test_matched_challenge(self):
+        with self.cassette("digest"):
+            r = self.session.request(
+                'GET', 'http://httpbin.org/get',
+                auth=HTTPProxyDigestAuth('user', 'passwd'))
+
+        assert r.status_code == 200
+        assert r.json().get("headers", {}).get("Via") == "1.1 proxydigest (squid/3.3.9)"
+
+    def test_mismatched_challenge(self):
+        # Digest authentication won't help with an NTLM challenge, so it
+        # should let the challenge pass rather than fall over responding to it.
+        with self.cassette("ntlm"):
+            r = self.session.request(
+                'GET', 'http://httpbin.org/get',
+                auth=HTTPProxyDigestAuth('user', 'passwd'))
+
+        assert r.status_code == 407
