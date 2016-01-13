@@ -48,8 +48,8 @@ class GuessAuth(auth.AuthBase):
         # Check that the attr exists because much older versions of requests
         # set this attribute lazily. For example:
         # https://github.com/kennethreitz/requests/blob/33735480f77891754304e7f13e3cdf83aaaa76aa/requests/auth.py#L59
-        if (hasattr(self.auth, 'num_401_calls')
-                and self.auth.num_401_calls is None):
+        if (hasattr(self.auth, 'num_401_calls') and
+                self.auth.num_401_calls is None):
             self.auth.num_401_calls = 1
         # Digest auth would resend the request by itself. We can take a
         # shortcut here.
