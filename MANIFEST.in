@@ -2,6 +2,7 @@ include README.rst
 include LICENSE
 include HISTORY.rst
 include AUTHORS.rst
+include CODE_OF_CONDUCT.rst
 include tox.ini
 include dev-requirements.txt
 
