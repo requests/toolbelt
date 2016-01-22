@@ -34,9 +34,9 @@ class TestProxyDigestAuth(unittest.TestCase):
         }
 
         # prepared_request headers should be clear before calling auth
-        assert not self.prepared_request.headers.get('Proxy-Authorization')
+        assert self.prepared_request.headers.get('Proxy-Authorization') is None
         self.auth(self.prepared_request)
-        assert self.prepared_request.headers.get('Proxy-Authorization')
+        assert self.prepared_request.headers.get('Proxy-Authorization') is not None
 
     def test_no_challenge(self):
         """Tests that a response containing no authentication challenge is
@@ -46,11 +46,11 @@ class TestProxyDigestAuth(unittest.TestCase):
         first_response = connection.make_response(self.prepared_request)
         first_response.status_code = 404
 
-        assert not self.auth.last_nonce
+        assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
-        assert not self.auth.last_nonce
+        assert self.auth.last_nonce == ''
         assert first_response is final_response
-        assert not final_response.request.headers.get('Proxy-Authorization')
+        assert final_response.request.headers.get('Proxy-Authorization') is None
 
     def test_digest_challenge(self):
         """Tests that a response containing a digest authentication challenge
@@ -65,11 +65,11 @@ class TestProxyDigestAuth(unittest.TestCase):
             ' realm="Fake Realm", nonce="oS6WVgAAAABw698CAAAAAHAk/HUAAAAA",'\
             ' qop="auth", stale=false'
 
-        assert not self.auth.last_nonce
+        assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
-        assert self.auth.last_nonce
+        assert self.auth.last_nonce != ''
         assert first_response is not final_response
-        assert final_response.request.headers.get('Proxy-Authorization')
+        assert final_response.request.headers.get('Proxy-Authorization') is not None
 
     def test_ntlm_challenge(self):
         """Tests that a response containing a non-Digest authentication
@@ -80,11 +80,11 @@ class TestProxyDigestAuth(unittest.TestCase):
         first_response.status_code = 407
         first_response.headers['Proxy-Authenticate'] = 'NTLM'
 
-        assert not self.auth.last_nonce
+        assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
-        assert not self.auth.last_nonce
+        assert self.auth.last_nonce == ''
         assert first_response is final_response
-        assert not final_response.request.headers.get('Proxy-Authorization')
+        assert final_response.request.headers.get('Proxy-Authorization') is None
 
 
 class MockConnection(object):
