@@ -53,12 +53,16 @@ class HTTPProxyDigestAuth(auth.HTTPDigestAuth):
         :returns: responses, along with the new response
         """
         if r.status_code == 407 and self.stale_rejects < 2:
-            if "proxy-authenticate" not in r.headers:
+            s_auth = r.headers.get("proxy-authenticate")
+            if s_auth is None:
                 raise IOError(
                     "proxy server violated RFC 7235:"
                     "407 response MUST contain header proxy-authenticate")
+            elif not self._pat.match(s_auth):
+                return r
+
             self.chal = utils.parse_dict_header(
-                self._pat.sub('', r.headers['proxy-authenticate'], count=1))
+                self._pat.sub('', s_auth, count=1))
 
             # if we present the user/passwd and still get rejected
             # http://tools.ietf.org/html/rfc2617#section-3.2.1
