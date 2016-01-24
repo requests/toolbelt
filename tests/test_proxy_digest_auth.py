@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test proxy digest authentication
-"""
+"""Test proxy digest authentication."""
 
 import unittest
 import mock
@@ -10,7 +9,10 @@ from requests_toolbelt.auth import http_proxy_digest
 
 
 class TestProxyDigestAuth(unittest.TestCase):
+    """Tests for the ProxyDigestAuth class."""
+
     def setUp(self):
+        """Set up variables for each test."""
         self.username = "username"
         self.password = "password"
         self.auth = http_proxy_digest.HTTPProxyDigestAuth(
@@ -22,8 +24,8 @@ class TestProxyDigestAuth(unittest.TestCase):
         ).prepare()
 
     def test_with_existing_nonce(self):
-        """Test if it will generate Proxy-Authorization header
-        when nonce present.
+        """Test if it will generate Proxy-Auth header when nonce present.
+
         Digest authentication's correctness will not be tested here.
         """
         self.auth.last_nonce = "bH3FVAAAAAAg74rL3X8AAI3CyBAAAAAA"
@@ -36,45 +38,47 @@ class TestProxyDigestAuth(unittest.TestCase):
         # prepared_request headers should be clear before calling auth
         assert self.prepared_request.headers.get('Proxy-Authorization') is None
         self.auth(self.prepared_request)
-        assert self.prepared_request.headers.get('Proxy-Authorization') is not None
+        assert self.prepared_request.headers['Proxy-Authorization'] is not None
 
     def test_no_challenge(self):
-        """Tests that a response containing no authentication challenge is
-        left alone.
-        """
+        """Test that a response containing no auth challenge is left alone."""
         connection = MockConnection()
         first_response = connection.make_response(self.prepared_request)
         first_response.status_code = 404
 
         assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
+        headers = final_response.request.headers
         assert self.auth.last_nonce == ''
         assert first_response is final_response
-        assert final_response.request.headers.get('Proxy-Authorization') is None
+        assert headers.get('Proxy-Authorization') is None
 
     def test_digest_challenge(self):
-        """Tests that a response containing a digest authentication challenge
-        gives rise to new request with a Proxy-Authorization header.
+        """Test a response with a digest auth challenge causes a new request.
+
+        This ensures that the auth class generates a new request with a
+        Proxy-Authorization header.
+
         Digest authentication's correctness will not be tested here.
         """
         connection = MockConnection()
         first_response = connection.make_response(self.prepared_request)
         first_response.status_code = 407
-        first_response.headers['Proxy-Authenticate'] = \
-            'Digest'\
-            ' realm="Fake Realm", nonce="oS6WVgAAAABw698CAAAAAHAk/HUAAAAA",'\
+        first_response.headers['Proxy-Authenticate'] = (
+            'Digest'
+            ' realm="Fake Realm", nonce="oS6WVgAAAABw698CAAAAAHAk/HUAAAAA",'
             ' qop="auth", stale=false'
+        )
 
         assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
+        headers = final_response.request.headers
         assert self.auth.last_nonce != ''
         assert first_response is not final_response
-        assert final_response.request.headers.get('Proxy-Authorization') is not None
+        assert headers.get('Proxy-Authorization') is not None
 
     def test_ntlm_challenge(self):
-        """Tests that a response containing a non-Digest authentication
-        challenge is left alone.
-        """
+        """Test a response without a Digest auth challenge is left alone."""
         connection = MockConnection()
         first_response = connection.make_response(self.prepared_request)
         first_response.status_code = 407
@@ -82,16 +86,21 @@ class TestProxyDigestAuth(unittest.TestCase):
 
         assert self.auth.last_nonce == ''
         final_response = self.auth.handle_407(first_response)
+        headers = final_response.request.headers
         assert self.auth.last_nonce == ''
         assert first_response is final_response
-        assert final_response.request.headers.get('Proxy-Authorization') is None
+        assert headers.get('Proxy-Authorization') is None
 
 
 class MockConnection(object):
+    """Fake connection object."""
+
     def send(self, request, **kwargs):
+        """Mock out the send method."""
         return self.make_response(request)
 
     def make_response(self, request):
+        """Make a response for us based on the request."""
         response = requests.Response()
         response.status_code = 200
         response.request = request
