@@ -24,7 +24,15 @@ except ImportError:
     from urllib3 import filepost
     from urllib3 import poolmanager
 
-if requests.__build__ < 0x020800:
+if requests.__build__ < 0x020300:
+    timeout = None
+else:
+    try:
+        from requests.packages.urllib3.util import timeout
+    except ImportError:
+        from urllib3.util import timeout
+
+if requests.__build__ < 0x021000:
     gaecontrib = None
 else:
     try:
@@ -282,6 +290,7 @@ __all__ = (
     'fields',
     'filepost',
     'poolmanager',
+    'timeout',
     'HTTPHeaderDict',
     'queue',
     'urlencode',
