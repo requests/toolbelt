@@ -7,6 +7,8 @@ The toolbelt comes with several different transport adapters for you to use
 with requests. The transport adapters are all kept in
 :mod:`requests_toolbelt.adapters` and include
 
+- :class:`requests_toolbelt.adapters.appengine.AppEngineAdapter`
+
 - :class:`requests_toolbelt.adapters.fingerprint.FingerprintAdapter`
 
 - :class:`requests_toolbelt.adapters.socket_options.SocketOptionsAdapter`
@@ -16,6 +18,40 @@ with requests. The transport adapters are all kept in
 - :class:`requests_toolbelt.adapters.source.SourceAddressAdapter`
 
 - :class:`requests_toolbelt.adapters.ssl.SSLAdapter`
+
+AppEngineAdapter
+----------------
+
+.. versionadded:: 0.6.0
+
+As of version 2.10.0, Requests will be capable of supporting Google's App
+Engine platform. In order to use Requests on GAE, however, you will need a
+custome adapter found here as
+:class:`~requests_toolbelt.adapters.appengine.AppEngineAdapter`. There are two
+ways to take advantage of this support at the moment:
+
+#. Using the :class:`~requests_toolbelt.adapters.appengine.AppEngineAdapter`
+   like every other adapter, e.g.,
+
+   .. code-block:: python
+
+       import requests
+       from requests_toolbelt.adapters import appengine
+
+       s = requests.Session()
+       s.mount('http://', appengine.AppEngineAdapter())
+       s.mount('https://', appengine.AppEngineAdapter())
+
+#. By monkey-patching requests to always use the provided adapter:
+
+   .. code-block:: python
+
+       import requests
+       from requests_toolbelt.adapters import appengine
+
+       appengine.monkeypatch()
+
+.. autoclass:: requests_toolbelt.adapters.appengine.AppEngineAdapter
 
 FingerprintAdapter
 ------------------

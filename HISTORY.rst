@@ -1,6 +1,40 @@
 History
 =======
 
+0.6.0 -- 2016-xx-yy
+-------------------
+
+More information about this release can be found on the `0.6.0 milestone`_.
+
+New Features
+~~~~~~~~~~~~
+
+- Add ``AppEngineAdapter`` to support developers using Google's AppEngine
+  platform with Requests.
+
+- Add ``GuessProxyAuth`` class to support guessing between Basic and Digest
+  Authentication for proxies.
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Ensure that proxies use the correct TLS version when using the
+  ``SSLAdapter``.
+
+- Fix an ``AttributeError`` when using the ``HTTPProxyDigestAuth`` class.
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+- Drop testing support for Python 3.2. virtualenv and pip have stopped
+  supporting it meaning that it is harder to test for this with our CI
+  infrastructure. Moving forward we will make a best-effort attempt to
+  support 3.2 but will not test for it.
+
+
+.. _0.6.0 milestone:
+    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.6.0
+
 0.5.1 -- 2015-12-16
 -------------------
 
