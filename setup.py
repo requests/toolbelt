@@ -44,7 +44,7 @@ setup(
     description="A utility belt for advanced users of python-requests",
     long_description="\n\n".join([open("README.rst").read(),
                                   open("HISTORY.rst").read()]),
-    license=open("LICENSE").read(),
+    license='Apache 2.0',
     author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
     url="https://toolbelt.readthedocs.org",
@@ -54,7 +54,7 @@ setup(
     install_requires=['requests>=2.0.1,<=3.0.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved',
+        'License :: OSI Approved :: Apache Software License',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
