@@ -1,7 +1,7 @@
 History
 =======
 
-0.6.0 -- 2016-xx-yy
+0.6.0 -- 2016-01-27
 -------------------
 
 More information about this release can be found on the `0.6.0 milestone`_.
