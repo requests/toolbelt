@@ -38,5 +38,7 @@ matrix:
   - env: TOXENV=py27-flake8
   - env: TOXENV=py34-flake8
   - env: TOXENV=docstrings
+  - env: TOXENV=docs
+  - env: TOXENV=release
   allow_failures:
   - env: TOXENV=docstrings
