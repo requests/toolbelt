@@ -12,6 +12,7 @@ _OPTION_HEADER_PIECE_RE = re.compile(
     r';\s*(%s|[^\s;=]+)\s*(?:=\s*(%s|[^;]+))?\s*' % (_QUOTED_STRING_RE,
                                                      _QUOTED_STRING_RE)
 )
+_DEFAULT_CHUNKSIZE = 512
 
 
 def _get_filename(content_disposition):
@@ -22,7 +23,7 @@ def _get_filename(content_disposition):
     return None
 
 
-def stream_response_to_file(response, path=None):
+def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     """Stream a response body to the specified file.
 
     Either use the ``path`` provided or use the name provided in the
@@ -93,12 +94,12 @@ def stream_response_to_file(response, path=None):
         filename = stream.stream_response_to_file(r, path=b)
         assert filename is None
 
-
     :param response: A Response object from requests
     :type response: requests.models.Response
     :param path: *(optional)*, Either a string with the path to the location
         to save the response content, or a file-like object expecting bytes.
     :type path: :class:`str`, or object with a :meth:`write`
+    :param int chunksize: (optional), Size of chunk to attempt to stream (default 512B).
     :returns: The name of the file, if one can be determined, else None
     :rtype: str
     :raises: :class:`requests_toolbelt.exceptions.StreamingError`
@@ -122,7 +123,7 @@ def stream_response_to_file(response, path=None):
             )
         fd = open(filename, 'wb')
 
-    for chunk in response.iter_content(chunk_size=512):
+    for chunk in response.iter_content(chunk_size=chunksize):
         fd.write(chunk)
 
     if not pre_opened:

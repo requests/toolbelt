@@ -59,6 +59,36 @@ def test_stream_response_to_file_like_object():
     assert 0 < file_obj.tell()
 
 
+def test_stream_response_to_file_chunksize():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+
+    class FileWrapper(io.BytesIO):
+        def __init__(self):
+            super(FileWrapper, self).__init__()
+            self.chunk_sizes = []
+
+        def write(self, data):
+            self.chunk_sizes.append(len(data))
+            return super(FileWrapper, self).write(data)
+
+    file_obj = FileWrapper()
+
+    chunksize = 1231
+
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+        r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                  stream=True)
+        stream.stream_response_to_file(r, path=file_obj, chunksize=chunksize)
+
+    assert 0 < file_obj.tell()
+
+    assert len(file_obj.chunk_sizes) >= 1
+    assert file_obj.chunk_sizes[0] == chunksize
+
+
 @pytest.fixture
 def streamed_response(chunks=None):
     chunks = chunks or [b'chunk'] * 8
