@@ -2,6 +2,8 @@
 import io
 import os
 import os.path
+import shutil
+import tempfile
 
 import requests
 from requests_toolbelt.downloadutils import stream
@@ -13,6 +15,43 @@ from . import get_betamax
 
 
 preserve_bytes = {'preserve_exact_body_bytes': True}
+
+
+def test_get_download_file_path_uses_content_disposition():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+    filename = 'github3.py-0.7.1-py2.py3-none-any.whl'
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        path = stream.get_download_file_path(r, None)
+        r.close()
+        assert path == filename
+
+def test_get_download_file_path_directory():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+    filename = 'github3.py-0.7.1-py2.py3-none-any.whl'
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        path = stream.get_download_file_path(r, tempfile.tempdir)
+        r.close()
+        assert path == os.path.join(tempfile.tempdir, filename)
+
+
+def test_get_download_file_path_specific_file():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+        r = s.get(url, headers={'Accept': 'application/octet-stream'})
+        path = stream.get_download_file_path(r, '/arbitrary/file.path')
+        r.close()
+        assert path == '/arbitrary/file.path'
 
 
 def test_stream_response_to_file_uses_content_disposition():
@@ -43,6 +82,26 @@ def test_stream_response_to_specific_filename():
 
     assert os.path.exists(filename)
     os.unlink(filename)
+
+
+def test_stream_response_to_directory():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+
+    td = tempfile.mkdtemp()
+    try:
+        filename = 'github3.py-0.7.1-py2.py3-none-any.whl'
+        expected_path = os.path.join(td, filename)
+        with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+            r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                      stream=True)
+            stream.stream_response_to_file(r, path=td)
+
+        assert os.path.exists(expected_path)
+    finally:
+        shutil.rmtree(td)
 
 
 def test_stream_response_to_file_like_object():

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Utilities for dealing with streamed requests."""
 import collections
+import os.path
 import re
 
 from .. import exceptions as exc
@@ -23,6 +24,47 @@ def _get_filename(content_disposition):
     return None
 
 
+def get_download_file_path(response, path):
+    """
+    Given a response and a path, return a file path for a download.
+
+    If a ``path`` parameter is a directory, this function will parse the
+    ``Content-Disposition`` header on the response to determine the name of the
+    file as reported by the server, and return a file path in the specified
+    directory.
+
+    If ``path`` is empty or None, this function will return a path relative
+    to the process' current working directory.
+
+    If path is a full file path, return it.
+
+    :param response: A Response object from requests
+    :type response: requests.models.Response
+    :param str path: Directory or file path.
+    :returns: full file path to download as
+    :rtype: str
+    :raises: :class:`requests_toolbelt.exceptions.StreamingError`
+    """
+    path_is_dir = path and os.path.isdir(path)
+
+    if path and not path_is_dir:
+        # fully qualified file path
+        filepath = path
+    else:
+        response_filename = _get_filename(response.headers.get('content-disposition', ''))
+        if not response_filename:
+            raise exc.StreamingError('No filename given to stream response to.')
+
+        if path_is_dir:
+            # directory to download to
+            filepath = os.path.join(path, response_filename)
+        else:
+            # fallback to downloading to current working directory
+            filepath = response_filename
+
+    return filepath
+
+
 def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     """Stream a response body to the specified file.
 
@@ -39,9 +81,11 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
         This function will not automatically close the response object
         passed in as the ``response`` parameter.
 
-    If no ``path`` parameter is supplied, this function will parse the
-    ``Content-Disposition`` header on the response to determine the name of
-    the file as reported by the server.
+    If a ``path`` parameter is a directory, this function will parse the
+    ``Content-Disposition`` header on the response to determine the name of the
+    file as reported by the server, and return a file path in the specified
+    directory. If no ``path`` parameter is supplied, this function will default
+    to the process' current working directory.
 
     .. code-block:: python
 
@@ -107,20 +151,12 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     pre_opened = False
     fd = None
     filename = None
-    if path:
-        if isinstance(getattr(path, 'write', None), collections.Callable):
-            pre_opened = True
-            fd = path
-            filename = getattr(fd, 'name', None)
-        else:
-            fd = open(path, 'wb')
-            filename = path
+    if path and isinstance(getattr(path, 'write', None), collections.Callable):
+        pre_opened = True
+        fd = path
+        filename = getattr(fd, 'name', None)
     else:
-        filename = _get_filename(response.headers['content-disposition'])
-        if filename is None:
-            raise exc.StreamingError(
-                'No filename given to stream response to.'
-            )
+        filename = get_download_file_path(response, path)
         fd = open(filename, 'wb')
 
     for chunk in response.iter_content(chunk_size=chunksize):
