@@ -20,7 +20,8 @@ def _get_filename(content_disposition):
     for match in _OPTION_HEADER_PIECE_RE.finditer(content_disposition):
         k, v = match.groups()
         if k == 'filename':
-            return v
+            # ignore any directory paths in the filename
+            return os.path.split(v)[1]
     return None
 
 
@@ -51,9 +52,11 @@ def get_download_file_path(response, path):
         # fully qualified file path
         filepath = path
     else:
-        response_filename = _get_filename(response.headers.get('content-disposition', ''))
+        response_filename = _get_filename(
+            response.headers.get('content-disposition', '')
+        )
         if not response_filename:
-            raise exc.StreamingError('No filename given to stream response to.')
+            raise exc.StreamingError('No filename given to stream response to')
 
         if path_is_dir:
             # directory to download to
@@ -112,6 +115,9 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
         r = requests.get(url, stream=True)
         filename = stream.stream_response_to_file(r, path='myfile')
 
+    If the calculated download file path already exists, this function will
+    raise a StreamingError.
+
     Instead, if you want to manage the file object yourself, you need to
     provide either a :class:`io.BytesIO` object or a file opened with the
     `'b'` flag. See the two examples below for more details.
@@ -143,7 +149,8 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     :param path: *(optional)*, Either a string with the path to the location
         to save the response content, or a file-like object expecting bytes.
     :type path: :class:`str`, or object with a :meth:`write`
-    :param int chunksize: (optional), Size of chunk to attempt to stream (default 512B).
+    :param int chunksize: (optional), Size of chunk to attempt to stream
+        (default 512B).
     :returns: The name of the file, if one can be determined, else None
     :rtype: str
     :raises: :class:`requests_toolbelt.exceptions.StreamingError`
@@ -157,6 +164,8 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
         filename = getattr(fd, 'name', None)
     else:
         filename = get_download_file_path(response, path)
+        if os.path.exists(filename):
+            raise exc.StreamingError("File already exists: %s" % filename)
         fd = open(filename, 'wb')
 
     for chunk in response.iter_content(chunk_size=chunksize):

@@ -104,6 +104,28 @@ def test_stream_response_to_directory():
         shutil.rmtree(td)
 
 
+def test_stream_response_to_existing_file():
+    s = requests.Session()
+    recorder = get_betamax(s)
+    url = ('https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+           'assets/37944')
+    filename = 'github3.py.whl'
+    with open(filename, 'w') as f_existing:
+        f_existing.write('test')
+
+    with recorder.use_cassette('stream_response_to_file', **preserve_bytes):
+        r = s.get(url, headers={'Accept': 'application/octet-stream'},
+                  stream=True)
+    try:
+        stream.stream_response_to_file(r, path=filename)
+    except stream.exc.StreamingError as e:
+        assert str(e).startswith('File already exists:')
+    else:
+        assert False, "Should have raised a FileExistsError"
+    finally:
+        os.unlink(filename)
+
+
 def test_stream_response_to_file_like_object():
     s = requests.Session()
     recorder = get_betamax(s)
