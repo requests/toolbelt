@@ -1,6 +1,17 @@
 History
 =======
 
+0.6.1 -- 2016-05-05
+-------------------
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Remove assertion about request URLs in the AppEngineAdapter.
+
+- Prevent pip from installing requests 3.0.0 when that is released until we
+  are ready to handle it.
+
 0.6.0 -- 2016-01-27
 -------------------
 
