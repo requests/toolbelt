@@ -96,12 +96,9 @@ class _AppEngineConnection(object):
         # but the AppEngineManager expects an absolute URL.
         # So we saved out the self.url when the AppEngineConnection
         # was constructed, which we then can use down below instead.
-        # Let's verify our assumptions here though, just in case.
-        assert self.url.endswith(url), (
-            "AppEngineConnection constructed "
-            "with (%s), and called urlopen with (%s). Expected the latter "
-            "to be the host-relative equivalent of the former." %
-            (self.url, url))
+
+        # We once tried to verify our assumptions here, but sometimes the
+        # passed-in URL differs on url fragments, or "http://a.com" vs "/".
 
         # Jump through the hoops necessary to call AppEngineManager's API.
         return self.appengine_manager.urlopen(
