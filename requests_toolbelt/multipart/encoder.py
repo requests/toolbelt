@@ -276,8 +276,9 @@ class MultipartEncoder(object):
 
         .. warning::
 
-            Calling this function changes the state of the instance of MultipartEncoder
-            and will make it useless for passing to requests.
+            Calling this function changes the state of the instance
+            of MultipartEncoder and will make it useless for passing
+            to requests.
 
         :returns: byte representation of the encoded multi-part message
         """
