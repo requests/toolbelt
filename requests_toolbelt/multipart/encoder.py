@@ -271,16 +271,21 @@ class MultipartEncoder(object):
             )
 
     def to_string(self):
-        """
-        Serializes the payload to a string.
+        """Return the entirety of the data in the encoder.
 
-        .. warning::
+        .. note::
 
-            Calling this function changes the state of the instance
-            of MultipartEncoder and will make it useless for passing
-            to requests.
+            This simply reads all of the data it can. If you have started
+            streaming or reading data from the encoder, this method will only
+            return whatever data is left in the encoder.
 
-        :returns: byte representation of the encoded multi-part message
+        .. note::
+
+            This method affects the internal state of the encoder. Calling
+            this method will exhaust the encoder.
+
+        :returns: the multipart message
+        :rtype: bytes
         """
 
         return self.read()
