@@ -100,6 +100,11 @@ class _AppEngineConnection(object):
         # We once tried to verify our assumptions here, but sometimes the
         # passed-in URL differs on url fragments, or "http://a.com" vs "/".
 
+        # urllib3's App Engine adapter only uses Timeout.total, not read or
+        # connect.
+        if not timeout.total:
+            timeout.total = timeout._read or timeout._connect
+
         # Jump through the hoops necessary to call AppEngineManager's API.
         return self.appengine_manager.urlopen(
             method,
