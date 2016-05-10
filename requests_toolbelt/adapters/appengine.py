@@ -1,7 +1,34 @@
 # -*- coding: utf-8 -*-
 """The App Engine Transport Adapter for requests.
 
-This requires a version of requests >= 2.10.0.
+.. versionadded:: 0.6.0
+
+This requires a version of requests >= 2.10.0 and Python 2.
+
+There are two ways to use this library:
+
+#. If you're using requests directly, you can use code like:
+
+   .. code-block:: python
+
+       >>> import requests
+       >>> import ssl
+       >>> import requests.packages.urllib3.contrib.appengine as ul_appengine
+       >>> from requests_toolbelt.adapters import appengine
+       >>> s = requests.Session()
+       >>> if ul_appengine.is_appengine_sandbox():
+       ...    s.mount('http://', appengine.AppEngineAdapter())
+       ...    s.mount('https://', appengine.AppEngineAdapter())
+
+#. If you depend on external libraries which use requests, you can use code
+   like:
+
+   .. code-block:: python
+
+       >>> from requests_toolbelt.adapters import appengine
+       >>> appengine.monkeypatch()
+
+which will ensure all requests.Session objects use AppEngineAdapter properly.
 """
 import requests
 from requests import adapters
@@ -11,32 +38,11 @@ from .. import exceptions as exc
 from .._compat import gaecontrib
 from .._compat import timeout
 
-"""
-.. versionadded:: 0.6.0
-
-There are two ways to use this library.
-
-If you're using requests directly, you can use code like:
-    >>> import requests
-    >>> import ssl
-    >>> from requests.packages.urllib3.contrib import appengine as ul_appengine
-    >>> from requests_toolbelt.adapters import appengine
-    >>> s = requests.Session()
-    >>> if ul_appengine.is_appengine_sandbox():
-    ...    s.mount('http://', appengine.AppEngineAdapter())
-    ...    s.mount('https://', appengine.AppEngineAdapter())
-
-If you depend on external libraries which use requests, you can use code like:
-    >>> from requests_toolbelt.adapters import appengine
-    >>> appengine.monkeypatch()
-which will ensure all requests.Session objects use AppEngineAdapter properly.
-"""
-
 
 class AppEngineAdapter(adapters.HTTPAdapter):
-    """A transport adapter for Requests to use urllib3's GAE support.
+    """The transport adapter for Requests to use urllib3's GAE support.
 
-    Implements request's HTTPAdapter API.
+    Implements Requests's HTTPAdapter API.
 
     When deploying to Google's App Engine service, some of Requests'
     functionality is broken. There is underlying support for GAE in urllib3.
