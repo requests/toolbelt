@@ -3,7 +3,7 @@ import requests
 from ._compat import urljoin
 
 
-class Based:
+class Based(object):
     """
     Mix-in for a requests Session where the URL may be relative to
     a base for the session.
