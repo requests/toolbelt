@@ -9,7 +9,8 @@ class Based:
     a base for the session.
 
     Based on implementation at
-    from https://github.com/kennethreitz/requests/issues/2554#issuecomment-109341010
+    from https://github.com
+    /kennethreitz/requests/issues/2554#issuecomment-109341010
     """
 
     base_url = None
