@@ -37,4 +37,3 @@ Patches and Suggestions
 - Cea Stapleton (http://www.ceastapleton.com)
 
 - Patrick Creech <pcreech@redhat.com>
-
