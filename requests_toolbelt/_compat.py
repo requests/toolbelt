@@ -44,10 +44,11 @@ PY3 = sys.version_info > (3, 0)
 
 if PY3:
     import queue
-    from urllib.parse import urlencode
+    from urllib.parse import urlencode, urljoin
 else:
     import Queue as queue
     from urllib import urlencode
+    from urlparse import urljoin
 
 try:
     basestring = basestring
@@ -295,4 +296,5 @@ __all__ = (
     'queue',
     'urlencode',
     'gaecontrib',
+    'urljoin',
 )
