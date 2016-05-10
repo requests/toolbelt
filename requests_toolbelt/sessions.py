@@ -20,6 +20,17 @@ class Based:
 
 
 class BasedSession(Based, requests.Session):
+    """
+    A requests.Session with Based mixed-in. Initialize with a
+    base URL to resolve URLs relative to that base. e.g.
+
+    >>> session = BasedSession('https://mysite.org/default/')
+
+    Then, when making requests, relative URLs are accepted. To get
+    ``https://mysite.org/default/bar/``:
+
+    >>> resp = session.get('bar/')
+    """
     def __init__(self, base_url=None):
         if base_url:
             self.base_url = base_url

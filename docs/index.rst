@@ -36,6 +36,7 @@ Full Documentation
     dumputils
     formdata
     exceptions
+    sessions
     threading
     uploading-data
     user-agent
