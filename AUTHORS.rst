@@ -37,3 +37,7 @@ Patches and Suggestions
 - Cea Stapleton (http://www.ceastapleton.com)
 
 - Patrick Creech <pcreech@redhat.com>
+
+- Mike Lambert (@mikelambert)
+
+- Ryan Barrett (https://snarfed.org/)
