@@ -89,7 +89,7 @@ cookies:
 
 .. code-block:: python
 
-    from requests-toolbelt.cookies import ForgetfulCookieJar
+    from requests_toolbelt.cookies.forgetful import ForgetfulCookieJar
 
     session = requests.Session()
     session.cookies = ForgetfulCookieJar()
