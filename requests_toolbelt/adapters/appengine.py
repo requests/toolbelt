@@ -53,7 +53,7 @@ class AppEngineAdapter(adapters.HTTPAdapter):
     def __init__(self, validate_certificate=True, *args, **kwargs):
         _check_version()
         self._validate_certificate = validate_certificate
-        super(AppEngineAdapter, self).__init__(self, *args, **kwargs)
+        super(AppEngineAdapter, self).__init__(*args, **kwargs)
 
     def init_poolmanager(self, connections, maxsize, block=False):
         self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
