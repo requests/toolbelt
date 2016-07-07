@@ -60,3 +60,7 @@ class SourceAddressAdapter(HTTPAdapter):
             maxsize=maxsize,
             block=block,
             source_address=self.source_address)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        kwargs['source_address'] = self.source_address
+        return super(SourceAddressAdapter, self).proxy_manager_for(*args, **kwargs)
