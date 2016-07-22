@@ -14,15 +14,25 @@ import sys
 import requests
 
 try:
-    from requests.packages.urllib3 import connection
     from requests.packages.urllib3 import fields
     from requests.packages.urllib3 import filepost
     from requests.packages.urllib3 import poolmanager
 except ImportError:
-    from urllib3 import connection
     from urllib3 import fields
     from urllib3 import filepost
     from urllib3 import poolmanager
+
+try:
+    from requests.packages.urllib3.connection import HTTPConnection
+    from requests.packages.urllib3 import connection
+except ImportError:
+    try:
+        from urllib3.connection import HTTPConnection
+        from urllib3 import connection
+    except ImportError:
+        HTTPConnection = None
+        connection = None
+
 
 if requests.__build__ < 0x020300:
     timeout = None

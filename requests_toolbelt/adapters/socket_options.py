@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """The implementation of the SocketOptionsAdapter."""
 import socket
+import warnings
 
 import requests
 from requests import adapters
 
 from .._compat import connection
 from .._compat import poolmanager
+from .. import exceptions as exc
 
 
 class SocketOptionsAdapter(adapters.HTTPAdapter):
@@ -33,11 +35,19 @@ class SocketOptionsAdapter(adapters.HTTPAdapter):
 
     """
 
-    default_options = getattr(
-        connection.HTTPConnection,
-        'default_socket_options',
-        [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)]
-    )
+    if connection is not None:
+        default_options = getattr(
+            connection.HTTPConnection,
+            'default_socket_options',
+            [(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)]
+        )
+    else:
+        default_options = []
+        warnings.warn(exc.RequestsVersionTooOld,
+                      "This version of Requests is only compatible with a "
+                      "version of urllib3 which is too old to support "
+                      "setting options on a socket. This adapter is "
+                      "functionally useless.")
 
     def __init__(self, **kwargs):
         self.socket_options = kwargs.pop('socket_options',
