@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-requests_toolbelt.sni_adapter
-=============================
+requests_toolbelt.adapters.host_header_sni
+==========================================
 
-This file contains an implementation of the SNIAdapter
+This file contains an implementation of the HostHeaderSNIAdapter.
 """
 
 from requests.adapters import HTTPAdapter
 
 
-class SNIAdapter(HTTPAdapter):
+class HostHeaderSNIAdapter(HTTPAdapter):
     """
     A HTTPS Adapter for Python Requests that sets the hostname for certificate
     verification based on the host header.
@@ -19,27 +19,25 @@ class SNIAdapter(HTTPAdapter):
 
     Example usage:
 
-        >>> import requests
-        >>> from requests_toolbelt import SNIAdapter
-        >>> s = requests.Session()
-        >>> s.mount('https://', SNIAdapter())
+        >>> s.mount('https://', HostHeaderSNIAdapter())
         >>> s.get("https://93.184.216.34", headers={"Host": "example.org"})
 
     """
 
     def send(self, request, **kwargs):
-
         # HTTP headers are case-insensitive (RFC 7230)
-        host = None
+        host_header = None
         for header in request.headers:
             if header.lower() == "host":
-                host = request.headers[header]
+                host_header = request.headers[header]
                 break
 
-        if host:
-            self.poolmanager.connection_pool_kw["assert_hostname"] = host
-        elif "assert_hostname" in self.poolmanager.connection_pool_kw:
-            # an assert_hostname from a previous request may have been left
-            del self.poolmanager.connection_pool_kw["assert_hostname"]
+        connection_pool_kwargs = self.poolmanager.connection_pool_kw
 
-        return super(SNIAdapter, self).send(request, **kwargs)
+        if host_header:
+            connection_pool_kwargs["assert_hostname"] = host_header
+        elif "assert_hostname" in connection_pool_kwargs:
+            # an assert_hostname from a previous request may have been left
+            connection_pool_kwargs.pop("assert_hostname", None)
+
+        return super(HostHeaderSNIAdapter, self).send(request, **kwargs)
