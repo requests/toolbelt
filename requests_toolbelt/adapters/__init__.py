@@ -11,5 +11,6 @@ See http://toolbelt.rtfd.org/ for documentation
 
 from .ssl import SSLAdapter
 from .source import SourceAddressAdapter
+from .sni import SNIAdapter
 
-__all__ = ['SSLAdapter', 'SourceAddressAdapter']
+__all__ = ['SSLAdapter', 'SourceAddressAdapter', 'SNIAdapter']

@@ -100,6 +100,46 @@ attempt to negotiate TLSv1, and hopefully will succeed.
 
 .. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 
+SNIAdapter
+----------
+
+The ``SNIAdapter`` allows the user to access the IP address directly via HTTPS.
+
+Normally, such a request fails with a "hostname doesn't match" exception:
+
+.. code-block:: python
+
+    >>> import requests
+    >>> requests.get(url="https://93.184.216.34", headers={"Host": "example.org"})
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "[...]/requests/api.py", line 71, in get
+        return request('get', url, params=params, **kwargs)
+      File "[...]/requests/api.py", line 57, in request
+        return session.request(method=method, url=url, **kwargs)
+      File "[...]/requests/sessions.py", line 475, in request
+        resp = self.send(prep, **send_kwargs)
+      File "[...]/requests/sessions.py", line 585, in send
+        r = adapter.send(request, **kwargs)
+      File "[...]/requests/adapters.py", line 477, in send
+        raise SSLError(e, request=request)
+    requests.exceptions.SSLError: hostname '93.184.216.34' doesn't match either of 'www.example.org', 'example.com', 'example.edu', 'example.net', 'example.org', 'www.example.com', 'www.example.edu', 'www.example.net'
+
+Using the :class:`~requests_toolbelt.adapters.sni.SNIAdapter`, requests can
+verify the hostname successfully based on the explicitly set host header.
+
+Example usage:
+
+.. code-block:: python
+
+        import requests
+        from requests_toolbelt import SNIAdapter
+        s = requests.Session()
+        s.mount('https://', SNIAdapter())
+        s.get("https://93.184.216.34", headers={"Host": "example.org"})
+
+.. autoclass:: requests_toolbelt.adapters.sni.SNIAdapter
+
 SourceAddressAdapter
 --------------------
 
