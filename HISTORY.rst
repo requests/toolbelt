@@ -1,6 +1,21 @@
 History
 =======
 
+0.7.0 -- 2016-07-21
+-------------------
+
+More information about this release can be found on the `0.7.0 milestone`_.
+
+New Features
+~~~~~~~~~~~~
+
+- Add ``BaseUrlSession`` to allow developers to have a session that has a
+  "Base" URL. See the documentation for more details and examples.
+
+
+.. _0.7.0 milestone:
+    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.7.0
+
 0.6.2 -- 2016-05-10
 -------------------
 
