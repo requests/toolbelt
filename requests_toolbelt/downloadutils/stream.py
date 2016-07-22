@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Utilities for dealing with streamed requests."""
 import collections
+import os.path
 import re
 
 from .. import exceptions as exc
@@ -12,17 +13,62 @@ _OPTION_HEADER_PIECE_RE = re.compile(
     r';\s*(%s|[^\s;=]+)\s*(?:=\s*(%s|[^;]+))?\s*' % (_QUOTED_STRING_RE,
                                                      _QUOTED_STRING_RE)
 )
+_DEFAULT_CHUNKSIZE = 512
 
 
 def _get_filename(content_disposition):
     for match in _OPTION_HEADER_PIECE_RE.finditer(content_disposition):
         k, v = match.groups()
         if k == 'filename':
-            return v
+            # ignore any directory paths in the filename
+            return os.path.split(v)[1]
     return None
 
 
-def stream_response_to_file(response, path=None):
+def get_download_file_path(response, path):
+    """
+    Given a response and a path, return a file path for a download.
+
+    If a ``path`` parameter is a directory, this function will parse the
+    ``Content-Disposition`` header on the response to determine the name of the
+    file as reported by the server, and return a file path in the specified
+    directory.
+
+    If ``path`` is empty or None, this function will return a path relative
+    to the process' current working directory.
+
+    If path is a full file path, return it.
+
+    :param response: A Response object from requests
+    :type response: requests.models.Response
+    :param str path: Directory or file path.
+    :returns: full file path to download as
+    :rtype: str
+    :raises: :class:`requests_toolbelt.exceptions.StreamingError`
+    """
+    path_is_dir = path and os.path.isdir(path)
+
+    if path and not path_is_dir:
+        # fully qualified file path
+        filepath = path
+    else:
+        response_filename = _get_filename(
+            response.headers.get('content-disposition', '')
+        )
+        if not response_filename:
+            raise exc.StreamingError('No filename given to stream response to')
+
+        if path_is_dir:
+            # directory to download to
+            filepath = os.path.join(path, response_filename)
+        else:
+            # fallback to downloading to current working directory
+            filepath = response_filename
+
+    return filepath
+
+
+def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     """Stream a response body to the specified file.
 
     Either use the ``path`` provided or use the name provided in the
@@ -38,9 +84,11 @@ def stream_response_to_file(response, path=None):
         This function will not automatically close the response object
         passed in as the ``response`` parameter.
 
-    If no ``path`` parameter is supplied, this function will parse the
-    ``Content-Disposition`` header on the response to determine the name of
-    the file as reported by the server.
+    If a ``path`` parameter is a directory, this function will parse the
+    ``Content-Disposition`` header on the response to determine the name of the
+    file as reported by the server, and return a file path in the specified
+    directory. If no ``path`` parameter is supplied, this function will default
+    to the process' current working directory.
 
     .. code-block:: python
 
@@ -66,6 +114,9 @@ def stream_response_to_file(response, path=None):
 
         r = requests.get(url, stream=True)
         filename = stream.stream_response_to_file(r, path='myfile')
+
+    If the calculated download file path already exists, this function will
+    raise a StreamingError.
 
     Instead, if you want to manage the file object yourself, you need to
     provide either a :class:`io.BytesIO` object or a file opened with the
@@ -93,12 +144,13 @@ def stream_response_to_file(response, path=None):
         filename = stream.stream_response_to_file(r, path=b)
         assert filename is None
 
-
     :param response: A Response object from requests
     :type response: requests.models.Response
     :param path: *(optional)*, Either a string with the path to the location
         to save the response content, or a file-like object expecting bytes.
     :type path: :class:`str`, or object with a :meth:`write`
+    :param int chunksize: (optional), Size of chunk to attempt to stream
+        (default 512B).
     :returns: The name of the file, if one can be determined, else None
     :rtype: str
     :raises: :class:`requests_toolbelt.exceptions.StreamingError`
@@ -106,23 +158,17 @@ def stream_response_to_file(response, path=None):
     pre_opened = False
     fd = None
     filename = None
-    if path:
-        if isinstance(getattr(path, 'write', None), collections.Callable):
-            pre_opened = True
-            fd = path
-            filename = getattr(fd, 'name', None)
-        else:
-            fd = open(path, 'wb')
-            filename = path
+    if path and isinstance(getattr(path, 'write', None), collections.Callable):
+        pre_opened = True
+        fd = path
+        filename = getattr(fd, 'name', None)
     else:
-        filename = _get_filename(response.headers['content-disposition'])
-        if filename is None:
-            raise exc.StreamingError(
-                'No filename given to stream response to.'
-            )
+        filename = get_download_file_path(response, path)
+        if os.path.exists(filename):
+            raise exc.StreamingError("File already exists: %s" % filename)
         fd = open(filename, 'wb')
 
-    for chunk in response.iter_content(chunk_size=512):
+    for chunk in response.iter_content(chunk_size=chunksize):
         fd.write(chunk)
 
     if not pre_opened:
