@@ -19,6 +19,8 @@ with requests. The transport adapters are all kept in
 
 - :class:`requests_toolbelt.adapters.ssl.SSLAdapter`
 
+- :class:`requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`
+
 AppEngineAdapter
 ----------------
 
@@ -100,30 +102,29 @@ attempt to negotiate TLSv1, and hopefully will succeed.
 
 .. _here: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 
-HostHeaderSNIAdapter
+HostHeaderSSLAdapter
 --------------------
 
 .. versionadded:: 0.7.0
 
-Requests supports SNI by default on most modern versions of Python, and older
-versions when provided with its optional dependencies. However, it relies on
+Requests supports SSL Verification by default. However, it relies on
 the user making a request with the URL that has the hostname in it. If,
 however, the user needs to make a request with the IP address, they cannot
-actually verify a certificate that uses SNI.
+actually verify a certificate against the hostname they want to request.
 
 To accomodate this very rare need, we've added
-:class:`~requests_toolbelt.adapters.sni.HostHeaderSNIAdapter`.
+:class:`~requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`.
 Example usage:
 
 .. code-block:: python
 
         import requests
-        from requests_toolbelt.adapters import host_header_sni
+        from requests_toolbelt.adapters import host_header_ssl
         s = requests.Session()
-        s.mount('https://', host_header_sni.HostHeaderSNIAdapter())
+        s.mount('https://', host_header_ssl.HostHeaderSSLAdapter())
         s.get("https://93.184.216.34", headers={"Host": "example.org"})
 
-.. autoclass:: requests_toolbelt.adapters.host_header_sni.HostHeaderSNIAdapter
+.. autoclass:: requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter
 
 SourceAddressAdapter
 --------------------

@@ -1,21 +1,21 @@
 import pytest
 import requests
 
-from requests_toolbelt.adapters import host_header_sni as hhsni
+from requests_toolbelt.adapters import host_header_ssl as hhssl
 
 
 @pytest.fixture
 def session():
     """Create a session with our adapter mounted."""
     session = requests.Session()
-    session.mount('https://', hhsni.HostHeaderSNIAdapter())
+    session.mount('https://', hhssl.HostHeaderSSLAdapter())
 
 
 @pytest.mark.skip
-class TestHostHeaderSNIAdapter(object):
+class TestHostHeaderSSLAdapter(object):
     """Tests for our HostHeaderSNIAdapter."""
 
-    def test_sniadapter(self, session):
+    def test_ssladapter(self, session):
         # normal mode
         r = session.get('https://example.org')
         assert r.status_code == 200
