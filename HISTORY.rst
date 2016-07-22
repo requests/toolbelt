@@ -12,6 +12,20 @@ New Features
 - Add ``BaseUrlSession`` to allow developers to have a session that has a
   "Base" URL. See the documentation for more details and examples.
 
+- Split the logic of ``stream_response_to_file`` into two separate functions:
+
+  * ``get_download_file_path`` to generate the file name from the Response.
+
+  * ``stream_response_to_file`` which will use ``get_download_file_path`` if
+    necessary
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fixed the issue for people using *very* old versions of Requests where they
+  would see an ImportError from ``requests_toolbelt._compat`` when trying to
+  import ``connection``.
+
 
 .. _0.7.0 milestone:
     https://github.com/sigmavirus24/requests-toolbelt/milestones/0.7.0
