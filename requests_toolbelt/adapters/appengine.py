@@ -135,6 +135,7 @@ def monkeypatch():
     # so that we can set a module-level variable in the sessions module,
     # instead of overriding an imported HTTPAdapter as is done here.
     sessions.HTTPAdapter = AppEngineAdapter
+    adapters.HTTPAdapter = AppEngineAdapter
 
 
 def _check_version():
