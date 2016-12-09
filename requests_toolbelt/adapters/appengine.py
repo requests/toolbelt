@@ -47,7 +47,7 @@ they do not provide API surface to do so, for example), you can disable it:
        should avoid using this wherever possible. Details can be found in the
        `documentation for urlfetch.Fetch()`__.
 
-       __ https://cloud.google.com/appengine/docs/python/refdocs/google.appengine.api.urlfetch
+       __ https://cloud.google.com/appengine/docs/python/refdocs/google.appengine.api.urlfetch  # noqa
 """
 import requests
 from requests import adapters
