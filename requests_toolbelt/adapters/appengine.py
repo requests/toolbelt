@@ -59,6 +59,22 @@ class AppEngineAdapter(adapters.HTTPAdapter):
         self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
 
 
+class AppEngineInsecureAdapter(adapters.HTTPAdapter):
+    """A variant of the the transport adapter for Requests to use urllib3's GAE
+    support that does not validate certificates by default. Use with caution!
+
+    See `.AppEngineAdapter` for further details.
+    """
+
+    def __init__(self, validate_certificate=False, *args, **kwargs):
+        _check_version()
+        self._validate_certificate = validate_certificate
+        super(AppEngineInsecureAdapter, self).__init__(*args, **kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
+
+
 class _AppEnginePoolManager(object):
     """Implements urllib3's PoolManager API expected by requests.
 
@@ -123,19 +139,29 @@ class _AppEngineConnection(object):
             **response_kw)
 
 
-def monkeypatch():
+def monkeypatch(validate_certificate=True):
     """Sets up all Sessions to use AppEngineAdapter by default.
 
     If you don't want to deal with configuring your own Sessions,
     or if you use libraries that use requests directly (ie requests.post),
     then you may prefer to monkeypatch and auto-configure all Sessions.
+
+    .. warning: :
+
+        If ``validate_certificate`` is ``False``, certification validation will
+        effectively be disabled for all requests.
     """
     _check_version()
     # HACK: We should consider modifying urllib3 to support this cleanly,
     # so that we can set a module-level variable in the sessions module,
     # instead of overriding an imported HTTPAdapter as is done here.
-    sessions.HTTPAdapter = AppEngineAdapter
-    adapters.HTTPAdapter = AppEngineAdapter
+    if validate_certificate:
+        adapter = AppEngineAdapter
+    else:
+        adapter = AppEngineInsecureAdapter
+
+    sessions.HTTPAdapter = adapter
+    adapters.HTTPAdapter = adapter
 
 
 def _check_version():
