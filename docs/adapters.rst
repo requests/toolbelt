@@ -53,8 +53,8 @@ ways to take advantage of this support at the moment:
 
        appengine.monkeypatch()
 
-If you should need to disable certification validation when monkeypatching (to
-force third-party libraries that use requests to not validate certificates, if
+If you should need to disable certificate validation when monkeypatching (to
+force third-party libraries that use Requests to not validate certificates, if
 they do not provide API surface to do so, for example), you can disable it:
 
    .. code-block:: python
