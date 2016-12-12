@@ -6,6 +6,8 @@ import mock
 import pytest
 import requests
 
+from requests_toolbelt import exceptions as exc
+
 REQUESTS_SUPPORTS_GAE = requests.__build__ >= 0x021000
 
 if REQUESTS_SUPPORTS_GAE:
@@ -83,4 +85,5 @@ def test_insecure_appengine_adapter(mock_urlfetch):
 
     assert not adapter._validate_certificate
 
-    adapter = appengine.InsecureAppEngineAdapter(validate_certificate=True)
+    with pytest.warns(exc.IgnoringCertificateValidation):
+        adapter = appengine.InsecureAppEngineAdapter(validate_certificate=True)
