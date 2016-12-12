@@ -23,3 +23,12 @@ class RequestsVersionTooOld(Warning):
     this warning to the user.
     """
     pass
+
+
+class IgnoringCertificateValidation(Warning):
+    """Used to indiciate that the user has tried to specify certificate
+    validation but it will be ignored (validation will remain off).
+
+    In :class:`requests_toolbelt.adapters.appengine.InsecureAppEngineAdapter`.
+    """
+    pass

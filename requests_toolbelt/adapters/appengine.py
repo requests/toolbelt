@@ -50,6 +50,7 @@ they do not provide API surface to do so, for example), you can disable it:
        __ https://cloud.google.com/appengine/docs/python/refdocs/google.appengine.api.urlfetch  # noqa
 """
 import requests
+import warnings
 from requests import adapters
 from requests import sessions
 
@@ -78,20 +79,22 @@ class AppEngineAdapter(adapters.HTTPAdapter):
         self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
 
 
-class AppEngineInsecureAdapter(adapters.HTTPAdapter):
+class InsecureAppEngineAdapter(AppEngineAdapter):
     """A variant of the the transport adapter for Requests to use urllib3's GAE
     support that does not validate certificates by default. Use with caution!
 
-    See `.AppEngineAdapter` for further details.
+    See :class:`AppEngineAdapter` for further details.
     """
 
-    def __init__(self, validate_certificate=False, *args, **kwargs):
-        _check_version()
-        self._validate_certificate = validate_certificate
-        super(AppEngineInsecureAdapter, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        if kwargs.pop("validate_certificate", False):
+            warnings.warn("Certificate validation cannot be specified on the "
+                          "InsecureAppEngineAdapter, but was present. This "
+                          "will be ignored and certificate validation will "
+                          "remain off.", exc.IgnoringCertificateValidation)
 
-    def init_poolmanager(self, connections, maxsize, block=False):
-        self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
+        super(InsecureAppEngineAdapter, self).__init__(
+            validate_certificate=False, *args, **kwargs)
 
 
 class _AppEnginePoolManager(object):
@@ -177,7 +180,7 @@ def monkeypatch(validate_certificate=True):
     if validate_certificate:
         adapter = AppEngineAdapter
     else:
-        adapter = AppEngineInsecureAdapter
+        adapter = InsecureAppEngineAdapter
 
     sessions.HTTPAdapter = adapter
     adapters.HTTPAdapter = adapter
