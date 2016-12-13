@@ -30,24 +30,8 @@ There are two ways to use this library:
 
 which will ensure all requests.Session objects use AppEngineAdapter properly.
 
-If you should need to disable certificate validation when monkeypatching (to
-force third-party libraries that use Requests to not validate certificates, if
-they do not provide API surface to do so, for example), you can disable it:
-
-   .. code-block:: python
-
-       >>> from requests_toolbelt.adapters import appengine
-       >>> appengine.monkeypatch(validate_certificate=False)
-
-   .. warning::
-
-       If ``validate_certificate`` is ``False``, the monkeypatched adapter
-       will *not* validate certificates. This effectively sets the
-       ``validate_certificate`` argument to urlfetch.Fetch() to ``False``. You
-       should avoid using this wherever possible. Details can be found in the
-       `documentation for urlfetch.Fetch()`__.
-
-       __ https://cloud.google.com/appengine/docs/python/refdocs/google.appengine.api.urlfetch  # noqa
+You are also able to :ref:`disable certificate validation <insecure_appengine>`
+when monkey-patching.
 """
 import requests
 import warnings
@@ -80,8 +64,16 @@ class AppEngineAdapter(adapters.HTTPAdapter):
 
 
 class InsecureAppEngineAdapter(AppEngineAdapter):
-    """A variant of the the transport adapter for Requests to use urllib3's GAE
-    support that does not validate certificates by default. Use with caution!
+    """An always-insecure GAE adapter for Requests.
+
+    This is a variant of the the transport adapter for Requests to use
+    urllib3's GAE support that does not validate certificates. Use with
+    caution!
+
+    .. note::
+        The ``validate_certificate`` keyword argument will not be honored here
+        and is not part of the signature because we always force it to
+        ``False``.
 
     See :class:`AppEngineAdapter` for further details.
     """
@@ -91,7 +83,7 @@ class InsecureAppEngineAdapter(AppEngineAdapter):
             warnings.warn("Certificate validation cannot be specified on the "
                           "InsecureAppEngineAdapter, but was present. This "
                           "will be ignored and certificate validation will "
-                          "remain off.", exc.IgnoringCertificateValidation)
+                          "remain off.", exc.IgnoringGAECertificateValidation)
 
         super(InsecureAppEngineAdapter, self).__init__(
             validate_certificate=False, *args, **kwargs)
@@ -177,9 +169,8 @@ def monkeypatch(validate_certificate=True):
     # HACK: We should consider modifying urllib3 to support this cleanly,
     # so that we can set a module-level variable in the sessions module,
     # instead of overriding an imported HTTPAdapter as is done here.
-    if validate_certificate:
-        adapter = AppEngineAdapter
-    else:
+    adapter = AppEngineAdapter
+    if not validate_certificate:
         adapter = InsecureAppEngineAdapter
 
     sessions.HTTPAdapter = adapter

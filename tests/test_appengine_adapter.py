@@ -85,5 +85,5 @@ def test_insecure_appengine_adapter(mock_urlfetch):
 
     assert not adapter._validate_certificate
 
-    with pytest.warns(exc.IgnoringCertificateValidation):
+    with pytest.warns(exc.IgnoringGAECertificateValidation):
         adapter = appengine.InsecureAppEngineAdapter(validate_certificate=True)
