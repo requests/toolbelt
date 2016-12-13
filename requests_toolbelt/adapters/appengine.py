@@ -29,8 +29,12 @@ There are two ways to use this library:
        >>> appengine.monkeypatch()
 
 which will ensure all requests.Session objects use AppEngineAdapter properly.
+
+You are also able to :ref:`disable certificate validation <insecure_appengine>`
+when monkey-patching.
 """
 import requests
+import warnings
 from requests import adapters
 from requests import sessions
 
@@ -57,6 +61,32 @@ class AppEngineAdapter(adapters.HTTPAdapter):
 
     def init_poolmanager(self, connections, maxsize, block=False):
         self.poolmanager = _AppEnginePoolManager(self._validate_certificate)
+
+
+class InsecureAppEngineAdapter(AppEngineAdapter):
+    """An always-insecure GAE adapter for Requests.
+
+    This is a variant of the the transport adapter for Requests to use
+    urllib3's GAE support that does not validate certificates. Use with
+    caution!
+
+    .. note::
+        The ``validate_certificate`` keyword argument will not be honored here
+        and is not part of the signature because we always force it to
+        ``False``.
+
+    See :class:`AppEngineAdapter` for further details.
+    """
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.pop("validate_certificate", False):
+            warnings.warn("Certificate validation cannot be specified on the "
+                          "InsecureAppEngineAdapter, but was present. This "
+                          "will be ignored and certificate validation will "
+                          "remain off.", exc.IgnoringGAECertificateValidation)
+
+        super(InsecureAppEngineAdapter, self).__init__(
+            validate_certificate=False, *args, **kwargs)
 
 
 class _AppEnginePoolManager(object):
@@ -123,19 +153,28 @@ class _AppEngineConnection(object):
             **response_kw)
 
 
-def monkeypatch():
+def monkeypatch(validate_certificate=True):
     """Sets up all Sessions to use AppEngineAdapter by default.
 
     If you don't want to deal with configuring your own Sessions,
     or if you use libraries that use requests directly (ie requests.post),
     then you may prefer to monkeypatch and auto-configure all Sessions.
+
+    .. warning: :
+
+        If ``validate_certificate`` is ``False``, certification validation will
+        effectively be disabled for all requests.
     """
     _check_version()
     # HACK: We should consider modifying urllib3 to support this cleanly,
     # so that we can set a module-level variable in the sessions module,
     # instead of overriding an imported HTTPAdapter as is done here.
-    sessions.HTTPAdapter = AppEngineAdapter
-    adapters.HTTPAdapter = AppEngineAdapter
+    adapter = AppEngineAdapter
+    if not validate_certificate:
+        adapter = InsecureAppEngineAdapter
+
+    sessions.HTTPAdapter = adapter
+    adapters.HTTPAdapter = adapter
 
 
 def _check_version():
