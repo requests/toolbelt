@@ -52,11 +52,11 @@ class AppEngineMROHack(adapters.HTTPAdapter):
     monkeypatch, at which point this class becomes HTTPAdapter's base class.
     In addition, we use an instantiation flag to avoid infinite recursion.
     """
-    initialized = False
+    _initialized = False
 
     def __init__(self):
-        if not self.initialized:
-            self.initialized = True
+        if not self._initialized:
+            self._initialized = True
             super(AppEngineMROHack, self).__init__()
 
 
