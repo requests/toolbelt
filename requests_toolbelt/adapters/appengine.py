@@ -43,7 +43,24 @@ from .._compat import gaecontrib
 from .._compat import timeout
 
 
-class AppEngineAdapter(adapters.HTTPAdapter):
+class AppEngineMROHack(adapters.HTTPAdapter):
+    """Resolves infinite recursion when monkeypatching.
+
+    This works by injecting itself as the base class of both the
+    :class:`AppEngineAdapter` and Requests' default HTTPAdapter, which needs to
+    be done because default HTTPAdapter's MRO is recompiled when we
+    monkeypatch, at which point this class becomes HTTPAdapter's base class.
+    In addition, we use an instantiation flag to avoid infinite recursion.
+    """
+    initialized = False
+
+    def __init__(self):
+        if not self.initialized:
+            self.initialized = True
+            super(AppEngineMROHack, self).__init__()
+
+
+class AppEngineAdapter(AppEngineMROHack, adapters.HTTPAdapter):
     """The transport adapter for Requests to use urllib3's GAE support.
 
     Implements Requests's HTTPAdapter API.
