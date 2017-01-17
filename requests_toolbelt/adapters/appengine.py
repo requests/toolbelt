@@ -54,10 +54,10 @@ class AppEngineMROHack(adapters.HTTPAdapter):
     """
     _initialized = False
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         if not self._initialized:
             self._initialized = True
-            super(AppEngineMROHack, self).__init__()
+            super(AppEngineMROHack, self).__init__(*args, **kwargs)
 
 
 class AppEngineAdapter(AppEngineMROHack, adapters.HTTPAdapter):
