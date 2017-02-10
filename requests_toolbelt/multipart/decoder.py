@@ -143,7 +143,10 @@ class MultipartDecoder(object):
             return BodyPart(fixed, self.encoding)
 
         def test_part(part):
-            return part != b'' and part != b'\r\n' and part[:4] != b'--\r\n'
+            return (part != b'' and
+                    part != b'\r\n' and
+                    part[:4] != b'--\r\n' and
+                    part != b'--')
 
         parts = self.content.split(b''.join((b'\r\n', boundary)))
         self.parts = tuple(body_part(x) for x in parts if test_part(x))
