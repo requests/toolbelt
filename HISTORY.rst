@@ -1,6 +1,26 @@
 History
 =======
 
+0.7.1 -- 2017-02-13
+-------------------
+
+More information about this release can be found on the `0.7.1 milestone`_.
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fixed monkey-patching for the AppEngineAdapter.
+
+- Make it easier to disable certificate verification when monkey-patching
+  AppEngine.
+
+- Handle ``multipart/form-data`` bodies without a trailing ``CRLF``.
+
+
+.. links
+.. _0.7.1 milestone:
+    https://github.com/sigmavirus24/requests-toolbelt/milestone/9
+
 0.7.0 -- 2016-07-21
 -------------------
 
