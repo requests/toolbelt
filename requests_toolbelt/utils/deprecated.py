@@ -6,15 +6,17 @@ from requests import utils
 
 from .._compat import PY3 as _PY3
 
-_re_charset = r'<meta.*?charset=["\']*(.+?)["\'>]'
-_re_pragma = r'<meta.*?content=["\']*;?charset=(.+?)["\'>]'
-_re_xml = r'^<\?xml.*?encoding=["\']*(.+?)["\'>]'
+find_charset = re.compile(
+    br'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I
+).findall
 
-if _PY3:
-    _re_charset = _re_charset.encode('ascii')
-    _re_pragma = _re_pragma.encode('ascii')
-    _re_xml = _re_xml.encode('ascii')
+find_pragma = re.compile(
+    br'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I
+).findall
 
+find_xml = re.compile(
+    br'^<\?xml.*?encoding=["\']*(.+?)["\'>]'
+).findall
 
 def get_encodings_from_content(content):
     """Return encodings from given content string.
@@ -30,17 +32,6 @@ def get_encodings_from_content(content):
     :param content: bytestring to extract encodings from.
     :type content: bytes
     """
-    find_charset = re.compile(
-        _re_charset, flags=re.I
-    ).findall
-
-    find_pragma = re.compile(
-        _re_pragma, flags=re.I
-    ).findall
-
-    find_xml = re.compile(
-        _re_xml
-    ).findall
 
     return find_charset(content) + find_pragma(content) + find_xml(content)
 
