@@ -4,8 +4,6 @@ import re
 
 from requests import utils
 
-from .._compat import PY3 as _PY3
-
 find_charset = re.compile(
     br'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I
 ).findall
@@ -17,6 +15,7 @@ find_pragma = re.compile(
 find_xml = re.compile(
     br'^<\?xml.*?encoding=["\']*(.+?)["\'>]'
 ).findall
+
 
 def get_encodings_from_content(content):
     """Return encodings from given content string.
