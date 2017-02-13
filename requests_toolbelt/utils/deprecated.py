@@ -4,6 +4,18 @@ import re
 
 from requests import utils
 
+find_charset = re.compile(
+    br'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I
+).findall
+
+find_pragma = re.compile(
+    br'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I
+).findall
+
+find_xml = re.compile(
+    br'^<\?xml.*?encoding=["\']*(.+?)["\'>]'
+).findall
+
 
 def get_encodings_from_content(content):
     """Return encodings from given content string.
@@ -19,17 +31,6 @@ def get_encodings_from_content(content):
     :param content: bytestring to extract encodings from.
     :type content: bytes
     """
-    find_charset = re.compile(
-        r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I
-    ).findall
-
-    find_pragma = re.compile(
-        r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I
-    ).findall
-
-    find_xml = re.compile(
-        r'^<\?xml.*?encoding=["\']*(.+?)["\'>]'
-    ).findall
 
     return find_charset(content) + find_pragma(content) + find_xml(content)
 
