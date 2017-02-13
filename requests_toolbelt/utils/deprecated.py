@@ -15,6 +15,7 @@ if _PY3:
     _re_pragma = _re_pragma.encode('ascii')
     _re_xml = _re_xml.encode('ascii')
 
+
 def get_encodings_from_content(content):
     """Return encodings from given content string.
 
