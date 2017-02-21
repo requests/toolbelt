@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """A collection of functions deprecated in requests.utils."""
 import re
+import sys
 
 from requests import utils
 
@@ -28,11 +29,16 @@ def get_encodings_from_content(content):
         r = requests.get(url)
         encodings = deprecated.get_encodings_from_content(r)
 
-    :param content: bytestring to extract encodings from.
+    :param content: bytestring to extract encodings from
     :type content: bytes
+    :return: encodings detected in the provided content
+    :rtype: list(str)
     """
-
-    return find_charset(content) + find_pragma(content) + find_xml(content)
+    encodings = (find_charset(content) + find_pragma(content)
+                 + find_xml(content))
+    if (3, 0) <= sys.version_info < (4, 0):
+        encodings = [encoding.decode('utf8') for encoding in encodings]
+    return encodings
 
 
 def get_unicode_from_response(response):
