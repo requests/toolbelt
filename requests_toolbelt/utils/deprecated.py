@@ -2,6 +2,7 @@
 """A collection of functions deprecated in requests.utils."""
 import re
 import sys
+
 from requests import utils
 
 find_charset = re.compile(
@@ -28,14 +29,14 @@ def get_encodings_from_content(content):
         r = requests.get(url)
         encodings = deprecated.get_encodings_from_content(r)
 
-    :param content: bytestring to extract encodings from.
+    :param content: bytestring to extract encodings from
     :type content: bytes
-    :return: Detected encodings in the content
-    ：rtype: list of str
+    :return: encodings detected in the provided content
+    :rtype: list(str)
     """
     encodings = (find_charset(content) + find_pragma(content)
                  + find_xml(content))
-    if sys.version_info.major >= 3:
+    if (3, 0) <= sys.version_info < (4, 0):
         encodings = [encoding.decode('utf8') for encoding in encodings]
     return encodings
 
