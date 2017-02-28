@@ -227,7 +227,7 @@ An example usage of the adapter:
 .. code-block:: python
 
     import requests
-    from requests_toolbelt.adapter.socket_options import TCPKeepAliveAdapter
+    from requests_toolbelt.adapters.socket_options import TCPKeepAliveAdapter
 
     session = requests.Session()
     keep_alive = TCPKeepAliveAdapter(idle=120, count=20, interval=30)
