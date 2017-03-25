@@ -71,6 +71,8 @@ class AppEngineAdapter(AppEngineMROHack, adapters.HTTPAdapter):
     for Requests to be able to use it.
     """
 
+    __attrs__ = adapters.HTTPAdapter.__attrs__ + ['_validate_certificate']
+
     def __init__(self, validate_certificate=True, *args, **kwargs):
         _check_version()
         self._validate_certificate = validate_certificate
