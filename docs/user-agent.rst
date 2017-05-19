@@ -43,7 +43,7 @@ and requests-toolbelt you were using you could do the following:
 
     import requests
     import requests_toolbelt
-    from requests_toolbelt.utils.user_agent import user_agent as ua
+    from requests_toolbelt.utils import user_agent as ua
 
     user_agent = ua.user_agent('mypackage', '0.0.1',
                                extras=[('requests', requests.__version__),
@@ -56,3 +56,39 @@ and requests-toolbelt you were using you could do the following:
 Your user agent will now look like::
 
     mypackage/0.0.1 requests/2.7.0 requests-toolbelt/0.5.0 CPython/2.7.10 Darwin/13.0.0
+
+Selecting Only What You Want
+----------------------------
+
+.. versionadded:: 0.8.0
+
+While most people will find the ``user_agent`` function sufficient for their
+usage, others will want to control exactly what information is included in the
+User-Agent. For those people, the
+:class:`~requests_toolbelt.utils.user_agent.UserAgentBuilder` is the correct
+tool. This is the tool that the toolbelt uses inside of
+:func:`~requests_toolbelt.utils.user_agent.user_agent`. For example, let's say
+you *only* want your package, its versions, and some extra information, in
+that case you would do:
+
+.. code-block:: python
+
+    import requests
+    from requests_toolbelt.utils import user_agent as ua
+
+    s = requests.Session()
+    s.headers['User-Agent'] = ua.UserAgentBuilder(
+            'mypackage', '0.0.1',
+        ).include_extras([
+            ('requests', requests.__version__),
+        ]).build()
+
+Your user agent will now look like::
+
+    mypackage/0.0.1 requests/2.7.0
+
+You can also optionally include the Python version information and System
+information the same way that our ``user_agent`` function does.
+
+.. autoclass:: requests_toolbelt.utils.user_agent.UserAgentBuilder
+    :members:
