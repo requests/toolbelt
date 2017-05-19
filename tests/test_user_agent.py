@@ -15,6 +15,35 @@ class Object(object):
     pass
 
 
+class TestUserAgentBuilder(unittest.TestCase):
+    def test_only_user_agent_name(self):
+        assert 'fake/1.0.0' == ua.UserAgentBuilder('fake', '1.0.0').build()
+
+    def test_includes_extras(self):
+        expected = 'fake/1.0.0 another-fake/2.0.1 yet-another-fake/17.1.0'
+        actual = ua.UserAgentBuilder('fake', '1.0.0').include_extras([
+            ('another-fake', '2.0.1'),
+            ('yet-another-fake', '17.1.0'),
+        ]).build()
+        assert expected == actual
+
+    @patch('platform.python_implementation', return_value='CPython')
+    @patch('platform.python_version', return_value='2.7.13')
+    def test_include_implementation(self, *_):
+        expected = 'fake/1.0.0 CPython/2.7.13'
+        actual = ua.UserAgentBuilder('fake', '1.0.0').include_implementation(
+            ).build()
+        assert expected == actual
+
+    @patch('platform.system', return_value='Linux')
+    @patch('platform.release', return_value='4.9.5')
+    def test_include_system(self, *_):
+        expected = 'fake/1.0.0 Linux/4.9.5'
+        actual = ua.UserAgentBuilder('fake', '1.0.0').include_system(
+            ).build()
+        assert expected == actual
+
+
 class TestUserAgent(unittest.TestCase):
     def test_user_agent_provides_package_name(self):
         assert "my-package" in ua.user_agent("my-package", "0.0.1")
