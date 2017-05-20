@@ -1,6 +1,27 @@
 History
 =======
 
+0.8.0 -- 2017-05-20
+-------------------
+
+More information about this release can be found on the `0.8.0 milestone`_.
+
+New Features
+~~~~~~~~~~~~
+
+- Add ``UserAgentBuilder`` to provide more control over generated User-Agent
+  strings.
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Include ``_validate_certificate`` in the lits of picked attributes on the
+  ``AppEngineAdapter``.
+- Fix backwards incompatibility in ``get_encodings_from_content``
+
+.. _0.8.0 milestone:
+    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.8.0
+
 0.7.1 -- 2017-02-13
 -------------------
 
