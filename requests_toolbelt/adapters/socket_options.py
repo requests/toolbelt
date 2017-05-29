@@ -115,8 +115,8 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
         elif sys.platform == 'darwin':
             # On OSX, TCP_KEEPALIVE from netinet/tcp.h is not exported
             # by python's socket module
-            # TCP_KEEPALIVE = 0x10
-            socket_options += [(socket.IPPROTO_TCP, 0x10, interval)]
+            TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
+            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval)]
 
         if getattr(socket, 'TCP_KEEPCNT', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count)]
