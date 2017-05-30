@@ -2,6 +2,7 @@
 """The implementation of the SocketOptionsAdapter."""
 import socket
 import warnings
+import sys
 
 import requests
 from requests import adapters
@@ -103,13 +104,23 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
         interval = kwargs.pop('interval', 20)
         count = kwargs.pop('count', 5)
         socket_options = socket_options + [
-            (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
-            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval),
-            (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count),
+            (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         ]
 
-        # NOTE(Ian): Apparently OSX does not have this constant defined, so we
-        # set it conditionally.
+        # NOTE(Ian): OSX does not have these constants defined, so we
+        # set them conditionally.
+        if getattr(socket, 'TCP_KEEPINTVL', None) is not None:
+            socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
+                                interval)]
+        elif sys.platform == 'darwin':
+            # On OSX, TCP_KEEPALIVE from netinet/tcp.h is not exported
+            # by python's socket module
+            TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
+            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval)]
+
+        if getattr(socket, 'TCP_KEEPCNT', None) is not None:
+            socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count)]
+
         if getattr(socket, 'TCP_KEEPIDLE', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle)]
 
