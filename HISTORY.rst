@@ -20,7 +20,7 @@ Fixed Bugs
 - Fix backwards incompatibility in ``get_encodings_from_content``
 
 .. _0.8.0 milestone:
-    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.8.0
+    https://github.com/requests/toolbelt/milestones/0.8.0
 
 0.7.1 -- 2017-02-13
 -------------------
@@ -40,7 +40,7 @@ Fixed Bugs
 
 .. links
 .. _0.7.1 milestone:
-    https://github.com/sigmavirus24/requests-toolbelt/milestone/9
+    https://github.com/requests/toolbelt/milestone/9
 
 0.7.0 -- 2016-07-21
 -------------------
@@ -69,7 +69,7 @@ Fixed Bugs
 
 
 .. _0.7.0 milestone:
-    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.7.0
+    https://github.com/requests/toolbelt/milestones/0.7.0
 
 0.6.2 -- 2016-05-10
 -------------------
@@ -123,7 +123,7 @@ Miscellaneous
 
 
 .. _0.6.0 milestone:
-    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.6.0
+    https://github.com/requests/toolbelt/milestones/0.6.0
 
 0.5.1 -- 2015-12-16
 -------------------
@@ -138,13 +138,13 @@ Fixed Bugs
 
 
 .. _0.5.1 milestone:
-    https://github.com/sigmavirus24/requests-toolbelt/milestones/0.5.1
+    https://github.com/requests/toolbelt/milestones/0.5.1
 
 0.5.0 -- 2015-11-24
 -------------------
 
 More information about this release can be found on the `milestone
-<https://github.com/sigmavirus24/requests-toolbelt/issues?utf8=%E2%9C%93&q=is%3Aall+milestone%3A0.5+>`_
+<https://github.com/requests/toolbelt/issues?utf8=%E2%9C%93&q=is%3Aall+milestone%3A0.5+>`_
 for 0.5.0.
 
 New Features
@@ -183,7 +183,7 @@ Fixed Bugs
 -------------------
 
 For more information about this release, please see `milestone 0.4.0
-<https://github.com/sigmavirus24/requests-toolbelt/issues?q=milestone%3A0.4>`_
+<https://github.com/requests/toolbelt/issues?q=milestone%3A0.4>`_
 on the project's page.
 
 New Features

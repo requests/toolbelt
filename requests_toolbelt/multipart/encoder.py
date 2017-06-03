@@ -74,7 +74,7 @@ class MultipartEncoder(object):
         please weigh in on `this issue`_.
 
     .. _this issue:
-        https://github.com/sigmavirus24/requests-toolbelt/issues/75
+        https://github.com/requests/toolbelt/issues/75
 
     """
 
@@ -136,7 +136,7 @@ class MultipartEncoder(object):
         As such, we now calculate the length lazily as a property.
 
         .. _bug #80:
-            https://github.com/sigmavirus24/requests-toolbelt/issues/80
+            https://github.com/requests/toolbelt/issues/80
         """
         # If _len isn't already calculated, calculate, return, and set it
         return self._len or self._calculate_length()

@@ -14,7 +14,7 @@ A simple use-case is:
         'url': 'https://api.github.com/users/sigmavirus24',
         'method': 'GET',
     }, {
-        'url': 'https://api.github.com/repos/sigmavirus24/requests-toolbelt',
+        'url': 'https://api.github.com/repos/requests/toolbelt',
         'method': 'GET',
     }, {
         'url': 'https://google.com',

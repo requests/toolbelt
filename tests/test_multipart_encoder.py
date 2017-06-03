@@ -219,7 +219,7 @@ class TestMultipartEncoder(unittest.TestCase):
     def test_handles_empty_unicode_values(self):
         """Verify that the Encoder can handle empty unicode strings.
 
-        See https://github.com/sigmavirus24/requests-toolbelt/issues/46 for
+        See https://github.com/requests/toolbelt/issues/46 for
         more context.
         """
         fields = [(b'test'.decode('utf-8'), b''.decode('utf-8'))]
@@ -229,7 +229,7 @@ class TestMultipartEncoder(unittest.TestCase):
     def test_accepts_custom_content_type(self):
         """Verify that the Encoder handles custom content-types.
 
-        See https://github.com/sigmavirus24/requests-toolbelt/issues/52
+        See https://github.com/requests/toolbelt/issues/52
         """
         fields = [
             (b'test'.decode('utf-8'), (b'filename'.decode('utf-8'),
@@ -243,7 +243,7 @@ class TestMultipartEncoder(unittest.TestCase):
     def test_accepts_custom_headers(self):
         """Verify that the Encoder handles custom headers.
 
-        See https://github.com/sigmavirus24/requests-toolbelt/issues/52
+        See https://github.com/requests/toolbelt/issues/52
         """
         fields = [
             (b'test'.decode('utf-8'), (b'filename'.decode('utf-8'),

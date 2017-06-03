@@ -1,5 +1,5 @@
-requests toolbelt
-=================
+The Requests Toolbelt
+=====================
 
 This is just a collection of utilities for `python-requests`_, but don't 
 really belong in ``requests`` proper. The minimum tested requests version is 
@@ -110,5 +110,8 @@ Please read the `suggested workflow
 <https://toolbelt.readthedocs.org/en/latest/contributing.html>`_ for
 contributing to this project.
 
+Please report any bugs on the `issue tracker`_
+
 .. _Cory Benfield's blog: https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 .. _python-requests: https://github.com/kennethreitz/requests
+.. _issue tracker: https://github.com/requests/toolbelt/issues
