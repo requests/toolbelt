@@ -109,7 +109,8 @@ def _dump_response_data(response, prefixes, bytearr):
 def _coerce_to_bytes(data):
     if not isinstance(data, bytes) and hasattr(data, 'encode'):
         data = data.encode('utf-8')
-    return data
+    # Don't bail out with an exception if data is None
+    return data if data is not None else b''
 
 
 def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
