@@ -40,7 +40,7 @@ class SourceAddressAdapter(HTTPAdapter):
 
         s = requests.Session()
         s.mount('http://', SourceAddressAdapter('10.10.10.10'))
-        s.mount('https://', SourceAddressAdapter(('10.10.10.10', 8999))
+        s.mount('https://', SourceAddressAdapter(('10.10.10.10', 8999)))
     """
     def __init__(self, source_address, **kwargs):
         if isinstance(source_address, basestring):
