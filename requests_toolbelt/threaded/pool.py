@@ -18,7 +18,7 @@ class Pool(object):
     :param auth_generator:
         Function used to generate new auth credentials for the session.
     :type auth_generator: collections.Callable
-    :param int num_threads:
+    :param int num_process:
         Number of threads to create.
     :param session:
     :type session: requests.Session
