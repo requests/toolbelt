@@ -44,7 +44,8 @@ def _build_request_path(url, proxy_info):
     uri = compat.urlparse(url)
     proxy_url = proxy_info.get('request_path')
     if proxy_url is not None:
-        return proxy_url, uri
+        request_path = _coerce_to_bytes(proxy_url)
+        return request_path, uri
 
     request_path = _coerce_to_bytes(uri.path)
     if uri.query:
