@@ -115,7 +115,7 @@ class MultipartDecoder(object):
     def _find_boundary(self):
         ct_info = tuple(x.strip() for x in self.content_type.split(';'))
         mimetype = ct_info[0]
-        if mimetype.split('/')[0] != 'multipart':
+        if mimetype.split('/')[0].lower() != 'multipart':
             raise NonMultipartContentTypeException(
                 "Unexpected mimetype in content-type: '{0}'".format(mimetype)
             )
