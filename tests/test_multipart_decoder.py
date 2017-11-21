@@ -162,3 +162,30 @@ class TestMultipartDecoder(unittest.TestCase):
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
+    def test_from_responsecaplarge(self):
+        response = mock.NonCallableMagicMock(spec=requests.Response)
+        response.headers = {
+            'content-type': 'Multipart/Related; boundary="samp1"'
+        }
+        cnt = io.BytesIO()
+        cnt.write(b'\r\n--samp1\r\n')
+        cnt.write(b'Header-1: Header-Value-1\r\n')
+        cnt.write(b'Header-2: Header-Value-2\r\n')
+        cnt.write(b'\r\n')
+        cnt.write(b'Body 1, Line 1\r\n')
+        cnt.write(b'Body 1, Line 2\r\n')
+        cnt.write(b'--samp1\r\n')
+        cnt.write(b'\r\n')
+        cnt.write(b'Body 2, Line 1\r\n')
+        cnt.write(b'--samp1--\r\n')
+        response.content = cnt.getvalue()
+        decoder_2 = MultipartDecoder.from_response(response)
+        assert decoder_2.content_type == response.headers['content-type']
+        assert (
+            decoder_2.parts[0].content == b'Body 1, Line 1\r\nBody 1, Line 2'
+        )
+        assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
+        assert len(decoder_2.parts[1].headers) == 0
+        assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
