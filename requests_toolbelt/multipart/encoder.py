@@ -8,6 +8,7 @@ This holds all of the implementation details of the MultipartEncoder
 
 """
 import contextlib
+import copy
 import io
 import os
 from uuid import uuid4
@@ -279,16 +280,16 @@ class MultipartEncoder(object):
             streaming or reading data from the encoder, this method will only
             return whatever data is left in the encoder.
 
-        .. note::
-
-            This method affects the internal state of the encoder. Calling
-            this method will exhaust the encoder.
-
         :returns: the multipart message
         :rtype: bytes
         """
+        if self.finished:
+            buffer_copy = copy.copy(self._buffer)
+            return buffer_copy.read()
 
-        return self.read()
+        self._load(-1)
+        buffer_copy = copy.copy(self._buffer)
+        return buffer_copy.read()
 
     def read(self, size=-1):
         """Read data from the streaming encoder.

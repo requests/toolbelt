@@ -98,6 +98,9 @@ class TestMultipartEncoder(unittest.TestCase):
             '--this-is-a-boundary--\r\n'
         ).encode()
 
+    def test_to_string_twice(self):
+        assert self.instance.to_string() == self.instance.to_string()
+
     def test_content_type(self):
         expected = 'multipart/form-data; boundary=this-is-a-boundary'
         assert self.instance.content_type == expected

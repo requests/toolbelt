@@ -41,3 +41,5 @@ Patches and Suggestions
 - Mike Lambert (@mikelambert)
 
 - Ryan Barrett (https://snarfed.org/)
+
+- Adam Dangoor (@adamdangoor)
