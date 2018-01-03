@@ -582,16 +582,44 @@ class FileFromURLWrapper(object):
     The :class:`FileFromURLWrapper` object gives you the ability to stream file
     from provided URL in chunks by :class:`MultipartEncoder`.
     Provide a stateless solution for streaming file from one server to another.
+    You can use the :class:`FileFromURLWrapper` without a session or with
+    a session as demonstated by the examples below:
 
     .. code-block:: python
+        # no session
 
         import requests
         from requests_toolbelt import MultipartEncoder, FileFromURLWrapper
 
-        encoder = MultipartEncoder(
-            fields={'file': FileFromURLWrapper(url, session=session)})
-        r = requests.post('https://httpbin.org/post', data=encoder,
-                          headers={'Content-Type': encoder.content_type})
+        url = 'https://httpbin.org/image/png'
+        streaming_encoder = MultipartEncoder(
+            fields={
+                'file': FileFromURLWrapper(url)
+            }
+        )
+        r = requests.post(
+            'https://httpbin.org/post', data=streaming_encoder,
+            headers={'Content-Type': streaming_encoder.content_type}
+        )
+
+    .. code-block:: python
+        # using a session
+
+        import requests
+        from requests_toolbelt.multipart import encoder
+
+        session = requests.Session()
+        url = 'https://httpbin.org/image/png'
+        streaming_encoder = MultipartEncoder(
+            fields={
+                'file': FileFromURLWrapper(url, session=session)
+            }
+        )
+        r = session.post(
+            'https://httpbin.org/post', data=streaming_encoder,
+            headers={'Content-Type': streaming_encoder.content_type}
+        )
+
     """
 
     def __init__(self, file_url, session=None):
