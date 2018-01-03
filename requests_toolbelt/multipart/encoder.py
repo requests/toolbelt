@@ -584,8 +584,7 @@ class FileFromURLWrapper(object):
 
     The :class:`FileFromURLWrapper` object gives you ability to stream file
     from provided url in chunks by :class:`MultipartEncoder`.
-    Can provide stateless solution for steaming file from one server to
-    another.
+    Provide a stateless solution for streaming file from one server to another.
 
     .. code-block:: python
 
