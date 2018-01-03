@@ -12,7 +12,13 @@ import io
 import os
 from uuid import uuid4
 
+import requests
+
 from .._compat import fields
+
+
+class FileNotSupportedError(Exception):
+    """File not supported error."""
 
 
 class MultipartEncoder(object):
@@ -92,7 +98,7 @@ class MultipartEncoder(object):
         self._encoded_boundary = b''.join([
             encode_with(self.boundary, self.encoding),
             encode_with('\r\n', self.encoding)
-            ])
+        ])
 
         #: Fields provided by the user
         self.fields = fields
@@ -154,7 +160,7 @@ class MultipartEncoder(object):
         # boundary length + header length + body length + len('\r\n') * 2
         self._len = sum(
             (boundary_len + total_len(p) + 4) for p in self.parts
-            ) + boundary_len + 4
+        ) + boundary_len + 4
         return self._len
 
     def _calculate_load_amount(self, read_size):
@@ -268,7 +274,7 @@ class MultipartEncoder(object):
     def content_type(self):
         return str(
             'multipart/form-data; boundary={0}'.format(self.boundary_value)
-            )
+        )
 
     def to_string(self):
         """Return the entirety of the data in the encoder.
@@ -475,6 +481,7 @@ def to_list(fields):
 
 
 class Part(object):
+
     def __init__(self, headers, body):
         self.headers = headers
         self.body = body
@@ -525,6 +532,7 @@ class Part(object):
 
 
 class CustomBytesIO(io.BytesIO):
+
     def __init__(self, buffer=None, encoding='utf-8'):
         buffer = encode_with(buffer, encoding)
         super(CustomBytesIO, self).__init__(buffer)
@@ -559,6 +567,7 @@ class CustomBytesIO(io.BytesIO):
 
 
 class FileWrapper(object):
+
     def __init__(self, file_object):
         self.fd = file_object
 
@@ -568,3 +577,52 @@ class FileWrapper(object):
 
     def read(self, length=-1):
         return self.fd.read(length)
+
+
+class FileFromURLWrapper(object):
+    """File from URL wrapper.
+
+    The :class:`FileFromURLWrapper` object gives you ability to stream file
+    from provided url in chunks by :class:`MultipartEncoder`.
+    Can provide stateless solution for steaming file from one server to
+    another.
+
+    .. code-block:: python
+
+        import requests
+        from requests_toolbelt import MultipartEncoder, FileFromURLWrapper
+
+        encoder = MultipartEncoder(fields={'file': FileFromURLWrapper(url)})
+        r = requests.post('https://httpbin.org/post', data=encoder,
+                          headers={'Content-Type': encoder.content_type})
+    """
+
+    def __init__(self, file_url):
+        requested_file = self.request_for_file(file_url)
+        self.len = int(requested_file.headers['content-length'])
+        self.raw_data = requested_file.raw
+
+    def request_for_file(self, file_url):
+        """Make call for file under provided url."""
+        response = requests.get(file_url, stream=True)
+        content_length = response.headers.get('content-length', None)
+        if content_length is None:
+            error_msg = (
+                "Data from provided URL {url} is not supported. Lack of "
+                "content-length Header in requested file response.".format(
+                    url=file_url)
+            )
+            raise FileNotSupportedError(error_msg)
+        elif not content_length.isdigit():
+            error_msg = (
+                "Data from provided URL {url} is not supported. content-length"
+                " header value is not a digit.".format(url=file_url)
+            )
+            raise FileNotSupportedError(error_msg)
+        return response
+
+    def read(self, chunk_size):
+        """Read file in chunks."""
+        chunk = self.raw_data.read(chunk_size) or b''
+        self.len -= len(chunk) if chunk else 0  # left to read
+        return chunk
