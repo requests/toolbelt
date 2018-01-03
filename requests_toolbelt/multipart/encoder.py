@@ -596,11 +596,11 @@ class FileFromURLWrapper(object):
 
     def __init__(self, file_url, session=None):
         self.session = session or requests.Session()
-        requested_file = self.request_for_file(file_url)
+        requested_file = self._request_for_file(file_url)
         self.len = int(requested_file.headers['content-length'])
         self.raw_data = requested_file.raw
 
-    def request_for_file(self, file_url):
+    def _request_for_file(self, file_url):
         """Make call for file under provided URL."""
         response = self.session.get(file_url, stream=True)
         content_length = response.headers.get('content-length', None)
