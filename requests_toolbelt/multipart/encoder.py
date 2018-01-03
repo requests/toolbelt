@@ -606,8 +606,8 @@ class FileFromURLWrapper(object):
         # using a session
 
         import requests
-        from requests_toolbelt.multipart import encoder
-
+        from requests_toolbelt import MultipartEncoder, FileFromURLWrapper
+        
         session = requests.Session()
         url = 'https://httpbin.org/image/png'
         streaming_encoder = MultipartEncoder(
