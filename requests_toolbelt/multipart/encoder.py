@@ -649,8 +649,7 @@ class FileFromURLWrapper(object):
 
     def read(self, chunk_size):
         """Read file in chunks."""
-        chunk_size = chunk_size if chunk_size >= 0 else \
-            self.raw_data.length_remaining
+        chunk_size = chunk_size if chunk_size >= 0 else self.len
         chunk = self.raw_data.read(chunk_size) or b''
         self.len -= len(chunk) if chunk else 0  # left to read
         return chunk
