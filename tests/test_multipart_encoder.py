@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 import unittest
 import io
-from requests_toolbelt.multipart.encoder import CustomBytesIO, MultipartEncoder
+
+import requests
+
+from requests_toolbelt.multipart.encoder import (
+    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError)
 from requests_toolbelt._compat import filepost
+from . import get_betamax
+
+
+preserve_bytes = {'preserve_exact_body_bytes': True}
 
 
 class LargeFileMock(object):
@@ -79,6 +87,46 @@ class TestCustomBytesIO(unittest.TestCase):
         s = b'this is a unicode string: \xc3\xa9 \xc3\xa1 \xc7\xab \xc3\xb3'
         self.instance = CustomBytesIO(s)
         assert self.instance.read() == s
+
+
+class TestFileFromURLWrapper(unittest.TestCase):
+    def setUp(self):
+        s = requests.Session()
+        self.recorder = get_betamax(s)
+
+    def test_read_file(self):
+        url = (
+            'https://stxnext.com/static/img/logo.830ebe551641.svg'
+        )
+        with self.recorder.use_cassette(
+                'file_for_download', **preserve_bytes):
+            self.instance = FileFromURLWrapper(url)
+            assert self.instance.len == 5177
+            chunk = self.instance.read(20)
+            assert chunk == b'<svg xmlns="http://w'
+            assert self.instance.len == 5157
+            chunk = self.instance.read(0)
+            assert chunk == b''
+            assert self.instance.len == 5157
+            chunk = self.instance.read(10)
+            assert chunk == b'ww.w3.org/'
+            assert self.instance.len == 5147
+
+    def test_no_content_length_header(self):
+        url = (
+            'https://api.github.com/repos/sigmavirus24/github3.py/releases/'
+            'assets/37944'
+        )
+        with self.recorder.use_cassette(
+                'stream_response_to_file', **preserve_bytes):
+            with self.assertRaises(FileNotSupportedError) as context:
+                FileFromURLWrapper(url)
+            assert context.exception.__str__() == (
+                'Data from provided URL https://api.github.com/repos/s'
+                'igmavirus24/github3.py/releases/assets/37944 is not '
+                'supported. Lack of content-length Header in requested'
+                ' file response.'
+            )
 
 
 class TestMultipartEncoder(unittest.TestCase):
