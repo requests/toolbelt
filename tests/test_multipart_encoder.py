@@ -95,9 +95,7 @@ class TestFileFromURLWrapper(unittest.TestCase):
         self.recorder = get_betamax(s)
 
     def test_read_file(self):
-        url = (
-            'https://stxnext.com/static/img/logo.830ebe551641.svg'
-        )
+        url = ('https://stxnext.com/static/img/logo.830ebe551641.svg')
         with self.recorder.use_cassette(
                 'file_for_download', **preserve_bytes):
             self.instance = FileFromURLWrapper(url)
@@ -192,6 +190,16 @@ class TestMultipartEncoder(unittest.TestCase):
         with open('setup.py', 'rb') as fd:
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.read() is not None
+
+    def test_reads_file_from_url_wrapper(self):
+        s = requests.Session()
+        recorder = get_betamax(s)
+        url = ('https://stxnext.com/static/img/logo.830ebe551641.svg')
+        with recorder.use_cassette(
+                'file_for_download'):
+            m = MultipartEncoder(
+                [('field', 'foo'), ('file', FileFromURLWrapper(url))])
+        assert m.read() is not None
 
     def test_reads_open_file_objects_with_a_specified_filename(self):
         with open('setup.py', 'rb') as fd:
