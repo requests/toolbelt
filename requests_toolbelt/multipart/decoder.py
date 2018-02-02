@@ -45,7 +45,7 @@ class BodyPart(object):
     subpart of a multipart response. It is expected that these will
     generally be created by objects of the ``MultipartDecoder`` class.
 
-    Like ``Response``, there is a ``CaseInsensitiveDict`` object named header,
+    Like ``Response``, there is a ``CaseInsensitiveDict`` object named headers,
     ``content`` to access bytes, ``text`` to access unicode, and ``encoding``
     to access the unicode codec.
 
@@ -85,7 +85,7 @@ class MultipartDecoder(object):
         response = request.get(url)
         decoder = MultipartDecoder.from_response(response)
         for part in decoder.parts:
-            print(part.header['content-type'])
+            print(part.headers['content-type'])
 
     If the multipart content is not from a response, basic usage is::
 
@@ -93,7 +93,7 @@ class MultipartDecoder(object):
 
         decoder = MultipartDecoder(content, content_type)
         for part in decoder.parts:
-            print(part.header['content-type'])
+            print(part.headers['content-type'])
 
     For both these usages, there is an optional ``encoding`` parameter. This is
     a string, which is the name of the unicode codec to use (default is
