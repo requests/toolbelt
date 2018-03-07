@@ -36,6 +36,8 @@ class SessionThread(object):
             self._jobs.task_done()
 
     def _make_request(self):
+        if self._jobs is None:
+            return
         while True:
             try:
                 kwargs = self._jobs.get_nowait()
