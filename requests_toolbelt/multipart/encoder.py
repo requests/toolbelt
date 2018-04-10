@@ -345,7 +345,7 @@ class MultipartEncoderMonitor(object):
 
         m = MultipartEncoder(fields={'field0': 'value0'})
         monitor = MultipartEncoderMonitor(m, callback)
-        headers = {'Content-Type': montior.content_type}
+        headers = {'Content-Type': monitor.content_type}
         r = requests.post('https://httpbin.org/post', data=monitor,
                           headers=headers)
 
