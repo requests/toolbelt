@@ -211,6 +211,26 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
         assert b'request:GET / HTTP/1.1\r\n' in array
         assert b'request:Host: example.com\r\n' in array
 
+    def test_dump_non_string_request_data(self):
+        """Build up the request data into a bytearray."""
+        self.configure_request(
+            url='http://example.com/',
+            method='POST',
+            body=1
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_request_data(
+            request=self.request,
+            prefixes=prefixes,
+            bytearr=array,
+            proxy_info={},
+        )
+        assert b'request:POST / HTTP/1.1\r\n' in array
+        assert b'request:Host: example.com\r\n' in array
+        assert b'<< Request body is not a string-like type >>\r\n' in array
+
     def test_dump_request_data_with_proxy_info(self):
         """Build up the request data into a bytearray."""
         self.configure_request(
