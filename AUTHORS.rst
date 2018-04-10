@@ -43,3 +43,5 @@ Patches and Suggestions
 - Ryan Barrett (https://snarfed.org/)
 
 - Victor Grau Serrat (@lacabra)
+
+- Yorgos Pagles <yorgos@pagles.org>
