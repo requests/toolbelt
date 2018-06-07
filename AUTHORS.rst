@@ -45,3 +45,5 @@ Patches and Suggestions
 - Victor Grau Serrat (@lacabra)
 
 - Yorgos Pagles <yorgos@pagles.org>
+
+- Thomas Hauk <thauk@copperleaf.com>
