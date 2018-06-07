@@ -311,6 +311,12 @@ class TestMultipartEncoder(unittest.TestCase):
         output = m.read().decode('utf-8')
         assert output.index('X-My-Header: my-value\r\n') > 0
 
+    def test_no_parts(self):
+        fields = []
+        boundary = '--90967316f8404798963cce746a4f4ef9'
+        m = MultipartEncoder(fields=fields, boundary=boundary)
+        output = m.read().decode('utf-8')
+        assert output == '----90967316f8404798963cce746a4f4ef9--\r\n'
 
 if __name__ == '__main__':
     unittest.main()
