@@ -101,8 +101,6 @@ class MultipartDecoder(object):
 
     """
     def __init__(self, content, content_type, encoding='utf-8'):
-        #: Original content
-        self.content = content
         #: Original Content-Type header
         self.content_type = content_type
         #: Response body encoding
@@ -110,7 +108,7 @@ class MultipartDecoder(object):
         #: Parsed parts of the multipart response body
         self.parts = tuple()
         self._find_boundary()
-        self._parse_body()
+        self._parse_body(content)
 
     def _find_boundary(self):
         ct_info = tuple(x.strip() for x in self.content_type.split(';'))
@@ -135,7 +133,7 @@ class MultipartDecoder(object):
         else:
             return part
 
-    def _parse_body(self):
+    def _parse_body(self, content):
         boundary = b''.join((b'--', self.boundary))
 
         def body_part(part):
@@ -148,7 +146,7 @@ class MultipartDecoder(object):
                     part[:4] != b'--\r\n' and
                     part != b'--')
 
-        parts = self.content.split(b''.join((b'\r\n', boundary)))
+        parts = content.split(b''.join((b'\r\n', boundary)))
         self.parts = tuple(body_part(x) for x in parts if test_part(x))
 
     @classmethod
