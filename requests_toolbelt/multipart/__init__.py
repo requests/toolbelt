@@ -9,7 +9,7 @@ See http://toolbelt.rtfd.org/ for documentation
 """
 
 from .encoder import MultipartEncoder, MultipartEncoderMonitor
-from .decoder import MultipartDecoder
+from .decoder import MultipartDecoder, MultipartStreamDecoder
 from .decoder import ImproperBodyPartContentException
 from .decoder import NonMultipartContentTypeException
 
@@ -22,6 +22,7 @@ __all__ = [
     'MultipartEncoder',
     'MultipartEncoderMonitor',
     'MultipartDecoder',
+    'MultipartStreamDecoder',
     'ImproperBodyPartContentException',
     'NonMultipartContentTypeException',
     '__title__',

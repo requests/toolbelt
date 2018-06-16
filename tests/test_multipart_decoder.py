@@ -9,7 +9,9 @@ from requests_toolbelt.multipart.decoder import BodyPart
 from requests_toolbelt.multipart.decoder import (
     ImproperBodyPartContentException
 )
-from requests_toolbelt.multipart.decoder import MultipartDecoder
+from requests_toolbelt.multipart.decoder import (
+    MultipartDecoder, MultipartStreamDecoder
+)
 from requests_toolbelt.multipart.decoder import (
     NonMultipartContentTypeException
 )
@@ -104,25 +106,49 @@ class TestMultipartDecoder(unittest.TestCase):
         )
         self.boundary = 'test boundary'
         self.encoded_1 = MultipartEncoder(self.sample_1, self.boundary)
+        self.encoded_1_string = self.encoded_1.to_string()
         self.decoded_1 = MultipartDecoder(
-            self.encoded_1.to_string(),
+            self.encoded_1_string,
             self.encoded_1.content_type
         )
+
+    def CreateMultipartStreamDecoder(self):
+        data = io.BytesIO(self.encoded_1_string)
+
+        def read_function():
+            return data.read(10)
+        
+        decoder = MultipartStreamDecoder(
+            read_function,
+            self.encoded_1.content_type
+        )
+        
+        parts = []
+        for part in decoder:
+            part.content
+            parts.append(part)
+
+        return parts
 
     def test_non_multipart_response_fails(self):
         jpeg_response = mock.NonCallableMagicMock(spec=requests.Response)
         jpeg_response.headers = {'content-type': 'image/jpeg'}
         with pytest.raises(NonMultipartContentTypeException):
             MultipartDecoder.from_response(jpeg_response)
+        with pytest.raises(NonMultipartContentTypeException):
+            MultipartStreamDecoder.from_response(jpeg_response)
 
     def test_length_of_parts(self):
         assert len(self.sample_1) == len(self.decoded_1.parts)
+        assert len(self.sample_1) == len(self.CreateMultipartStreamDecoder())
 
     def test_content_of_parts(self):
         def parts_equal(part, sample):
             return part.content == encode_with(sample[1], 'utf-8')
 
         parts_iter = zip(self.decoded_1.parts, self.sample_1)
+        assert all(parts_equal(part, sample) for part, sample in parts_iter)
+        parts_iter = zip(self.CreateMultipartStreamDecoder(), self.sample_1)
         assert all(parts_equal(part, sample) for part, sample in parts_iter)
 
     def test_header_of_parts(self):
@@ -132,6 +158,11 @@ class TestMultipartDecoder(unittest.TestCase):
             )
 
         parts_iter = zip(self.decoded_1.parts, self.sample_1)
+        assert all(
+            parts_header_equal(part, sample)
+            for part, sample in parts_iter
+        )
+        parts_iter = zip(self.CreateMultipartStreamDecoder(), self.sample_1)
         assert all(
             parts_header_equal(part, sample)
             for part, sample in parts_iter
@@ -163,6 +194,21 @@ class TestMultipartDecoder(unittest.TestCase):
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
 
+        cnt.seek(0)
+        response.raw = cnt
+        decoder_2 = MultipartStreamDecoder.from_response(response)
+        parts = []
+        for part in decoder_2:
+            part.content
+            parts.append(part)
+        assert decoder_2.content_type == response.headers['content-type']
+        assert (
+            parts[0].content == b'Body 1, Line 1\r\nBody 1, Line 2'
+        )
+        assert parts[0].headers[b'Header-1'] == b'Header-Value-1'
+        assert len(parts[1].headers) == 0
+        assert parts[1].content == b'Body 2, Line 1'
+
     def test_from_responsecaplarge(self):
         response = mock.NonCallableMagicMock(spec=requests.Response)
         response.headers = {
@@ -189,3 +235,17 @@ class TestMultipartDecoder(unittest.TestCase):
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
 
+        cnt.seek(0)
+        response.raw = cnt
+        decoder_2 = MultipartStreamDecoder.from_response(response)
+        parts = []
+        for part in decoder_2:
+            part.content
+            parts.append(part)
+        assert decoder_2.content_type == response.headers['content-type']
+        assert (
+            parts[0].content == b'Body 1, Line 1\r\nBody 1, Line 2'
+        )
+        assert parts[0].headers[b'Header-1'] == b'Header-Value-1'
+        assert len(parts[1].headers) == 0
+        assert parts[1].content == b'Body 2, Line 1'
