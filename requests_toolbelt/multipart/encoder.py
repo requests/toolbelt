@@ -190,7 +190,7 @@ class MultipartEncoder(object):
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
-            if not part.bytes_left_to_write():
+            if part and not part.bytes_left_to_write():
                 written += self._write(b'\r\n')
                 written += self._write_boundary()
                 part = self._next_part()
