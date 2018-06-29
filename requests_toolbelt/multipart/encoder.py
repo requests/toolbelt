@@ -339,7 +339,7 @@ class MultipartEncoderMonitor(object):
                                        MultipartEncoderMonitor)
         import requests
 
-        def callback(encoder, bytes_read):
+        def callback(encoder):
             # Do something with this information
             pass
 
@@ -357,7 +357,7 @@ class MultipartEncoderMonitor(object):
         from requests_toolbelt import MultipartEncoderMonitor
         import requests
 
-        def callback(encoder, bytes_read):
+        def callback(encoder):
             # Do something with this information
             pass
 
