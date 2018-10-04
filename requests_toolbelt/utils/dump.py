@@ -3,8 +3,7 @@ import collections
 
 from requests import compat
 
-
-__all__ = ('dump_response', 'dump_all')
+__all__ = ('dump_response', 'dump_all', 'Sanitizer', 'HeaderSanitizer')
 
 HTTP_VERSIONS = {
     9: b'0.9',
@@ -12,8 +11,106 @@ HTTP_VERSIONS = {
     11: b'1.1',
 }
 
+#: List of sensitive headers copied from
+#: https://github.com/google/har-sanitizer
+SENSITIVE_HEADERS = {
+    "state",
+    "shdf",
+    "usg",
+    "password",
+    "email",
+    "code",
+    "code_verifier",
+    "client_secret",
+    "client_id",
+    "token",
+    "access_token",
+    "authenticity_token",
+    "id_token",
+    "appid",
+    "challenge",
+    "facetid",
+    "assertion",
+    "fcparams",
+    "serverdata",
+    "authorization",
+    "auth",
+    "x-client-data",
+    "samlrequest",
+    "samlresponse"
+}
+
 _PrefixSettings = collections.namedtuple('PrefixSettings',
                                          ['request', 'response'])
+
+
+class Sanitizer(object):
+    """Performs no sanitation"""
+
+    def request_header(self, name, value):
+        """Sanitize a request header
+
+        :param name: The header name
+        :type name: `compat.basestring`
+        :param value: The header value
+        :type value: `compat.basestring`
+        :return: The value to dump for this header
+        :rtype: `compat.basestring`
+        """
+        return value
+
+    def request_body(self, body):
+        """Sanitize a request body
+
+        :param body: The body of the request
+        :type body: `bytes`
+        :return: The value to dump for the body
+        :rtype: `bytes`
+        """
+        return body
+
+    def response_header(self, name, value):
+        """Sanitize a response header
+
+        :param name: The header name
+        :type name: `compat.basestring`
+        :param value: The header value
+        :type value: `compat.basestring`
+        :return: The value to dump for this header
+        :rtype: `compat.basestring`
+        """
+        return value
+
+    def response_body(self, body):
+        """Sanitize a request body
+
+        :param body: The body of the request
+        :type body: `bytes`
+        :return: The value to dump for the body
+        :rtype: `bytes`
+        """
+        return body
+
+
+class HeaderSanitizer(Sanitizer):
+    """Redact the values of headers considered sensitive
+
+    This will check all headers in both request and response against a list
+    of sensitive headers (see :const:`SENSITIVE_HEADERS`), and redact the
+    values to protect sensitive data.
+    """
+    def _sanitize_headers(self, name, value):
+        """Redact the values of headers considered sensitive"""
+        if name.lower() in SENSITIVE_HEADERS:
+            return "#REDACTED#"
+        return value
+
+    request_header = _sanitize_headers
+    response_header = _sanitize_headers
+
+
+NOOP_SANITIZER = Sanitizer()
+HEADER_SANITIZER = HeaderSanitizer()
 
 
 class PrefixSettings(_PrefixSettings):
@@ -54,7 +151,8 @@ def _build_request_path(url, proxy_info):
     return request_path, uri
 
 
-def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
+def _dump_request_data(request, prefixes, bytearr, proxy_info=None,
+                       sanitizer=NOOP_SANITIZER):
     if proxy_info is None:
         proxy_info = {}
 
@@ -71,12 +169,15 @@ def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
     bytearr.extend(prefix + b'Host: ' + host_header + b'\r\n')
 
     for name, value in headers.items():
+        value = sanitizer.request_header(name, value)
         bytearr.extend(prefix + _format_header(name, value))
 
     bytearr.extend(prefix + b'\r\n')
     if request.body:
         if isinstance(request.body, compat.basestring):
-            bytearr.extend(prefix + _coerce_to_bytes(request.body))
+            body = _coerce_to_bytes(request.body)
+            body = sanitizer.request_body(body)
+            bytearr.extend(prefix + body)
         else:
             # In the event that the body is a file-like object, let's not try
             # to read everything into memory.
@@ -84,7 +185,8 @@ def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
     bytearr.extend(b'\r\n')
 
 
-def _dump_response_data(response, prefixes, bytearr):
+def _dump_response_data(response, prefixes, bytearr,
+                        sanitizer=NOOP_SANITIZER):
     prefix = prefixes.response
     # Let's interact almost entirely with urllib3's response
     raw = response.raw
@@ -100,11 +202,13 @@ def _dump_response_data(response, prefixes, bytearr):
     headers = raw.headers
     for name in headers.keys():
         for value in headers.getlist(name):
+            value = sanitizer.response_header(name, value)
             bytearr.extend(prefix + _format_header(name, value))
 
     bytearr.extend(prefix + b'\r\n')
 
-    bytearr.extend(response.content)
+    body = sanitizer.response_body(response.content)
+    bytearr.extend(body)
 
 
 def _coerce_to_bytes(data):
@@ -115,11 +219,16 @@ def _coerce_to_bytes(data):
 
 
 def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
-                  data_array=None):
+                  data_array=None, sanitizer=NOOP_SANITIZER):
     """Dump a single request-response cycle's information.
 
     This will take a response object and dump only the data that requests can
     see for that single request-response cycle.
+
+    If the optional `sanitize` parameter is used, it should be an object that
+    implements the same interface as :class:`Sanitizer`. One possible
+    implementation is :class:`HeaderSanitizer`, which will redact sensitive
+    headers.
 
     Example::
 
@@ -142,6 +251,9 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
     :param data_array: (*optional*)
         Bytearray to which we append the request-response cycle data
     :type data_array: :class:`bytearray`
+    :param sanitizer: (*optional*)
+        How to sanitize the dump.
+    :type sanitizer: :class:`Sanitizer`
     :returns: Formatted bytes of request and response information.
     :rtype: :class:`bytearray`
     """
@@ -153,17 +265,23 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
 
     proxy_info = _get_proxy_information(response)
     _dump_request_data(response.request, prefixes, data,
-                       proxy_info=proxy_info)
-    _dump_response_data(response, prefixes, data)
+                       proxy_info=proxy_info, sanitizer=sanitizer)
+    _dump_response_data(response, prefixes, data, sanitizer=sanitizer)
     return data
 
 
-def dump_all(response, request_prefix=b'< ', response_prefix=b'> '):
+def dump_all(response, request_prefix=b'< ', response_prefix=b'> ',
+             sanitizer=NOOP_SANITIZER):
     """Dump all requests and responses including redirects.
 
     This takes the response returned by requests and will dump all
     request-response pairs in the redirect history in order followed by the
     final request-response.
+
+    If the optional `sanitize` parameter is used, it should be an object that
+    implements the same interface as :class:`Sanitizer`. One possible
+    implementation is :class:`HeaderSanitizer`, which will redact sensitive
+    headers.
 
     Example::
 
@@ -183,6 +301,9 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> '):
     :param response_prefix: (*optional*)
         Bytes to prefix each line of the response data
     :type response_prefix: :class:`bytes`
+    :param sanitizer: (*optional*)
+        How to sanitize the dump.
+    :type sanitizer: :class:`Sanitizer`
     :returns: Formatted bytes of request and response information.
     :rtype: :class:`bytearray`
     """
@@ -192,6 +313,7 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> '):
     history.append(response)
 
     for response in history:
-        dump_response(response, request_prefix, response_prefix, data)
+        dump_response(response, request_prefix, response_prefix, data,
+                      sanitizer=sanitizer)
 
     return data

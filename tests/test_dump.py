@@ -18,6 +18,13 @@ import requests
 
 from . import get_betamax
 
+# A semi-random selection of "normal" headers not touched by sanitizing
+NORMAL_HEADERS = (
+    "Accept", "Accept-Encoding", "Host", "User-Agent", "Accept-Ranges",
+    "Cache-Control", "Content-Encoding", "Content-Length", "Content-Type",
+    "Date", "Etag", "Expires", "Last-Modified", "Server", "Vary", "X-Cache"
+)
+
 HTTP_1_1 = 11
 HTTP_1_0 = 10
 HTTP_0_9 = 9
@@ -75,6 +82,22 @@ class TestSimplePrivateFunctions(object):
             }
         )
         assert path == b'https://example.com/test'
+
+
+class TestHeaderSanitizer(object):
+    @pytest.fixture
+    def sanitizer(self):
+        return dump.HeaderSanitizer()
+
+    @pytest.mark.parametrize("header", dump.SENSITIVE_HEADERS)
+    def test_redacts_sensitive_headers(self, sanitizer, header):
+        assert sanitizer.request_header(header, header) == "#REDACTED#"
+        assert sanitizer.response_header(header, header) == "#REDACTED#"
+
+    @pytest.mark.parametrize("header", NORMAL_HEADERS)
+    def test_ignores_normal_headers(self, sanitizer, header):
+        assert sanitizer.request_header(header, header) == header
+        assert sanitizer.response_header(header, header) == header
 
 
 class RequestResponseMixin(object):
@@ -143,6 +166,14 @@ class RequestResponseMixin(object):
         self.httpresponse.reason = reason
         self.httpresponse.status = status
         self.httpresponse.version = version
+
+
+class SensitiveBodySanitizer(dump.Sanitizer):
+    def request_body(self, body):
+        return b"#REDACTED REQUEST#"
+
+    def response_body(self, body):
+        return b"#REDACTED RESPONSE#"
 
 
 class TestResponsePrivateFunctions(RequestResponseMixin):
@@ -253,6 +284,41 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
         assert b'request:CONNECT fake-request-path HTTP/1.1\r\n' in array
         assert b'request:Host: example.com\r\n' in array
 
+    def test_dump_request_with_sensitive_headers(self):
+        self.configure_request(
+            url='http://example.com/',
+            method='GET',
+            headers={"password": "foobar"}
+        )
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_request_data(
+            request=self.request,
+            prefixes=prefixes,
+            bytearr=array,
+            sanitizer=dump.HEADER_SANITIZER,
+        )
+
+        assert b'request:password: #REDACTED#\r\n' in array
+        assert b'foobar' not in array
+
+    def test_dump_request_with_sensitive_body(self):
+        self.configure_request(
+            url='http://example.com/',
+            method='GET',
+            body=b'my request body',
+        )
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_request_data(
+            request=self.request,
+            prefixes=prefixes,
+            bytearr=array,
+            sanitizer=SensitiveBodySanitizer(),
+        )
+
+        assert b'request:#REDACTED REQUEST#\r\n' in array
+
     def test_dump_response_data(self):
         """Build up the response data into a bytearray."""
         self.configure_response(
@@ -326,6 +392,55 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
 
         assert b'response:HTTP/? 201 OK\r\n' in array
         assert b'response:Content-Type: application/json\r\n' in array
+
+    def test_dump_response_with_sensitive_headers(self):
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+            reason=b'OK',
+        )
+        self.configure_httpresponse(
+            headers={'SamlResponse': 'fancy_footwork'},
+            reason=b'OK',
+            status=201,
+            version=HTTP_UNKNOWN,
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+            sanitizer=dump.HEADER_SANITIZER,
+        )
+
+        assert b'response:SamlResponse: #REDACTED#\r\n' in array
+        assert b'fancy_footwork' not in array
+
+    def test_dump_response_with_sensitive_body(self):
+        self.configure_response(
+            url='https://example.com/redirected',
+            content=b'foobarbogus',
+            reason=b'OK',
+        )
+        self.configure_httpresponse(
+            headers={'SamlResponse': 'fancy_footwork'},
+            reason=b'OK',
+            status=201,
+            version=HTTP_UNKNOWN,
+        )
+
+        array = bytearray()
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+            sanitizer=SensitiveBodySanitizer(),
+        )
+
+        assert b'response:\r\n#REDACTED RESPONSE#' in array
 
 
 class TestResponsePublicFunctions(RequestResponseMixin):

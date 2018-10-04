@@ -47,3 +47,5 @@ Patches and Suggestions
 - Yorgos Pagles <yorgos@pagles.org>
 
 - Thomas Hauk <thauk@copperleaf.com>
+
+- Morten Lied Johansen <mortenjo@ifi.uio.no>
