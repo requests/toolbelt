@@ -47,3 +47,6 @@ Patches and Suggestions
 - Yorgos Pagles <yorgos@pagles.org>
 
 - Thomas Hauk <thauk@copperleaf.com>
+
+- Achim Herwig <python@wodca.de>
+

@@ -8,7 +8,6 @@ urllib3 without providing a shim.
     This module is private. If you use it, and something breaks, you were
     warned
 """
-from collections import Mapping, MutableMapping
 import sys
 
 import requests
@@ -53,9 +52,11 @@ else:
 PY3 = sys.version_info > (3, 0)
 
 if PY3:
+    from collections.abc import Mapping, MutableMapping
     import queue
     from urllib.parse import urlencode, urljoin
 else:
+    from collections import Mapping, MutableMapping
     import Queue as queue
     from urllib import urlencode
     from urlparse import urljoin
