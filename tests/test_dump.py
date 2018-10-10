@@ -296,7 +296,7 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             request=self.request,
             prefixes=prefixes,
             bytearr=array,
-            sanitizer=dump.HEADER_SANITIZER,
+            sanitizer=dump.HeaderSanitizer(),
         )
 
         assert b'request:password: #REDACTED#\r\n' in array
@@ -412,7 +412,7 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             response=self.response,
             prefixes=prefixes,
             bytearr=array,
-            sanitizer=dump.HEADER_SANITIZER,
+            sanitizer=dump.HeaderSanitizer(),
         )
 
         assert b'response:SamlResponse: #REDACTED#\r\n' in array

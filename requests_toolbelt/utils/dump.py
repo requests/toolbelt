@@ -51,11 +51,11 @@ class Sanitizer(object):
         """Sanitize a request header
 
         :param name: The header name
-        :type name: `compat.basestring`
+        :type name: :class:`requests.compat.basestring`
         :param value: The header value
-        :type value: `compat.basestring`
+        :type value: :class:`requests.compat.basestring`
         :return: The value to dump for this header
-        :rtype: `compat.basestring`
+        :rtype: :class:`requests.compat.basestring`
         """
         return value
 
@@ -73,11 +73,11 @@ class Sanitizer(object):
         """Sanitize a response header
 
         :param name: The header name
-        :type name: `compat.basestring`
+        :type name: :class:`requests.compat.basestring`
         :param value: The header value
-        :type value: `compat.basestring`
+        :type value: :class:`requests.compat.basestring`
         :return: The value to dump for this header
-        :rtype: `compat.basestring`
+        :rtype: :class:`requests.compat.basestring`
         """
         return value
 
@@ -107,10 +107,6 @@ class HeaderSanitizer(Sanitizer):
 
     request_header = _sanitize_headers
     response_header = _sanitize_headers
-
-
-NOOP_SANITIZER = Sanitizer()
-HEADER_SANITIZER = HeaderSanitizer()
 
 
 class PrefixSettings(_PrefixSettings):
@@ -152,9 +148,11 @@ def _build_request_path(url, proxy_info):
 
 
 def _dump_request_data(request, prefixes, bytearr, proxy_info=None,
-                       sanitizer=NOOP_SANITIZER):
+                       sanitizer=None):
     if proxy_info is None:
         proxy_info = {}
+    if sanitizer is None:
+        sanitizer = Sanitizer()
 
     prefix = prefixes.request
     method = _coerce_to_bytes(proxy_info.pop('method', request.method))
@@ -185,8 +183,10 @@ def _dump_request_data(request, prefixes, bytearr, proxy_info=None,
     bytearr.extend(b'\r\n')
 
 
-def _dump_response_data(response, prefixes, bytearr,
-                        sanitizer=NOOP_SANITIZER):
+def _dump_response_data(response, prefixes, bytearr, sanitizer=None):
+    if sanitizer is None:
+        sanitizer = Sanitizer()
+
     prefix = prefixes.response
     # Let's interact almost entirely with urllib3's response
     raw = response.raw
@@ -219,13 +219,13 @@ def _coerce_to_bytes(data):
 
 
 def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
-                  data_array=None, sanitizer=NOOP_SANITIZER):
+                  data_array=None, sanitizer=None):
     """Dump a single request-response cycle's information.
 
     This will take a response object and dump only the data that requests can
     see for that single request-response cycle.
 
-    If the optional `sanitize` parameter is used, it should be an object that
+    If the optional ``sanitize`` parameter is used, it should be an object that
     implements the same interface as :class:`Sanitizer`. One possible
     implementation is :class:`HeaderSanitizer`, which will redact sensitive
     headers.
@@ -259,6 +259,8 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
     """
     data = data_array if data_array is not None else bytearray()
     prefixes = PrefixSettings(request_prefix, response_prefix)
+    if sanitizer is None:
+        sanitizer = Sanitizer()
 
     if not hasattr(response, 'request'):
         raise ValueError('Response has no associated request')
@@ -266,19 +268,19 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
     proxy_info = _get_proxy_information(response)
     _dump_request_data(response.request, prefixes, data,
                        proxy_info=proxy_info, sanitizer=sanitizer)
-    _dump_response_data(response, prefixes, data, sanitizer=sanitizer)
+    _dump_response_data(response, prefixes, data, sanitizer)
     return data
 
 
 def dump_all(response, request_prefix=b'< ', response_prefix=b'> ',
-             sanitizer=NOOP_SANITIZER):
+             sanitizer=None):
     """Dump all requests and responses including redirects.
 
     This takes the response returned by requests and will dump all
     request-response pairs in the redirect history in order followed by the
     final request-response.
 
-    If the optional `sanitize` parameter is used, it should be an object that
+    If the optional ``sanitize`` parameter is used, it should be an object that
     implements the same interface as :class:`Sanitizer`. One possible
     implementation is :class:`HeaderSanitizer`, which will redact sensitive
     headers.
@@ -307,6 +309,9 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> ',
     :returns: Formatted bytes of request and response information.
     :rtype: :class:`bytearray`
     """
+    if sanitizer is None:
+        sanitizer = Sanitizer()
+
     data = bytearray()
 
     history = list(response.history[:])
@@ -314,6 +319,6 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> ',
 
     for response in history:
         dump_response(response, request_prefix, response_prefix, data,
-                      sanitizer=sanitizer)
+                      sanitizer)
 
     return data
