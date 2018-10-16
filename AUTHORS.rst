@@ -48,4 +48,6 @@ Patches and Suggestions
 
 - Thomas Hauk <thauk@copperleaf.com>
 
+- Achim Herwig <python@wodca.de>
+
 - Morten Lied Johansen <mortenjo@ifi.uio.no>
