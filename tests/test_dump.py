@@ -89,15 +89,19 @@ class TestHeaderSanitizer(object):
     def sanitizer(self):
         return dump.HeaderSanitizer()
 
-    @pytest.mark.parametrize("header", dump.SENSITIVE_HEADERS)
-    def test_redacts_sensitive_headers(self, sanitizer, header):
-        assert sanitizer.request_header(header, header) == "#REDACTED#"
-        assert sanitizer.response_header(header, header) == "#REDACTED#"
+    def test_redacts_sensitive_headers(self, sanitizer):
+        headers = requests.utils.CaseInsensitiveDict()
+        for name in dump.SENSITIVE_HEADERS:
+            headers[name] = "sensitive"
+        for name in NORMAL_HEADERS:
+            headers[name] = "normal"
 
-    @pytest.mark.parametrize("header", NORMAL_HEADERS)
-    def test_ignores_normal_headers(self, sanitizer, header):
-        assert sanitizer.request_header(header, header) == header
-        assert sanitizer.response_header(header, header) == header
+        sanitized_headers = sanitizer.request_headers(headers)
+
+        for name in dump.SENSITIVE_HEADERS:
+            assert sanitized_headers[name] == dump.Sanitizer.REDACTED_VALUE
+        for name in NORMAL_HEADERS:
+            assert sanitized_headers[name] == "normal"
 
 
 class RequestResponseMixin(object):
@@ -168,7 +172,7 @@ class RequestResponseMixin(object):
         self.httpresponse.version = version
 
 
-class SensitiveBodySanitizer(dump.Sanitizer):
+class SensitiveBodySanitizer(dump.NoopSanitizer):
     def request_body(self, body):
         return b"#REDACTED REQUEST#"
 
