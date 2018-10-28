@@ -4,6 +4,7 @@
    It requires a version of requests >= 2.4.0.
 """
 
+import requests
 from requests.adapters import HTTPAdapter
 
 
@@ -46,6 +47,7 @@ class SSLContextAdapter(HTTPAdapter):
         super(SSLContextAdapter, self).__setstate__(state)
 
     def init_poolmanager(self, *args, **kwargs):
-        if 'ssl_context' not in kwargs:
-            kwargs['ssl_context'] = self.ssl_context
+        if requests.__build__ >= 0x020400:
+            if 'ssl_context' not in kwargs:
+                kwargs['ssl_context'] = self.ssl_context
         super(SSLContextAdapter, self).init_poolmanager(*args, **kwargs)
