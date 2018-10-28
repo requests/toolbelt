@@ -21,6 +21,8 @@ with requests. The transport adapters are all kept in
 
 - :class:`requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`
 
+- :class:`requests_toolbelt.adapters.ssl_context.SSLContextAdapter`
+
 AppEngineAdapter
 ----------------
 
@@ -243,3 +245,19 @@ specifically for that domain, instead of adding it to every ``https://`` and
 
 .. autoclass:: requests_toolbelt.adapters.socket_options.TCPKeepAliveAdapter
 
+SSLContextAdapter
+-----------------
+
+.. note::
+
+    This adapter will only work with requests 2.4.0 or newer. The ability to
+    pass arbitrary ssl contexts does not exist prior to requests 2.4.0.
+
+The ``SSLContextAdapter`` allows the user to pass an arbitrary SSLContext
+object from Python's ``ssl`` library that will be used for all connections
+made through it.
+
+While not suitable for general-purpose usage, this allows more control over
+the SSL-related behaviour of ``requests``.
+
+.. autoclass:: requests_toolbelt.adapters.ssl_context.SSLContextAdapter
