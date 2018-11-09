@@ -50,3 +50,5 @@ Patches and Suggestions
 
 - Achim Herwig <python@wodca.de>
 
+- Nikos Graser <nikos.graser@gmail.com>
+
