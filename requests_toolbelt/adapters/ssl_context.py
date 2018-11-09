@@ -35,7 +35,9 @@ class SSLContextAdapter(HTTPAdapter):
         from requests_toolbelt.adapters.ssl_context import SSLContextAdapter
 
         s = Session()
-        s.mount('https://', SSLContextAdapter(ssl_context=create_default_context()))
+        s.mount(
+            'https://', SSLContextAdapter(ssl_context=create_default_context())
+        )
     """
 
     def __init__(self, **kwargs):
