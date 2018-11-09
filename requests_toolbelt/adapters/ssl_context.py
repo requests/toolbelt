@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-"""This file contains an implementation of the SSLContextAdapter.
+"""
+requests_toolbelt.ssl_context_adapter
+=====================================
 
-   It requires a version of requests >= 2.4.0.
+This file contains an implementation of the SSLContextAdapter.
+
+It requires a version of requests >= 2.4.0.
 """
 
 import requests
@@ -9,28 +13,29 @@ from requests.adapters import HTTPAdapter
 
 
 class SSLContextAdapter(HTTPAdapter):
-    """An adapter that lets the user inject a custom SSL context for all
-       requests made through it.
+    """
+    An adapter that lets the user inject a custom SSL context for all
+    requests made through it.
 
-       The SSL context will simply be passed through to urllib3, which
-       causes it to skip creation of its own context.
+    The SSL context will simply be passed through to urllib3, which
+    causes it to skip creation of its own context.
 
-       Note that the SSLContext is not persisted when pickling - this is on
-       purpose.
-       So, after unpickling the SSLContextAdapter will behave like an
-       HTTPAdapter until a new SSLContext is set.
+    Note that the SSLContext is not persisted when pickling - this is on
+    purpose.
+    So, after unpickling the SSLContextAdapter will behave like an
+    HTTPAdapter until a new SSLContext is set.
 
-       Example usage:
+    Example usage:
 
-       .. code-block:: python
+    .. code-block:: python
 
-           import requests
-           from ssl import create_default_context
-           from requests import Session
-           from requests_toolbelt.adapters.ssl_context import SSLContextAdapter
+        import requests
+        from ssl import create_default_context
+        from requests import Session
+        from requests_toolbelt.adapters.ssl_context import SSLContextAdapter
 
-           s = Session()
-           s.mount('https://', SSLContextAdapter(ssl_context=create_default_context()))
+        s = Session()
+        s.mount('https://', SSLContextAdapter(ssl_context=create_default_context()))
     """
 
     def __init__(self, **kwargs):

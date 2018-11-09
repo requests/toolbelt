@@ -15,6 +15,9 @@ from requests_toolbelt.adapters.ssl_context import SSLContextAdapter
                     reason="Test case for newer requests versions.")
 @mock.patch.object(HTTPAdapter, 'init_poolmanager')
 def test_ssl_context_arg_is_passed_on_newer_requests(init_poolmanager):
+    """Verify that the SSLContext option is passed for a new enough
+    version of requests
+    """
     ssl_context = SSLContext(PROTOCOL_TLSv1)
     SSLContextAdapter(
         pool_connections=10,
@@ -32,6 +35,9 @@ def test_ssl_context_arg_is_passed_on_newer_requests(init_poolmanager):
                     reason="Test case for older requests versions.")
 @mock.patch.object(HTTPAdapter, 'init_poolmanager')
 def test_ssl_context_arg_is_not_passed_on_older_requests(init_poolmanager):
+    """Verify that the SSLContext option is not passed for older
+    versions of requests
+    """
     ssl_context = SSLContext(PROTOCOL_TLSv1)
     SSLContextAdapter(
         pool_connections=10,
@@ -46,6 +52,9 @@ def test_ssl_context_arg_is_not_passed_on_older_requests(init_poolmanager):
 
 
 def test_adapter_has_ssl_context_attr():
+    """Verify that a newly created SSLContextAdapter has its
+    special attribute
+    """
     ssl_context = SSLContext(PROTOCOL_TLSv1)
     adapter = SSLContextAdapter(ssl_context=ssl_context)
 
@@ -53,6 +62,9 @@ def test_adapter_has_ssl_context_attr():
 
 
 def test_adapter_loses_ssl_context_after_pickling():
+    """Verify that the ssl_context attribute isn't preserved
+    through pickling
+    """
     ssl_context = SSLContext(PROTOCOL_TLSv1)
     adapter = SSLContextAdapter(ssl_context=ssl_context)
     adapter = pickle.loads(pickle.dumps(adapter))
