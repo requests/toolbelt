@@ -55,8 +55,9 @@ class Pkcs12Adapter(HTTPAdapter):
     Usage::
 
       >>> import requests
+      >>> from requests_toolbelt.adapters import Pkcs12Adapter
       >>> s = requests.Session()
-      >>> a = requests.adapters.Pkcs12Adapter(max_retries=3,
+      >>> a = Pkcs12Adapter(max_retries=3,
                 pkcs12_filename='...', pkcs_password='...')
       >>> s.mount('https://', a)
     """
