@@ -50,4 +50,4 @@ Patches and Suggestions
 
 - Achim Herwig <python@wodca.de>
 
-- Ryan ashley <rashley-iqt>
+- Ryan Ashley <rashley-iqt>
