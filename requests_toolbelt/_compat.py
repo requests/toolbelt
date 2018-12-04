@@ -53,7 +53,8 @@ if requests.__build__ < 0x021200:
     PyOpenSSLContext = None
 else:
     try:
-        from requests.packages.urllib3.contrib.pyopenssl import PyOpenSSLContext
+        from requests.packages.urllib3.contrib.pyopenssl \
+                import PyOpenSSLContext
     except ImportError:
         from urllib3.contrib.pyopenssl import PyOpenSSLContext
 

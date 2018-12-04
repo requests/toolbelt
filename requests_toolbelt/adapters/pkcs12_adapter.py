@@ -10,6 +10,7 @@ without needing to decrypt it to a .pem file
 from OpenSSL.crypto import load_pkcs12
 from datetime import datetime
 from requests.adapters import HTTPAdapter
+import requests
 
 from .._compat import PyOpenSSLContext
 from .. import exceptions as exc
