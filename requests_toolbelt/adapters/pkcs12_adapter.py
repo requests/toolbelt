@@ -6,12 +6,14 @@ allow users to authenticate a request using a .p12/.pfx certificate
 without needing to decrypt it to a .pem file
 
 """
-from __future__ import division, print_function, unicode_literals
 
 from OpenSSL.crypto import load_pkcs12
 from datetime import datetime
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.contrib.pyopenssl import PyOpenSSLContext
+
+from .._compat import PyOpenSSLContext
+from .. import exceptions as exc
+
 try:
     from _ssl import PROTOCOL_TLS as PROTOCOL
 except ImportError:
@@ -63,6 +65,7 @@ class Pkcs12Adapter(HTTPAdapter):
     """
 
     def __init__(self, *args, **kwargs):
+        self._check_version()
         _pkcs12_data = None
         _pkcs12_password_bytes = None
         pkcs12_data = kwargs.pop('pkcs12_data', None)
@@ -102,6 +105,15 @@ class Pkcs12Adapter(HTTPAdapter):
         if self.ssl_context:
             kwargs['ssl_context'] = self.ssl_context
         return super(Pkcs12Adapter, self).proxy_manager_for(*args, **kwargs)
+
+    def _check_version(self):
+        if PyOpenSSLContext is None:
+            raise exc.VersionMismatchError(
+                "The Pkcs12Adapter requires at least Requests 2.12.0 to be "
+                "installed. Version {0} was found instead.".format(
+                    requests.__version__
+                )
+            )
 
 
 def check_cert_not_after(cert):

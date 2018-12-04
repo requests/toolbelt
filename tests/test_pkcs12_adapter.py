@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 import requests
 import unittest
+import pytest
 
 from requests_toolbelt.adapters import Pkcs12Adapter
 from . import get_betamax
 
+REQUESTS_SUPPORTS_SSL_CONTEXT = requests.__build__ >= 0x021200
+
+@pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
+                    reason="Requires Requests v2.12.0 or later")
 class TestPkcs12Adapter(unittest.TestCase):
     """Tests a simple requests.get() call using a .p12 cert.
     """
