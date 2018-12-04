@@ -13,9 +13,9 @@ from datetime import datetime
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.contrib.pyopenssl import PyOpenSSLContext
 try:
-    from ssl import PROTOCOL_TLS as PROTOCOL
+    from _ssl import PROTOCOL_TLS as PROTOCOL
 except ImportError:
-    from ssl import PROTOCOL_SSLv23 as PROTOCOL
+    from _ssl import PROTOCOL_SSLv23 as PROTOCOL
 
 
 class Pkcs12Adapter(HTTPAdapter):
