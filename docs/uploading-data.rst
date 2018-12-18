@@ -109,7 +109,7 @@ If you have a very simple use case you can also do:
 .. autoclass:: requests_toolbelt.multipart.encoder.MultipartEncoderMonitor
 
 .. _an example using clint:
-    https://gitlab.com/sigmavirus24/toolbelt/blob/master/examples/monitor/progress_bar.py
+    https://github.com/requests/toolbelt/blob/master/examples/monitor/progress_bar.py
 
 Streaming Data from a Generator
 -------------------------------
