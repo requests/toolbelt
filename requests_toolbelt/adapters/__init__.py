@@ -11,6 +11,6 @@ See http://toolbelt.rtfd.org/ for documentation
 
 from .ssl import SSLAdapter
 from .source import SourceAddressAdapter
-from .pkcs12_adapter import Pkcs12Adapter
+from .x509_adapter import X509Adapter
 
-__all__ = ['SSLAdapter', 'SourceAddressAdapter', 'Pkcs12Adapter']
+__all__ = ['SSLAdapter', 'SourceAddressAdapter', 'X509Adapter']

@@ -9,7 +9,7 @@ See http://toolbelt.rtfd.org/ for documentation
 :license: Apache v2.0, see LICENSE for more details
 """
 
-from .adapters import SSLAdapter, SourceAddressAdapter, Pkcs12Adapter
+from .adapters import SSLAdapter, SourceAddressAdapter, X509Adapter
 from .auth.guess import GuessAuth
 from .multipart import (
     MultipartEncoder, MultipartEncoderMonitor, MultipartDecoder,
@@ -28,7 +28,7 @@ __version_info__ = tuple(int(i) for i in __version__.split('.'))
 __all__ = [
     'GuessAuth', 'MultipartEncoder', 'MultipartEncoderMonitor',
     'MultipartDecoder', 'SSLAdapter', 'SourceAddressAdapter',
-    'Pkcs12Adapter', 'StreamingIterator', 'user_agent',
+    'X509Adapter', 'StreamingIterator', 'user_agent',
     'ImproperBodyPartContentException',
     'NonMultipartContentTypeException', '__title__', '__authors__',
     '__license__', '__copyright__', '__version__', '__version_info__',
