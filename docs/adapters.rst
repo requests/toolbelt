@@ -262,7 +262,8 @@ Example usage:
       from requests_toolbelt.adapters import X509Adapter
       s = requests.Session()
       a = X509Adapter(max_retries=3,
-                      cert_byes='...', pk_bytes='...', encoding='...'
+                      cert_bytes=b'...', pk_bytes=b'...', encoding='...'
+    )
       s.mount('https://', a)
 
 .. autoclass:: requests_toolbelt.adapters.x509_adapter.X509Adapter
