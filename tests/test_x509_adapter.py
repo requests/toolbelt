@@ -57,11 +57,11 @@ class TestX509Adapter(unittest.TestCase):
         recorder = get_betamax(self.session)
         with recorder.use_cassette('test_x509_adapter_der'):
             r = self.session.get('https://pkiprojecttest01.dev.labs.internal/', verify=False)
-            
+
         assert r.status_code == 200
         assert r.text
 
     @pytest.mark.skipif(REQUESTS_SUPPORTS_SSL_CONTEXT, reason="Will not raise exc")
-    def test_requires_new_enough_requests():
+    def test_requires_new_enough_requests(self):
         with pytest.raises(exc.VersionMismatchError):
             X509Adapter()      
