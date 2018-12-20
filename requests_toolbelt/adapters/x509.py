@@ -49,29 +49,33 @@ class X509Adapter(HTTPAdapter):
     :param pool_block: Whether the connection pool should block for
             connections.
 
-    :param bytes cert_bytes:
-        bytes object containing contents of a cryptography.x509Certificate
-        object using the encoding specified by the ``encoding`` parameter.
-    :param bytes pk_bytes:
-        bytes object containing contents of a object that implements
-        ``cryptography.hazmat.primitives.serialization.PrivateFormat``
-        using the encoding specified by the ``encoding`` parameter.
-    :param password:
-        string or utf8 encoded bytes containing the passphrase used for the
-        private key. None if unencrypted. Defaults to None.
-    :param encoding:
-        Enumeration detailing the encoding method used on the ``cert_bytes``
-        parameter. Can be either PEM or DER. Defaults to PEM.
-    :type encoding:
-        :class: `cryptography.hazmat.primitives.serialization.Encoding`
+    :param \**kwargs:
+        see below
+
+    :Keyword Arguments:
+        * *cert_bytes* (``bytes``) -- bytes object containing contents of a
+            cryptography.x509Certificate object using the encoding specified by
+            the ``encoding`` parameter.
+        * *pk_bytes* (``bytes``) -- bytes object containing contents of a
+            object that implements
+            ``cryptography.hazmat.primitives.serialization.PrivateFormat``
+            using the encoding specified by the ``encoding`` parameter.
+        * *password* (``string`` or ``bytes``) -- string or utf8 encoded
+            bytes containing the passphrase used for the private key.
+            None if unencrypted. Defaults to None.
+        * *encoding*
+            (``cryptography.hazmat.primitives.serialization.Encoding``)
+            -- Enumeration detailing the encoding method used on
+            the ``cert_bytes`` parameter. Can be either PEM or DER.
+            Defaults to PEM.
 
     Usage::
 
       >>> import requests
-      >>> from requests_toolbelt.adapters.x509 import X509Adapter
+      >>> from requests_toolbelt.adapters import X509Adapter
       >>> s = requests.Session()
       >>> a = X509Adapter(max_retries=3,
-                cert_bytes=b'...', pk_bytes=b'...', encoding='...'
+                cert_byes='...', pk_bytes='...', encoding='...'
       >>> s.mount('https://', a)
     """
 
@@ -126,8 +130,10 @@ class X509Adapter(HTTPAdapter):
 def check_cert_dates(cert):
     """Verify that the supplied client cert is not invalid."""
 
-    now = datetime.datetime.utcnow()
-    if cert.not_valid_after < now or cert.not_valid_before > now:
+    if (
+        cert.not_valid_after < datetime.utcnow() or
+        cert.not_valid_before > datetime.utcnow()
+       ):
         raise ValueError('Client certificate expired: Not After: '
                          '{0:%Y-%m-%d %H:%M:%SZ} '
                          'Not Before: {1:%Y-%m-%d %H:%M:%SZ}'

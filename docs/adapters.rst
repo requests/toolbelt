@@ -21,7 +21,7 @@ with requests. The transport adapters are all kept in
 
 - :class:`requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`
 
-- :class:`requests_toolbelt.adapters.x509_adapter.X509Adapter`
+- :class:`requests_toolbelt.adapters.x509.X509Adapter`
 
 AppEngineAdapter
 ----------------
@@ -246,24 +246,24 @@ specifically for that domain, instead of adding it to every ``https://`` and
 .. autoclass:: requests_toolbelt.adapters.socket_options.TCPKeepAliveAdapter
 
 X509Adapter
---------------------
+-----------
 
 Requests supports SSL Verification using a certificate in .pem format by default. 
 In some cases it is necessary to pass a full cert chain as part of a request or it
 is deemed too great a risk to decrypt the certificate into a .pem file.  
 
 For such use cases we have created
-:class:`~requests_toolbelt.adapters.x509_adapter.X509Adapter`.
+:class:`~requests_toolbelt.adapters.x509.X509Adapter`.
 Example usage:
 
 .. code-block:: python
 
       import requests
-      from requests_toolbelt.adapters import X509Adapter
+      from requests_toolbelt.adapters.x509 import X509Adapter
       s = requests.Session()
       a = X509Adapter(max_retries=3,
-                      cert_byes='...', pk_bytes='...', encoding='...'
+                      cert_bytes=b'...', pk_bytes=b'...', encoding='...'
       s.mount('https://', a)
 
-.. autoclass:: requests_toolbelt.adapters.x509_adapter.X509Adapter
+.. autoclass:: requests_toolbelt.adapters.x509.X509Adapter
 
