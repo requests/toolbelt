@@ -246,7 +246,7 @@ specifically for that domain, instead of adding it to every ``https://`` and
 .. autoclass:: requests_toolbelt.adapters.socket_options.TCPKeepAliveAdapter
 
 X509Adapter
---------------------
+-----------
 
 Requests supports SSL Verification using a certificate in .pem format by default. 
 In some cases it is necessary to pass a full cert chain as part of a request or it
