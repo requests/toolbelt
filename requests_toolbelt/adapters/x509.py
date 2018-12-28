@@ -21,6 +21,11 @@ import requests
 from .._compat import PyOpenSSLContext
 from .. import exceptions as exc
 
+"""
+importing the protocol constants from _ssl instead of ssl because only the
+constants are needed and to handle issues caused by importing from ssl on
+the 2.7.x line.
+"""
 try:
     from _ssl import PROTOCOL_TLS as PROTOCOL
 except ImportError:
