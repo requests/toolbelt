@@ -131,7 +131,7 @@ class X509Adapter(HTTPAdapter):
 def check_cert_dates(cert):
     """Verify that the supplied client cert is not invalid."""
 
-    now = datetime.datetime.utcnow()
+    now = datetime.utcnow()
     if cert.not_valid_after < now or cert.not_valid_before > now:
         raise ValueError('Client certificate expired: Not After: '
                          '{0:%Y-%m-%d %H:%M:%SZ} '
