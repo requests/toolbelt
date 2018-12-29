@@ -1,3 +1,4 @@
 pytest
 mock
+pyopenssl
 git+git://github.com/sigmavirus24/betamax
