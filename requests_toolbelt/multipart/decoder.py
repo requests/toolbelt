@@ -107,11 +107,12 @@ class MultipartDecoder(object):
         self.encoding = encoding
         #: Parsed parts of the multipart response body
         self.parts = tuple()
-        self._find_boundary()
+        self.boundary = MultipartDecoder._find_boundary(content_type, encoding)
         self._parse_body(content)
 
-    def _find_boundary(self):
-        ct_info = tuple(x.strip() for x in self.content_type.split(';'))
+    @staticmethod
+    def _find_boundary(content_type, encoding):
+        ct_info = tuple(x.strip() for x in content_type.split(';'))
         mimetype = ct_info[0]
         if mimetype.split('/')[0].lower() != 'multipart':
             raise NonMultipartContentTypeException(
@@ -123,7 +124,8 @@ class MultipartDecoder(object):
                 '='
             )
             if attr.lower() == 'boundary':
-                self.boundary = encode_with(value.strip('"'), self.encoding)
+                boundary = encode_with(value.strip('"'), encoding)
+        return boundary
 
     @staticmethod
     def _fix_first_part(part, boundary_marker):
@@ -154,3 +156,209 @@ class MultipartDecoder(object):
         content = response.content
         content_type = response.headers.get('content-type', None)
         return cls(content, content_type, encoding)
+
+
+# This is thrown when the object is being reiterated from another place
+class AlreadyIteratedException(Exception):
+    pass
+
+
+# This is thrown when trying to skip to the next part without finishing to
+# stream the previous one
+class PreviousPartNotFinishedException(Exception):
+    pass
+
+
+class StreamPart(object):
+    def __init__(self, headers, encoding, iterator):
+        self.headers = headers
+        self.encoding = encoding
+        self._iterator = iterator
+        self._started = False
+        self._consumed = False
+        self._content = None
+        self._finished = False
+
+    def __iter__(self):
+        if self._started:
+            raise AlreadyIteratedException()
+        self._started = True
+        for typ, data in self._iterator():
+            if typ == 'done' and data is False:
+                self._finished = True
+                break
+            elif typ == 'stream':
+                yield data
+            else:
+                raise ImproperBodyPartContentException()
+
+    @property
+    def content(self):
+        if self._consumed:
+            return self._content
+        if self._started:
+            raise AlreadyIteratedException()
+        self._content = b''.join(self)
+        self._consumed = True
+        return self._content
+
+    @property
+    def text(self):
+        return self.content.decode(self.encoding)
+
+
+class MultipartStreamDecoder(object):
+    @classmethod
+    def from_response(cls, response, encoding='utf-8', chunk_size=10 * 1024,
+                      header_size_limit=None):
+        def content():
+            return response.raw.read(chunk_size)
+        content_type = response.headers.get('content-type', None)
+        return cls(content, content_type, encoding, header_size_limit)
+
+    def __init__(self, stream_read_func, content_type, encoding='utf-8',
+                 header_size_limit=None):
+        self.content_type = content_type
+        self.encoding = encoding
+        self._stream_read_func = stream_read_func
+        self._header_size_limit = header_size_limit
+        self._boundary = MultipartDecoder._find_boundary(content_type,
+                                                         encoding)
+        self._splitter = StreamSplitter()
+        self._boundary = b''.join((b'--', self._boundary))
+        self._boundary_split = b''.join((b'\r\n', self._boundary))
+        self._state = 0
+        self._found = False
+        self._started = False
+        self._finished = False
+
+    # Call this to drain stream when error occured, or you decide
+    # not to read all data
+    def close(self):
+        if not self._finished:
+            while True:
+                try:
+                    data = self._stream_read_func()
+                    if not data:
+                        break
+                # Protection if _stream_read_func is an generator
+                except StopIteration:
+                    break
+                finally:
+                    self._finished = True
+
+    # The instance can be used as an context manager for automatic
+    # draining the stream for re-use
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
+
+    def __iter__(self):
+        if self._started:
+            raise AlreadyIteratedException()
+        self._started = True
+        # This is for guarding against iterating before finishing to
+        # iterate on the current part.
+        _current_stream = None
+        for typ, data in self._iterator():
+            if _current_stream and not _current_stream._finished:
+                raise PreviousPartNotFinishedException()
+            if typ == 'headers':
+                _current_stream = StreamPart(
+                    data, self.encoding, self._iterator
+                )
+                yield _current_stream
+            else:
+                raise ImproperBodyPartContentException()
+
+    def _iterator(self):
+        while True:
+            data = self._stream_read_func()
+            # This persumes that if data returned empty once it won't return
+            # anything again (EOS)
+            if not self._found and not data:
+                self._finished = True
+                break
+            # This part mimics the _fix_first_part logic from above
+            if self._state == 0:
+                should_be_empty_or_crlf, self._found = self._splitter.stream(
+                    data, self._boundary, True
+                )
+                if should_be_empty_or_crlf:
+                    if should_be_empty_or_crlf != b'\r\n':
+                        raise ImproperBodyPartContentException()
+                    self._state = 1
+                    continue
+                if self._found:
+                    self._state = 1
+                    continue
+            # Parse the headers
+            elif self._state == 1:
+                headers, self._found = self._splitter.stream(data, b'\r\n\r\n',
+                                                             True)
+                if headers:
+                    headers = _header_parser(headers.lstrip(), self.encoding)
+                    headers = CaseInsensitiveDict(headers)
+                    self._state = 2
+                    yield 'headers', headers
+                    continue
+                # No headers found
+                if self._found:
+                    headers = CaseInsensitiveDict({})
+                    self._state = 2
+                    yield 'headers', headers
+                    continue
+                # This is to protect against malformed input where a header
+                # does not exist in a limit for performence reasons
+                if self._header_size_limit:
+                    if (self._splitter.leftover_length >
+                            self._header_size_limit):
+                        raise ImproperBodyPartContentException()
+            # Stream the part
+            elif self._state == 2:
+                stream, self._found = self._splitter.stream(
+                    data, self._boundary_split
+                )
+                if stream:
+                    yield 'stream', stream
+                # boundary_split found, end of part
+                if self._found:
+                    self._state = 1
+                    yield 'done', False
+                    continue
+
+
+class StreamSplitter(object):
+    def __init__(self):
+        self.leftover = b''
+
+    def stream(self, data, split_data, return_only_full=False):
+        self.leftover += data
+        index = self.leftover.find(split_data)
+        if return_only_full:
+            if index > -1:
+                ret = self.leftover[:index]
+                self.leftover = self.leftover[index + len(split_data):]
+                found = True
+            else:
+                ret = b''
+                found = False
+        else:
+            if index > -1:
+                ret = self.leftover[:index]
+                self.leftover = self.leftover[index + len(split_data):]
+                found = True
+            elif len(self.leftover) >= len(split_data):
+                ret = self.leftover[:-len(split_data)]
+                self.leftover = self.leftover[-len(split_data):]
+                found = False
+            else:
+                ret = b''
+                found = False
+        return ret, found
+
+    @property
+    def leftover_length(self):
+        return len(self.leftover)
