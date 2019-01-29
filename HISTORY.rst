@@ -1,10 +1,8 @@
 History
 =======
 
-0.8.1 -- 2019-01-28
+0.9.0 -- 2019-01-30
 -------------------
-
-More information about this release can be found on the `0.8.1 milestone`_.
 
 New Features
 ~~~~~~~~~~~~
@@ -33,9 +31,8 @@ Fixed Bugs
 
 Miscellaneous
 ~~~~~~~~~~~~~
-- Remove py33 from testing and add Python 3.6 and nightly testing to the travis matrix.
 
-.. _0.8.1 milestone:
+- Remove py33 from testing and add Python 3.6 and nightly testing to the travis matrix.
 
 0.8.0 -- 2017-05-20
 -------------------
