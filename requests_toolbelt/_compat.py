@@ -56,7 +56,10 @@ else:
         from requests.packages.urllib3.contrib.pyopenssl \
                 import PyOpenSSLContext
     except ImportError:
-        from urllib3.contrib.pyopenssl import PyOpenSSLContext
+        try:
+            from urllib3.contrib.pyopenssl import PyOpenSSLContext
+        except ImportError:
+            PyOpenSSLContext = None
 
 PY3 = sys.version_info > (3, 0)
 
