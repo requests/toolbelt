@@ -1,6 +1,42 @@
 History
 =======
 
+0.8.1 -- 2019-01-28
+-------------------
+
+More information about this release can be found on the `0.8.1 milestone`_.
+
+New Features
+~~~~~~~~~~~~
+
+- Add X509 Adapter that can handle PKCS12 
+- Add stateless solution for streaming files by MultipartEncoder from one host to another (in chunks)
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Update link to example
+-  Move import of ``ABCs`` from collections into version-specific part of _compat module
+- Fix backwards incompatibility in ``get_encodings_from_content``
+- Correct callback documentation for ``MultipartEncoderMonitor``
+- Fix bug when ``MultipartEncoder`` is asked to encode zero parts
+- Correct the type of non string request body dumps
+- Removed content from being stored in MultipartDecoder
+- Fix bug by enabling support for contenttype with capital letters. 
+- Coerce proxy URL to bytes before dumping request
+- Avoid bailing out with exception upon empty response reason
+- Corrected Pool documentation
+- Corrected parentheses match in example usage
+- Fix "oject" to "object" in ``MultipartEncoder``
+- Fix URL for the project after the move 
+- Add fix for OSX TCPKeepAliveAdapter
+
+Miscellaneous
+~~~~~~~~~~~~~
+- Remove py33 from testing and add Python 3.6 and nightly testing to the travis matrix.
+
+.. _0.8.1 milestone:
+
 0.8.0 -- 2017-05-20
 -------------------
 
