@@ -35,7 +35,7 @@ class TestX509Adapter(unittest.TestCase):
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
     @pytest.mark.skipif(not OPENSSL_AVAILABLE,
-                    reason="Requires OpenSSL to be missing to test fallback")
+                    reason="Requires OpenSSL")
     def test_x509_pem(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)
         cert_bytes = p12.get_certificate().to_cryptography().public_bytes(Encoding.PEM)
@@ -57,7 +57,7 @@ class TestX509Adapter(unittest.TestCase):
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
     @pytest.mark.skipif(not OPENSSL_AVAILABLE,
-                    reason="Requires OpenSSL to be missing to test fallback")
+                    reason="Requires OpenSSL")
     def test_x509_der(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)
         cert_bytes = p12.get_certificate().to_cryptography().public_bytes(Encoding.DER)
