@@ -10,11 +10,12 @@ except ImportError:
 else:
     OPENSSL_AVAILABLE = True
     from requests_toolbelt.adapters.x509 import X509Adapter
-
-from cryptography.hazmat.primitives.serialization import (Encoding, 
-                                                          PrivateFormat,
-                                                          NoEncryption,
-                                                          BestAvailableEncryption)
+    from cryptography.hazmat.primitives.serialization import (
+        Encoding, 
+        PrivateFormat,
+        NoEncryption,
+        BestAvailableEncryption
+    )
 
 from requests_toolbelt import exceptions as exc
 from . import get_betamax
