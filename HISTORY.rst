@@ -1,7 +1,15 @@
 History
 =======
 
-0.9.0 -- 2019-01-30
+0.9.1 -- 2019-01-29
+-------------------
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fix import of pyOpenSSL shim from urllib3 for PKCS12 adapter
+
+0.9.0 -- 2019-01-29
 -------------------
 
 New Features
@@ -14,7 +22,8 @@ Fixed Bugs
 ~~~~~~~~~~
 
 - Update link to example
--  Move import of ``ABCs`` from collections into version-specific part of _compat module
+- Move import of ``ABCs`` from collections into version-specific part of
+  _compat module
 - Fix backwards incompatibility in ``get_encodings_from_content``
 - Correct callback documentation for ``MultipartEncoderMonitor``
 - Fix bug when ``MultipartEncoder`` is asked to encode zero parts
