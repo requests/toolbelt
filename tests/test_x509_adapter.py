@@ -6,9 +6,9 @@ import pytest
 try:
     from OpenSSL.crypto import load_pkcs12
 except ImportError:
-    OPENSSL_AVAILABLE = False
+    PYOPENSSL_AVAILABLE = False
 else:
-    OPENSSL_AVAILABLE = True
+    PYOPENSSL_AVAILABLE = True
     from requests_toolbelt.adapters.x509 import X509Adapter
     from cryptography.hazmat.primitives.serialization import (
         Encoding, 
@@ -35,7 +35,7 @@ class TestX509Adapter(unittest.TestCase):
 
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
-    @pytest.mark.skipif(not OPENSSL_AVAILABLE,
+    @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,
                     reason="Requires OpenSSL")
     def test_x509_pem(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)
@@ -57,7 +57,7 @@ class TestX509Adapter(unittest.TestCase):
 
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
-    @pytest.mark.skipif(not OPENSSL_AVAILABLE,
+    @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,
                     reason="Requires OpenSSL")
     def test_x509_der(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)

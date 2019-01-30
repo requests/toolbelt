@@ -3,11 +3,11 @@ import pytest
 try:
     import OpenSSL
 except ImportError:
-    OPENSSL_AVAILABLE = False
+    PYOPENSSL_AVAILABLE = False
 else:
-    OPENSSL_AVAILABLE = True
+    PYOPENSSL_AVAILABLE = True
 
-@pytest.mark.skipif(OPENSSL_AVAILABLE,
+@pytest.mark.skipif(PYOPENSSL_AVAILABLE,
                 reason="Requires OpenSSL to be missing to test fallback")
 def test_pyopensslcontext_is_none_when_package_missing():
     import requests_toolbelt._compat
