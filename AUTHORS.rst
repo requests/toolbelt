@@ -51,3 +51,5 @@ Patches and Suggestions
 - Achim Herwig <python@wodca.de>
 
 - Ryan Ashley <rashley-iqt>
+
+- Sam Bull (@greatestape)

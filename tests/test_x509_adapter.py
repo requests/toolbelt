@@ -3,14 +3,21 @@ import requests
 import unittest
 import pytest
 
-from OpenSSL.crypto import load_pkcs12
-from cryptography.hazmat.primitives.serialization import (Encoding, 
-                                                          PrivateFormat,
-                                                          NoEncryption,
-                                                          BestAvailableEncryption)
+try:
+    from OpenSSL.crypto import load_pkcs12
+except ImportError:
+    PYOPENSSL_AVAILABLE = False
+else:
+    PYOPENSSL_AVAILABLE = True
+    from requests_toolbelt.adapters.x509 import X509Adapter
+    from cryptography.hazmat.primitives.serialization import (
+        Encoding, 
+        PrivateFormat,
+        NoEncryption,
+        BestAvailableEncryption
+    )
 
 from requests_toolbelt import exceptions as exc
-from requests_toolbelt.adapters.x509 import X509Adapter
 from . import get_betamax
 
 REQUESTS_SUPPORTS_SSL_CONTEXT = requests.__build__ >= 0x021200
@@ -28,6 +35,8 @@ class TestX509Adapter(unittest.TestCase):
 
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
+    @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,
+                    reason="Requires OpenSSL")
     def test_x509_pem(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)
         cert_bytes = p12.get_certificate().to_cryptography().public_bytes(Encoding.PEM)
@@ -48,6 +57,8 @@ class TestX509Adapter(unittest.TestCase):
 
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
+    @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,
+                    reason="Requires OpenSSL")
     def test_x509_der(self):
         p12 = load_pkcs12(self.pkcs12_data, self.pkcs12_password_bytes)
         cert_bytes = p12.get_certificate().to_cryptography().public_bytes(Encoding.DER)
@@ -64,4 +75,4 @@ class TestX509Adapter(unittest.TestCase):
     @pytest.mark.skipif(REQUESTS_SUPPORTS_SSL_CONTEXT, reason="Will not raise exc")
     def test_requires_new_enough_requests(self):
         with pytest.raises(exc.VersionMismatchError):
-            X509Adapter()      
+            X509Adapter()
