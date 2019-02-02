@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Utilities for dealing with streamed requests."""
-import collections
 import os.path
 import re
 
@@ -158,7 +157,7 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
     pre_opened = False
     fd = None
     filename = None
-    if path and isinstance(getattr(path, 'write', None), collections.Callable):
+    if path and callable(getattr(path, 'write', None)):
         pre_opened = True
         fd = path
         filename = getattr(fd, 'name', None)
