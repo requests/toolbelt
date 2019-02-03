@@ -26,32 +26,37 @@ class TestPool(unittest.TestCase):
 
     def test_number_of_processes_can_be_arbitrary(self):
         """Show that the number of processes can be set."""
-        p = pool.Pool(None, num_processes=100)
+        job_queue = queue.Queue()
+        p = pool.Pool(job_queue, num_processes=100)
         assert p._processes == 100
         assert len(p._pool) == 100
 
-        p = pool.Pool(None, num_processes=1)
+        job_queue = queue.Queue()
+        p = pool.Pool(job_queue, num_processes=1)
         assert p._processes == 1
         assert len(p._pool) == 1
 
     def test_initializer_is_called(self):
         """Ensure that the initializer function is called."""
+        job_queue = queue.Queue()
         initializer = mock.MagicMock()
-        pool.Pool(None, num_processes=1, initializer=initializer)
+        pool.Pool(job_queue, num_processes=1, initializer=initializer)
         assert initializer.called is True
         initializer.assert_called_once_with(mock.ANY)
 
     def test_auth_generator_is_called(self):
         """Ensure that the auth_generator function is called."""
+        job_queue = queue.Queue()
         auth_generator = mock.MagicMock()
-        pool.Pool(None, num_processes=1, auth_generator=auth_generator)
+        pool.Pool(job_queue, num_processes=1, auth_generator=auth_generator)
         assert auth_generator.called is True
         auth_generator.assert_called_once_with(mock.ANY)
 
     def test_session_is_called(self):
         """Ensure that the session function is called."""
+        job_queue = queue.Queue()
         session = mock.MagicMock()
-        pool.Pool(None, num_processes=1, session=session)
+        pool.Pool(job_queue, num_processes=1, session=session)
         assert session.called is True
         session.assert_called_once_with()
 
