@@ -19,6 +19,8 @@ def _make_mocks():
 
 def _initialize_a_session_thread(session=None, job_queue=None,
                                  response_queue=None, exception_queue=None):
+    if job_queue is None:
+        job_queue = queue.Queue()
     with mock.patch.object(threading, 'Thread') as Thread:
         thread_instance = mock.MagicMock()
         Thread.return_value = thread_instance
@@ -52,10 +54,11 @@ class TestSessionThread(unittest.TestCase):
 
     def test_is_alive_proxies_to_worker(self):
         """Test that we proxy the is_alive method to the Thread."""
+        job_queue = queue.Queue()
         with mock.patch.object(threading, 'Thread') as Thread:
             thread_instance = mock.MagicMock()
             Thread.return_value = thread_instance
-            st = thread.SessionThread(None, None, None, None)
+            st = thread.SessionThread(None, job_queue, None, None)
 
         st.is_alive()
         thread_instance.is_alive.assert_called_once_with()
