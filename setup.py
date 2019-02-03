@@ -47,7 +47,7 @@ setup(
     license='Apache 2.0',
     author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
-    url="https://toolbelt.readthedocs.org",
+    url="https://toolbelt.readthedocs.io/",
     packages=packages,
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,

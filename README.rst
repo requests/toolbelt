@@ -107,7 +107,7 @@ Contributing
 ------------
 
 Please read the `suggested workflow
-<https://toolbelt.readthedocs.org/en/latest/contributing.html>`_ for
+<https://toolbelt.readthedocs.io/en/latest/contributing.html>`_ for
 contributing to this project.
 
 Please report any bugs on the `issue tracker`_
