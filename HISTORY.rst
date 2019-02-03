@@ -15,7 +15,7 @@ Fixed Bugs
 New Features
 ~~~~~~~~~~~~
 
-- Add X509 Adapter that can handle PKCS12 
+- Add X509 Adapter that can handle PKCS12
 - Add stateless solution for streaming files by MultipartEncoder from one host to another (in chunks)
 
 Fixed Bugs
@@ -29,13 +29,13 @@ Fixed Bugs
 - Fix bug when ``MultipartEncoder`` is asked to encode zero parts
 - Correct the type of non string request body dumps
 - Removed content from being stored in MultipartDecoder
-- Fix bug by enabling support for contenttype with capital letters. 
+- Fix bug by enabling support for contenttype with capital letters.
 - Coerce proxy URL to bytes before dumping request
 - Avoid bailing out with exception upon empty response reason
 - Corrected Pool documentation
 - Corrected parentheses match in example usage
 - Fix "oject" to "object" in ``MultipartEncoder``
-- Fix URL for the project after the move 
+- Fix URL for the project after the move
 - Add fix for OSX TCPKeepAliveAdapter
 
 Miscellaneous

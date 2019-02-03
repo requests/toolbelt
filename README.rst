@@ -1,9 +1,9 @@
 The Requests Toolbelt
 =====================
 
-This is just a collection of utilities for `python-requests`_, but don't 
-really belong in ``requests`` proper. The minimum tested requests version is 
-``2.1.0``. In reality, the toolbelt should work with ``2.0.1`` as well, but 
+This is just a collection of utilities for `python-requests`_, but don't
+really belong in ``requests`` proper. The minimum tested requests version is
+``2.1.0``. In reality, the toolbelt should work with ``2.0.1`` as well, but
 some idiosyncracies prevent effective or sane testing on that version.
 
 ``pip install requests-toolbelt`` to get started!
@@ -68,8 +68,8 @@ You can easily construct a requests-style ``User-Agent`` string::
 SSLAdapter
 ----------
 
-The ``SSLAdapter`` was originally published on `Cory Benfield's blog`_. 
-This adapter allows the user to choose one of the SSL protocols made available 
+The ``SSLAdapter`` was originally published on `Cory Benfield's blog`_.
+This adapter allows the user to choose one of the SSL protocols made available
 in Python's ``ssl`` module for outgoing HTTPS connections:
 
 .. code-block:: python
@@ -84,7 +84,7 @@ in Python's ``ssl`` module for outgoing HTTPS connections:
 cookies/ForgetfulCookieJar
 --------------------------
 
-The ``ForgetfulCookieJar`` prevents a particular requests session from storing 
+The ``ForgetfulCookieJar`` prevents a particular requests session from storing
 cookies:
 
 .. code-block:: python

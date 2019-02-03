@@ -248,9 +248,9 @@ specifically for that domain, instead of adding it to every ``https://`` and
 X509Adapter
 -----------
 
-Requests supports SSL Verification using a certificate in .pem format by default. 
+Requests supports SSL Verification using a certificate in .pem format by default.
 In some cases it is necessary to pass a full cert chain as part of a request or it
-is deemed too great a risk to decrypt the certificate into a .pem file.  
+is deemed too great a risk to decrypt the certificate into a .pem file.
 
 For such use cases we have created
 :class:`~requests_toolbelt.adapters.x509.X509Adapter`.
@@ -266,4 +266,3 @@ Example usage:
       s.mount('https://', a)
 
 .. autoclass:: requests_toolbelt.adapters.x509.X509Adapter
-
