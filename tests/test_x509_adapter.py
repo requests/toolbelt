@@ -11,7 +11,7 @@ else:
     PYOPENSSL_AVAILABLE = True
     from requests_toolbelt.adapters.x509 import X509Adapter
     from cryptography.hazmat.primitives.serialization import (
-        Encoding, 
+        Encoding,
         PrivateFormat,
         NoEncryption,
         BestAvailableEncryption
@@ -42,10 +42,10 @@ class TestX509Adapter(unittest.TestCase):
         cert_bytes = p12.get_certificate().to_cryptography().public_bytes(Encoding.PEM)
         pk_bytes = p12.get_privatekey().\
                        to_cryptography_key().\
-                       private_bytes(Encoding.PEM, PrivateFormat.PKCS8, 
+                       private_bytes(Encoding.PEM, PrivateFormat.PKCS8,
                                      BestAvailableEncryption(self.pkcs12_password_bytes))
 
-        adapter = X509Adapter(max_retries=3, cert_bytes=cert_bytes, 
+        adapter = X509Adapter(max_retries=3, cert_bytes=cert_bytes,
                               pk_bytes=pk_bytes, password=self.pkcs12_password_bytes)
         self.session.mount('https://', adapter)
         recorder = get_betamax(self.session)
