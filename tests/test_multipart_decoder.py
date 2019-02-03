@@ -128,7 +128,7 @@ class TestMultipartDecoder(unittest.TestCase):
     def test_header_of_parts(self):
         def parts_header_equal(part, sample):
             return part.headers[b'Content-Disposition'] == encode_with(
-                'form-data; name="{0}"'.format(sample[0]), 'utf-8'
+                'form-data; name="{}"'.format(sample[0]), 'utf-8'
             )
 
         parts_iter = zip(self.decoded_1.parts, self.sample_1)
