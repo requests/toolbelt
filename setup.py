@@ -51,6 +51,7 @@ setup(
     packages=packages,
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires=['requests>=2.0.1,<3.0.0'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
