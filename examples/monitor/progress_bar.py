@@ -37,6 +37,6 @@ if __name__ == '__main__':
     monitor = MultipartEncoderMonitor(encoder, callback)
     r = requests.post('https://httpbin.org/post', data=monitor,
                       headers={'Content-Type': monitor.content_type})
-    print('\nUpload finished! (Returned status {0} {1})'.format(
+    print('\nUpload finished! (Returned status {} {})'.format(
         r.status_code, r.reason
         ))

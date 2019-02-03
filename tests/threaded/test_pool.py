@@ -57,7 +57,7 @@ class TestPool(unittest.TestCase):
 
     def test_from_exceptions_populates_a_queue(self):
         """Ensure a Queue is properly populated from exceptions."""
-        urls = ["https://httpbin.org/get?n={0}".format(n) for n in range(5)]
+        urls = ["https://httpbin.org/get?n={}".format(n) for n in range(5)]
         Exc = pool.ThreadException
         excs = (Exc({'method': 'GET', 'url': url}, None) for url in urls)
 
@@ -74,7 +74,7 @@ class TestPool(unittest.TestCase):
 
     def test_from_urls_constructs_get_requests(self):
         """Ensure a Queue is properly populated from an iterable of urls."""
-        urls = ["https://httpbin.org/get?n={0}".format(n) for n in range(5)]
+        urls = ["https://httpbin.org/get?n={}".format(n) for n in range(5)]
 
         job_queue = mock.MagicMock()
         with mock.patch.object(queue, 'Queue', return_value=job_queue):
@@ -95,7 +95,7 @@ class TestPool(unittest.TestCase):
                 final.update(d)
             return final
 
-        urls = ["https://httpbin.org/get?n={0}".format(n) for n in range(5)]
+        urls = ["https://httpbin.org/get?n={}".format(n) for n in range(5)]
 
         kwargs = {'stream': True, 'headers': {'Accept': 'application/json'}}
         job_queue = mock.MagicMock()

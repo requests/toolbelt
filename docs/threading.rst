@@ -50,8 +50,8 @@ Here's an example:
     p.join_all()
 
     for response in p.responses():
-        print('GET {0}. Returned {1}.'.format(response.request_kwargs['url'],
-                                              response.status_code))
+        print('GET {}. Returned {}.'.format(response.request_kwargs['url'],
+                                            response.status_code))
 
 This is clearly a bit underwhelming. This is why there's a short-cut class
 method to create a :class:`~requests_toolbelt.threaded.pool.Pool` from a list
@@ -69,8 +69,8 @@ of URLs.
     p.join_all()
 
     for response in p.responses():
-        print('GET {0}. Returned {1}.'.format(response.request_kwargs['url'],
-                                              response.status_code))
+        print('GET {}. Returned {}.'.format(response.request_kwargs['url'],
+                                            response.status_code))
 
 If one of the URLs in your list throws an exception, it will be accessible
 from the :meth:`~Pool.exceptions` generator.
@@ -87,8 +87,8 @@ from the :meth:`~Pool.exceptions` generator.
     p.join_all()
 
     for exc in p.exceptions():
-        print('GET {0}. Raised {1}.'.format(exc.request_kwargs['url'],
-                                            exc.message))
+        print('GET {}. Raised {}.'.format(exc.request_kwargs['url'],
+                                          exc.message))
 
 If instead, you want to retry the exceptions that have been raised you can do
 the following:
