@@ -7,7 +7,7 @@ requests supports Basic Authentication and HTTP Digest Authentication by
 default. There are also a number of third-party libraries for authentication
 with:
 
-- `OAuth <https://requests-oauthlib.readthedocs.org/en/latest/>`_
+- `OAuth <https://requests-oauthlib.readthedocs.io/>`_
 
 - `NTLM <https://github.com/requests/requests-ntlm>`_
 
@@ -133,7 +133,7 @@ the proxy.
         "http": "http://PROXYSERVER:PROXYPORT",
         "https": "https://PROXYSERVER:PROXYPORT",
     }
-    url = "https://toolbelt.readthedocs.org/"
+    url = "https://toolbelt.readthedocs.io/"
     auth = HTTPProxyDigestAuth("USERNAME", "PASSWORD")
     requests.get(url, proxies=proxies, auth=auth)
 

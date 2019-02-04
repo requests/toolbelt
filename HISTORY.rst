@@ -233,7 +233,7 @@ New Features
 
 - A naive implemenation of a thread pool is now included in the toolbelt. See
   the docs in ``docs/threading.rst`` or on `Read The Docs
-  <https://toolbelt.readthedocs.org>`_.
+  <https://toolbelt.readthedocs.io/>`_.
 
 - The ``StreamingIterator`` now accepts files (such as ``sys.stdin``) without
   a specific length and will properly stream them.

@@ -157,5 +157,5 @@ Footnotes
 
 .. _GitHub: https://github.com/requests/toolbelt
 .. _GitLab: https://gitlab.com/sigmavirus24/toolbelt
-.. _tox: https://tox.readthedocs.org/en/latest/
+.. _tox: https://tox.readthedocs.io/
 .. _pytest: https://docs.pytest.org/
