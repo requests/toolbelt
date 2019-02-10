@@ -94,15 +94,6 @@ cookies:
     session = requests.Session()
     session.cookies = ForgetfulCookieJar()
 
-Known Issues
-------------
-
-On Python 3.3.0 and 3.3.1, the standard library's ``http`` module will fail
-when passing an instance of the ``MultipartEncoder``. This is fixed in later
-minor releases of Python 3.3. Please consider upgrading to a later minor
-version or Python 3.4. *There is absolutely nothing this library can do to
-work around that bug.*
-
 Contributing
 ------------
 
