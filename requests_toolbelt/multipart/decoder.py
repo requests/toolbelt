@@ -82,7 +82,7 @@ class MultipartDecoder(object):
         import requests
         from requests_toolbelt import MultipartDecoder
 
-        response = request.get(url)
+        response = requests.get(url)
         decoder = MultipartDecoder.from_response(response)
         for part in decoder.parts:
             print(part.headers['content-type'])
