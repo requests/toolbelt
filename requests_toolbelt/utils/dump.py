@@ -98,7 +98,7 @@ def _dump_response_data(response, prefixes, bytearr):
                    _coerce_to_bytes(response.reason) + b'\r\n')
 
     headers = raw.headers
-    for name in headers.keys():
+    for name in headers:
         for value in headers.getlist(name):
             bytearr.extend(prefix + _format_header(name, value))
 
