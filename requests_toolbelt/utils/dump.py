@@ -2,7 +2,7 @@
 import collections
 
 from requests import compat
-
+import os
 
 __all__ = ('dump_response', 'dump_all')
 
@@ -14,6 +14,8 @@ HTTP_VERSIONS = {
 
 _PrefixSettings = collections.namedtuple('PrefixSettings',
                                          ['request', 'response'])
+
+_LINE_SEP = None
 
 
 class PrefixSettings(_PrefixSettings):
@@ -36,16 +38,14 @@ def _get_proxy_information(response):
 
 
 def _format_header(name, value):
-    return (_coerce_to_bytes(name) + b': ' + _coerce_to_bytes(value) +
-            b'\r\n')
+    return (_coerce_to_bytes(name) + b': ' + _coerce_to_bytes(value) + _line_sep())
 
 
 def _build_request_path(url, proxy_info):
     uri = compat.urlparse(url)
     proxy_url = proxy_info.get('request_path')
     if proxy_url is not None:
-        request_path = _coerce_to_bytes(proxy_url)
-        return request_path, uri
+        return proxy_url, uri
 
     request_path = _coerce_to_bytes(uri.path)
     if uri.query:
@@ -63,25 +63,26 @@ def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
     request_path, uri = _build_request_path(request.url, proxy_info)
 
     # <prefix><METHOD> <request-path> HTTP/1.1
-    bytearr.extend(prefix + method + b' ' + request_path + b' HTTP/1.1\r\n')
+    bytearr.extend(prefix + method + b' ' +
+                   request_path + b' HTTP/1.1' + _line_sep())
 
     # <prefix>Host: <request-host> OR host header specified by user
     headers = request.headers.copy()
     host_header = _coerce_to_bytes(headers.pop('Host', uri.netloc))
-    bytearr.extend(prefix + b'Host: ' + host_header + b'\r\n')
+    bytearr.extend(prefix + b'Host: ' + host_header + _line_sep())
 
     for name, value in headers.items():
         bytearr.extend(prefix + _format_header(name, value))
 
-    bytearr.extend(prefix + b'\r\n')
+    bytearr.extend(prefix + _line_sep())
     if request.body:
         if isinstance(request.body, compat.basestring):
             bytearr.extend(prefix + _coerce_to_bytes(request.body))
         else:
             # In the event that the body is a file-like object, let's not try
             # to read everything into memory.
-            bytearr.extend(b'<< Request body is not a string-like type >>')
-    bytearr.extend(b'\r\n')
+            bytearr.extend('<< Request body is not a string-like type >>')
+    bytearr.extend(_line_sep())
 
 
 def _dump_response_data(response, prefixes, bytearr):
@@ -95,14 +96,14 @@ def _dump_response_data(response, prefixes, bytearr):
     # <prefix>HTTP/<version_str> <status_code> <reason>
     bytearr.extend(prefix + b'HTTP/' + version_str + b' ' +
                    str(raw.status).encode('ascii') + b' ' +
-                   _coerce_to_bytes(response.reason) + b'\r\n')
+                   _coerce_to_bytes(response.reason) + _line_sep())
 
     headers = raw.headers
     for name in headers.keys():
         for value in headers.getlist(name):
             bytearr.extend(prefix + _format_header(name, value))
 
-    bytearr.extend(prefix + b'\r\n')
+    bytearr.extend(prefix + _line_sep())
 
     bytearr.extend(response.content)
 
@@ -110,8 +111,7 @@ def _dump_response_data(response, prefixes, bytearr):
 def _coerce_to_bytes(data):
     if not isinstance(data, bytes) and hasattr(data, 'encode'):
         data = data.encode('utf-8')
-    # Don't bail out with an exception if data is None
-    return data if data is not None else b''
+    return data
 
 
 def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
@@ -195,3 +195,11 @@ def dump_all(response, request_prefix=b'< ', response_prefix=b'> '):
         dump_response(response, request_prefix, response_prefix, data)
 
     return data
+
+
+def _line_sep():
+    """Returns the proper line break of the current OS"""
+    global _LINE_SEP
+    if not _LINE_SEP:
+        _LINE_SEP = _coerce_to_bytes(os.linesep)
+    return _LINE_SEP
