@@ -62,9 +62,9 @@ matrix:
   - python: nightly
     env: TOXENV=py
   - python: nightly
-    env: TOXENV=py REQUESTS_VERSION="===2.2.1"
+    env: TOXENV=py REQUESTS_VERSION="===2.22.0"
   - python: nightly
-    env: TOXENV=py REQUESTS_VERSION="===2.1.0"
+    env: TOXENV=py REQUESTS_VERSION="==3.0.0"
   - python: 3.6
     env: TOXENV=noopenssl
   - python: 2.7
