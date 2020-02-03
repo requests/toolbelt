@@ -38,7 +38,8 @@ def _get_proxy_information(response):
 
 
 def _format_header(name, value):
-    return (_coerce_to_bytes(name) + b': ' + _coerce_to_bytes(value) + _line_sep())
+    return (_coerce_to_bytes(name) + b': ' + _coerce_to_bytes(value)
+            + _line_sep())
 
 
 def _build_request_path(url, proxy_info):
