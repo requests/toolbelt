@@ -43,14 +43,14 @@ class TestSimplePrivateFunctions(object):
         """Prove that _format_header correctly formats bytes input."""
         header = b'Connection'
         value = b'close'
-        expected = b'Connection: close\r\n'
+        expected = b'Connection: close' + dump._line_sep()
         assert dump._format_header(header, value) == expected
 
     def test_format_header_handles_unicode(self):
         """Prove that _format_header correctly formats text input."""
         header = b'Connection'.decode('utf-8')
         value = b'close'.decode('utf-8')
-        expected = b'Connection: close\r\n'
+        expected = b'Connection: close' + dump._line_sep()
         assert dump._format_header(header, value) == expected
 
     def test_build_request_path(self):
@@ -208,8 +208,8 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             proxy_info={},
         )
 
-        assert b'request:GET / HTTP/1.1\r\n' in array
-        assert b'request:Host: example.com\r\n' in array
+        assert b'request:GET / HTTP/1.1' + dump._line_sep() in array
+        assert b'request:Host: example.com' + dump._line_sep() in array
 
     def test_dump_non_string_request_data(self):
         """Build up the request data into a bytearray."""
@@ -227,9 +227,9 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             bytearr=array,
             proxy_info={},
         )
-        assert b'request:POST / HTTP/1.1\r\n' in array
-        assert b'request:Host: example.com\r\n' in array
-        assert b'<< Request body is not a string-like type >>\r\n' in array
+        assert b'request:POST / HTTP/1.1' + dump._line_sep() in array
+        assert b'request:Host: example.com' + dump._line_sep() in array
+        assert b'<< Request body is not a string-like type >>' + dump._line_sep() in array
 
     def test_dump_request_data_with_proxy_info(self):
         """Build up the request data into a bytearray."""
@@ -250,8 +250,8 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             },
         )
 
-        assert b'request:CONNECT fake-request-path HTTP/1.1\r\n' in array
-        assert b'request:Host: example.com\r\n' in array
+        assert b'request:CONNECT fake-request-path HTTP/1.1' + dump._line_sep() in array
+        assert b'request:Host: example.com' + dump._line_sep() in array
 
     def test_dump_response_data(self):
         """Build up the response data into a bytearray."""
@@ -274,8 +274,8 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             bytearr=array,
         )
 
-        assert b'response:HTTP/1.1 201 OK\r\n' in array
-        assert b'response:Content-Type: application/json\r\n' in array
+        assert b'response:HTTP/1.1 201 OK' + dump._line_sep() in array
+        assert b'response:Content-Type: application/json' + dump._line_sep() in array
 
     def test_dump_response_data_with_older_http_version(self):
         """Build up the response data into a bytearray."""
@@ -299,8 +299,8 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             bytearr=array,
         )
 
-        assert b'response:HTTP/0.9 201 OK\r\n' in array
-        assert b'response:Content-Type: application/json\r\n' in array
+        assert b'response:HTTP/0.9 201 OK' + dump._line_sep() in array
+        assert b'response:Content-Type: application/json' + dump._line_sep() in array
 
     def test_dump_response_data_with_unknown_http_version(self):
         """Build up the response data into a bytearray."""
@@ -324,8 +324,8 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
             bytearr=array,
         )
 
-        assert b'response:HTTP/? 201 OK\r\n' in array
-        assert b'response:Content-Type: application/json\r\n' in array
+        assert b'response:HTTP/? 201 OK' + dump._line_sep() in array
+        assert b'response:Content-Type: application/json' + dump._line_sep() in array
 
 
 class TestResponsePublicFunctions(RequestResponseMixin):
@@ -373,14 +373,14 @@ class TestDumpRealResponses(object):
             response = session.get('https://httpbin.org/get')
 
         arr = dump.dump_response(response)
-        assert b'< GET /get HTTP/1.1\r\n' in arr
-        assert b'< Host: httpbin.org\r\n' in arr
+        assert b'< GET /get HTTP/1.1' + dump._line_sep() in arr
+        assert b'< Host: httpbin.org' + dump._line_sep() in arr
         # NOTE(sigmavirus24): The ? below is only because Betamax doesn't
         # preserve which HTTP version the server reports as supporting.
         # When not using Betamax, there should be a different version
         # reported.
-        assert b'> HTTP/? 200 OK\r\n' in arr
-        assert b'> Content-Type: application/json\r\n' in arr
+        assert b'> HTTP/? 200 OK' + dump._line_sep() in arr
+        assert b'> Content-Type: application/json' + dump._line_sep() in arr
 
     def test_dump_all(self):
         session = requests.Session()
@@ -389,14 +389,14 @@ class TestDumpRealResponses(object):
             response = session.get('https://httpbin.org/redirect/5')
 
         arr = dump.dump_all(response)
-        assert b'< GET /redirect/5 HTTP/1.1\r\n' in arr
-        assert b'> Location: /relative-redirect/4\r\n' in arr
-        assert b'< GET /relative-redirect/4 HTTP/1.1\r\n' in arr
-        assert b'> Location: /relative-redirect/3\r\n' in arr
-        assert b'< GET /relative-redirect/3 HTTP/1.1\r\n' in arr
-        assert b'> Location: /relative-redirect/2\r\n' in arr
-        assert b'< GET /relative-redirect/2 HTTP/1.1\r\n' in arr
-        assert b'> Location: /relative-redirect/1\r\n' in arr
-        assert b'< GET /relative-redirect/1 HTTP/1.1\r\n' in arr
-        assert b'> Location: /get\r\n' in arr
-        assert b'< GET /get HTTP/1.1\r\n' in arr
+        assert b'< GET /redirect/5 HTTP/1.1' + dump._line_sep() in arr
+        assert b'> Location: /relative-redirect/4' + dump._line_sep() in arr
+        assert b'< GET /relative-redirect/4 HTTP/1.1' + dump._line_sep() in arr
+        assert b'> Location: /relative-redirect/3' + dump._line_sep() in arr
+        assert b'< GET /relative-redirect/3 HTTP/1.1' + dump._line_sep() in arr
+        assert b'> Location: /relative-redirect/2' + dump._line_sep() in arr
+        assert b'< GET /relative-redirect/2 HTTP/1.1' + dump._line_sep() in arr
+        assert b'> Location: /relative-redirect/1' + dump._line_sep() in arr
+        assert b'< GET /relative-redirect/1 HTTP/1.1' + dump._line_sep() in arr
+        assert b'> Location: /get' + dump._line_sep() in arr
+        assert b'< GET /get HTTP/1.1' + dump._line_sep() in arr
