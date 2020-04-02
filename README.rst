@@ -56,6 +56,8 @@ User-Agent constructor
 
 You can easily construct a requests-style ``User-Agent`` string::
 
+.. code-block:: python
+
     from requests_toolbelt import user_agent
 
     headers = {
