@@ -54,7 +54,7 @@ Or, you can just create the string and examine the data:
 User-Agent constructor
 ----------------------
 
-You can easily construct a requests-style ``User-Agent`` string::
+You can easily construct a requests-style ``User-Agent`` string:
 
 .. code-block:: python
 
