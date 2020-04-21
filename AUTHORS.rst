@@ -53,3 +53,5 @@ Patches and Suggestions
 - Ryan Ashley <rashley-iqt>
 
 - Sam Bull (@greatestape)
+
+- Chris van Marle (https://github.com/qistoph)

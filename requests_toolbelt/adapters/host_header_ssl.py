@@ -36,8 +36,10 @@ class HostHeaderSSLAdapter(HTTPAdapter):
 
         if host_header:
             connection_pool_kwargs["assert_hostname"] = host_header
+            connection_pool_kwargs["server_hostname"] = host_header
         elif "assert_hostname" in connection_pool_kwargs:
             # an assert_hostname from a previous request may have been left
             connection_pool_kwargs.pop("assert_hostname", None)
+            connection_pool_kwargs.pop("server_hostname", None)
 
         return super(HostHeaderSSLAdapter, self).send(request, **kwargs)
