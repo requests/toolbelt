@@ -104,7 +104,10 @@ def _dump_response_data(response, prefixes, bytearr):
 
     bytearr.extend(prefix + b'\r\n')
 
-    bytearr.extend(response.content)
+    if not response.raw.closed:
+        bytearr.extend(b'<< Response body is being streamed >>')
+    else:
+        bytearr.extend(response.content)
 
 
 def _coerce_to_bytes(data):

@@ -98,6 +98,7 @@ class RequestResponseMixin(object):
     ]
 
     httpresponse_spec = [
+        'closed',
         'headers',
         'reason',
         'status',
@@ -137,8 +138,9 @@ class RequestResponseMixin(object):
         self.request.url = url
 
     def configure_httpresponse(self, headers=None, reason=b'', status=200,
-                               version=HTTP_1_1):
+                               version=HTTP_1_1, closed=True):
         """Helper function to configure a mocked urllib3 response."""
+        self.httpresponse.closed = closed
         self.httpresponse.headers = HTTPHeaderDict(headers or {})
         self.httpresponse.reason = reason
         self.httpresponse.status = status
@@ -326,6 +328,24 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
 
         assert b'response:HTTP/? 201 OK\r\n' in array
         assert b'response:Content-Type: application/json\r\n' in array
+
+    def test_dump_response_skips_body_when_streaming(self):
+        self.configure_response(
+            url='https://example.com/bigfile',
+            content=None,
+            reason=b'OK',
+        )
+
+        array = bytearray()
+        self.configure_httpresponse(closed=False)
+        prefixes = dump.PrefixSettings('request:', 'response:')
+        dump._dump_response_data(
+            response=self.response,
+            prefixes=prefixes,
+            bytearr=array,
+        )
+
+        assert array.endswith(b'<< Response body is being streamed >>')
 
 
 class TestResponsePublicFunctions(RequestResponseMixin):
