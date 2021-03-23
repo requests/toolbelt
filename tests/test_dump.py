@@ -12,7 +12,10 @@ very complex and high-level.
 from requests_toolbelt._compat import HTTPHeaderDict
 from requests_toolbelt.utils import dump
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import pytest
 import requests
 

@@ -3,7 +3,10 @@
 import contextlib
 import socket
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import requests
 from requests_toolbelt._compat import poolmanager
 

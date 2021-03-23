@@ -1,6 +1,9 @@
 """Module containing tests for requests_toolbelt.threaded API."""
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import pytest
 
 from requests_toolbelt._compat import queue

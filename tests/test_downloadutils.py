@@ -8,7 +8,10 @@ import tempfile
 import requests
 from requests_toolbelt.downloadutils import stream
 from requests_toolbelt.downloadutils import tee
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import pytest
 
 from . import get_betamax

@@ -2,7 +2,10 @@
 """Test proxy digest authentication."""
 
 import unittest
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import requests
 from requests_toolbelt.auth import http_proxy_digest
