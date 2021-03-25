@@ -53,3 +53,5 @@ Patches and Suggestions
 - Ryan Ashley <rashley-iqt>
 
 - Sam Bull (@greatestape)
+
+- Florence Blanc-Renaud <flo@redhat.com> (@flo-renaud)

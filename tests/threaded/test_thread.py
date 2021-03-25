@@ -7,7 +7,10 @@ import threading
 import unittest
 import uuid
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import requests.exceptions
 
 from requests_toolbelt.threaded import thread
