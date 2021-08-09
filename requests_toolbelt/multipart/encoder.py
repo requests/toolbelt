@@ -36,7 +36,7 @@ class MultipartEncoder(object):
         from requests_toolbelt import MultipartEncoder
 
         encoder = MultipartEncoder({'field': 'value',
-                                    'other_field', 'other_value'})
+                                    'other_field': 'other_value'})
         r = requests.post('https://httpbin.org/post', data=encoder,
                           headers={'Content-Type': encoder.content_type})
 
