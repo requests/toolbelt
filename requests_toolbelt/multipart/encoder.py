@@ -15,6 +15,7 @@ from uuid import uuid4
 import requests
 
 from .._compat import fields
+from ..exceptions import MultipartEncoderSourceShrunkError
 
 
 class FileNotSupportedError(Exception):
@@ -68,6 +69,17 @@ class MultipartEncoder(object):
             'field': ('file_name', b'{"a": "b"}', 'application/json',
                       {'X-My-Header': 'my-value'})
         ])
+
+    .. warning::
+
+        If the content of the field's stream (e.g. the underlying file) changes
+        during encoding, the uploaded data may contain a mix of old and new
+        data. The size of the stream must not shrink during encoding - if it
+        does, a
+        :class:`~requests_toolbelt.exceptions.MultipartEncoderSourceShrunkError`
+        will be raised. It is acceptable for a stream to grow, but only
+        the amount of data present at the start of encoding will be
+        transmitted.
 
     .. warning::
 
@@ -485,7 +497,8 @@ class Part(object):
         self.headers = headers
         self.body = body
         self.headers_unread = True
-        self.len = len(self.headers) + total_len(self.body)
+        self.body_len = total_len(self.body)
+        self.len = len(self.headers) + self.body_len
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -504,7 +517,7 @@ class Part(object):
         if self.headers_unread:
             to_read += len(self.headers)
 
-        return (to_read + total_len(self.body)) > 0
+        return (to_read + self.body_len) > 0
 
     def write_to(self, buffer, size):
         """Write the requested amount of bytes to the buffer provided.
@@ -521,11 +534,27 @@ class Part(object):
             written += buffer.append(self.headers)
             self.headers_unread = False
 
-        while total_len(self.body) > 0 and (size == -1 or written < size):
+        while self.body_len > 0 and (size == -1 or written < size):
+            # Check that the body hasn't shrunk since we started the encoding
+            if total_len(self.body) < self.body_len:
+                raise MultipartEncoderSourceShrunkError()
+
             amount_to_read = size
             if size != -1:
                 amount_to_read = size - written
-            written += buffer.append(self.body.read(amount_to_read))
+
+            if amount_to_read == -1:
+                amount_to_read = self.body_len
+
+            # Cap amount of data read based on the initial body length (even
+            # if there is now more data available), since this amount is what
+            # we have committed to in the Content-Length header.
+            amount_to_read = min(self.body_len, amount_to_read)
+
+            body_data = self.body.read(amount_to_read)
+            self.body_len -= len(body_data)
+
+            written += buffer.append(body_data)
 
         return written
 

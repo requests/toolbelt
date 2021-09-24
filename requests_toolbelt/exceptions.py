@@ -35,3 +35,17 @@ class IgnoringGAECertificateValidation(Warning):
     In :class:`requests_toolbelt.adapters.appengine.InsecureAppEngineAdapter`.
     """
     pass
+
+
+class MultipartEncoderSourceShrunkError(Exception):
+    """Used to indicate that a data source passed to
+    :class:`requests_toolbelt.multipart.encoder.MultipartEncoder` shrunk in
+    size during encoding.
+
+    If the data source shrinks during encoding, the overall encoded data
+    length would no longer match the initially calculated length (sent to the
+    server as ``Content-Length``), potentially causing an HTTP 408 request
+    timeout error.
+
+    """
+    pass

@@ -7,6 +7,7 @@ import requests
 from requests_toolbelt.multipart.encoder import (
     CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError)
 from requests_toolbelt._compat import filepost
+from requests_toolbelt.exceptions import MultipartEncoderSourceShrunkError
 from . import get_betamax
 
 
@@ -190,6 +191,38 @@ class TestMultipartEncoder(unittest.TestCase):
         with open('setup.py', 'rb') as fd:
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.read() is not None
+
+    def test_reads_growing_sources(self):
+        large_file = LargeFileMock()
+        large_file.bytes_max = 128
+        m = MultipartEncoder([('file', large_file)], boundary=self.boundary)
+        # This is the value that ends up in the Content-Length header
+        initial_len = m.len
+        # Start the encoding, including some of the stream contents
+        data = m.read(128)
+        # ...meanwhile, the stream grows
+        large_file.bytes_max *= 2
+        # Ensure that the additional data is not transmitted
+        assert m.len == initial_len
+        data += m.read()
+        assert data == (
+            '--this-is-a-boundary\r\n'
+            'Content-Disposition: form-data; name="file"\r\n\r\n'
+            + ('a' * 128) + '\r\n'
+            '--this-is-a-boundary--\r\n'
+        ).encode()
+
+    def test_reads_shrinking_sources(self):
+        large_file = LargeFileMock()
+        m = MultipartEncoder([('file', large_file)], boundary=self.boundary)
+        initial_len = m.len
+        # Start the encoding
+        data = m.read(1)
+        # ...meanwhile, the source stream shrinks
+        large_file.bytes_max = large_file.bytes_read
+        # Further encoding fails
+        with self.assertRaises(MultipartEncoderSourceShrunkError):
+            m.read()
 
     def test_reads_file_from_url_wrapper(self):
         s = requests.Session()
