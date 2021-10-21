@@ -153,8 +153,7 @@ def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',
         raise ValueError('Response has no associated request')
 
     proxy_info = _get_proxy_information(response)
-    _dump_request_data(response.request, prefixes, data,
-                       proxy_info=proxy_info)
+    
     _dump_response_data(response, prefixes, data)
     return data
 
