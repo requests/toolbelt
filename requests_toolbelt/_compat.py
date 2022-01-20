@@ -160,8 +160,8 @@ class HTTPHeaderDict(MutableMapping):
 
     def __iter__(self):
         # Only provide the originally cased names
-        for vals in self._container.values():
-            yield vals[0]
+        for (vals_0, *vals_len) in self._container.values():
+            yield vals_0
 
     def pop(self, key, default=__marker):
         """D.pop(k[,d]) -> v, remove specified key and return its value.
