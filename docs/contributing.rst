@@ -86,7 +86,7 @@ How To Run The Tests
 
 Run the tests in this project using `tox`_.  Before you run the tests, ensure
 you have installed tox either using your system package manager (e.g., apt,
-yum, etc.), or your prefered python installer (e.g., pip).
+yum, etc.), or your preferred python installer (e.g., pip).
 
 Then run the tests on at least Python 2.7 and Python 3.x, e.g.,
 

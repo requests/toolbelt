@@ -135,7 +135,7 @@ the user making a request with the URL that has the hostname in it. If,
 however, the user needs to make a request with the IP address, they cannot
 actually verify a certificate against the hostname they want to request.
 
-To accomodate this very rare need, we've added
+To accommodate this very rare need, we've added
 :class:`~requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`.
 Example usage:
 
@@ -155,7 +155,7 @@ SourceAddressAdapter
 .. versionadded:: 0.3.0
 
 The :class:`~requests_toolbelt.adapters.source.SourceAddressAdapter` allows a
-user to specify a source address for their connnection.
+user to specify a source address for their connection.
 
 .. autoclass:: requests_toolbelt.adapters.source.SourceAddressAdapter
 
