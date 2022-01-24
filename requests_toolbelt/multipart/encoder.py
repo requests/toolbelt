@@ -227,6 +227,8 @@ class MultipartEncoder(object):
                     file_name, file_pointer, file_type = v
                 else:
                     file_name, file_pointer, file_type, file_headers = v
+            elif v is None:
+                continue
             else:
                 file_pointer = v
 
