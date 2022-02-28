@@ -48,6 +48,9 @@ setup(
     author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
     url="https://toolbelt.readthedocs.io/",
+    project_urls={
+        "Source": "https://github.com/requests/toolbelt",
+    },
     packages=packages,
     package_data={'': ['LICENSE', 'AUTHORS.rst']},
     include_package_data=True,
