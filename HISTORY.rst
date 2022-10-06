@@ -1,6 +1,19 @@
 History
 =======
 
+0.10.0 -- 2022-10-06
+-------------------
+
+New Features
+~~~~~~~~~~~~
+
+- Add support for preparing requests in BaseUrlSession
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fixing missing newline in dump utility
+
 0.9.1 -- 2019-01-29
 -------------------
 
