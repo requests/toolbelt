@@ -44,6 +44,7 @@ setup(
     description="A utility belt for advanced users of python-requests",
     long_description="\n\n".join([open("README.rst").read(),
                                   open("HISTORY.rst").read()]),
+    long_description_content_type="text/x-rst",
     license='Apache 2.0',
     author='Ian Cordasco, Cory Benfield',
     author_email="graffatcolmingov@gmail.com",
