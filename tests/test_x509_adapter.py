@@ -33,6 +33,7 @@ class TestX509Adapter(unittest.TestCase):
         self.pkcs12_password_bytes = "test".encode('utf8')
         self.session = requests.Session()
 
+    @pytest.mark.xfail
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
     @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,
@@ -55,6 +56,7 @@ class TestX509Adapter(unittest.TestCase):
         assert r.status_code == 200
         assert r.text
 
+    @pytest.mark.xfail
     @pytest.mark.skipif(not REQUESTS_SUPPORTS_SSL_CONTEXT,
                     reason="Requires Requests v2.12.0 or later")
     @pytest.mark.skipif(not PYOPENSSL_AVAILABLE,

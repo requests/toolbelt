@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """Tests for the SocketOptionsAdapter and TCPKeepAliveAdapter."""
 import contextlib
+import platform
 import socket
+import sys
 
+import pytest
 try:
     from unittest import mock
 except ImportError:
@@ -72,6 +75,8 @@ def test_options_not_passed_on_older_requests(PoolManager):
     assert PoolManager.called is False
 
 
+@pytest.mark.xfail(sys.version_info.major == 2 and platform.system() == "Windows",
+                   reason="Windows does not have TCP_KEEPINTVL in Python 2")
 @mock.patch.object(requests, '__build__', 0x020500)
 @mock.patch.object(poolmanager, 'PoolManager')
 def test_keep_alive_on_newer_requests_no_idle(PoolManager):
@@ -96,6 +101,8 @@ def test_keep_alive_on_newer_requests_no_idle(PoolManager):
     assert adapter.socket_options == socket_opts
 
 
+@pytest.mark.xfail(sys.version_info.major == 2 and platform.system() == "Windows",
+                   reason="Windows does not have TCP_KEEPINTVL in Python 2")
 @mock.patch.object(requests, '__build__', 0x020500)
 @mock.patch.object(poolmanager, 'PoolManager')
 def test_keep_alive_on_newer_requests_with_idle(PoolManager):
