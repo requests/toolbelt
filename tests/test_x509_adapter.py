@@ -24,6 +24,9 @@ from . import get_betamax
 
 REQUESTS_SUPPORTS_SSL_CONTEXT = requests.__build__ >= 0x021200
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:'urllib3.contrib.pyopenssl' module is deprecated:DeprecationWarning")
+
 
 class TestX509Adapter(unittest.TestCase):
     """Tests a simple requests.get() call using a .p12 cert.
