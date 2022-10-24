@@ -17,10 +17,10 @@ else:
         BestAvailableEncryption,
         load_pem_private_key,
     )
+    import trustme
 
 from requests_toolbelt import exceptions as exc
 from . import get_betamax
-import trustme
 
 REQUESTS_SUPPORTS_SSL_CONTEXT = requests.__build__ >= 0x021200
 
@@ -38,7 +38,7 @@ class TestX509Adapter(unittest.TestCase):
                         reason="Requires OpenSSL")
     def test_x509_pem(self):
         ca = trustme.CA()
-        cert = ca.issue_cert('pkiprojecttest01.dev.labs.internal')
+        cert = ca.issue_cert(u'pkiprojecttest01.dev.labs.internal')
         cert_bytes = cert.cert_chain_pems[0].bytes()
         pk_bytes = cert.private_key_pem.bytes()
 
@@ -57,7 +57,7 @@ class TestX509Adapter(unittest.TestCase):
                     reason="Requires OpenSSL")
     def test_x509_der_and_password(self):
         ca = trustme.CA()
-        cert = ca.issue_cert('pkiprojecttest01.dev.labs.internal')
+        cert = ca.issue_cert(u'pkiprojecttest01.dev.labs.internal')
         cert_bytes = x509.load_pem_x509_certificate(
             cert.cert_chain_pems[0].bytes()).public_bytes(Encoding.DER)
         pem_pk = load_pem_private_key(cert.private_key_pem.bytes(), password=None)
