@@ -2,3 +2,4 @@ pytest
 mock;python_version<"3.3"
 pyopenssl
 git+git://github.com/sigmavirus24/betamax
+trustme
