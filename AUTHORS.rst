@@ -55,3 +55,5 @@ Patches and Suggestions
 - Sam Bull (@greatestape)
 
 - Florence Blanc-Renaud <flo@redhat.com> (@flo-renaud)
+
+- Andrew Chapkowski (@achapkowski)
