@@ -308,5 +308,4 @@ __all__ = (
     'urlencode',
     'gaecontrib',
     'urljoin',
-    'PyOpenSSLContext',
 )
