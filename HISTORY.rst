@@ -1,6 +1,14 @@
 History
 =======
 
+0.10.1 -- 2022-10-25
+--------------------
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fix urllib3 warning to only emit on X509Adapter usage
+
 0.10.0 -- 2022-10-06
 --------------------
 
