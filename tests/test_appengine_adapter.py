@@ -2,7 +2,10 @@
 """Tests for the AppEngineAdapter."""
 import sys
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import pytest
 import requests
 

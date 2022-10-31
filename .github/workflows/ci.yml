@@ -1,0 +1,60 @@
+name: CI
+
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@v3"
+
+      - name: "Setup Python"
+        uses: "actions/setup-python@v3"
+        with:
+          python-version: "3.x"
+          cache: "pip"
+          cache-dependency-path: '**/setup.py'
+
+      - name: "Check packages"
+        run: |
+          python -m pip install -U setuptools wheel twine
+          python setup.py sdist bdist_wheel
+          python -m twine check --strict dist/*
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["2.7", "3.7", "3.8", "3.9", "3.10"]
+        os:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ fromJson('{"macos-latest":"macOS","windows-latest":"Windows","ubuntu-latest":"Ubuntu"}')[matrix.os] }} ${{ matrix.python-version }}
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@v3"
+
+      - name: "Setup Python ${{ matrix.python-version }}"
+        uses: "actions/setup-python@v3"
+        with:
+          python-version: ${{ matrix.python-version }}
+          # Fails on Python 2 + Windows
+          # cache: "pip"
+          # cache-dependency-path: '**/setup.py'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+
+      - name: Test with tox
+        run: tox
