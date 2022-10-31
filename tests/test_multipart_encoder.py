@@ -95,7 +95,6 @@ class TestFileFromURLWrapper(unittest.TestCase):
         self.session = requests.Session()
         self.recorder = get_betamax(self.session)
 
-    @pytest.mark.xfail
     def test_read_file(self):
         url = ('https://stxnext.com/static/img/logo.830ebe551641.svg')
         with self.recorder.use_cassette(
@@ -112,7 +111,6 @@ class TestFileFromURLWrapper(unittest.TestCase):
             assert chunk == b'ww.w3.org/'
             assert self.instance.len == 5147
 
-    @pytest.mark.xfail(strict=False)
     def test_no_content_length_header(self):
         url = (
             'https://api.github.com/repos/sigmavirus24/github3.py/releases/'
@@ -194,7 +192,6 @@ class TestMultipartEncoder(unittest.TestCase):
             m = MultipartEncoder([('field', 'foo'), ('file', fd)])
             assert m.read() is not None
 
-    @pytest.mark.xfail
     def test_reads_file_from_url_wrapper(self):
         s = requests.Session()
         recorder = get_betamax(s)
