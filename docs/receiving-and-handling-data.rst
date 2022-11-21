@@ -10,4 +10,5 @@ package offers the capability of decoding the inbound :class:`bytes` data into a
 
 MultipartDecoder
 ----------------
-.. autoclass:: requests_toolbelt.multipart.encoder.MultipartDecode
+.. autoclass:: requests_toolbelt.multipart.decoder.MultipartDecoder
+Autoclass not working?
