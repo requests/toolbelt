@@ -77,14 +77,14 @@ class MultipartDecoder(object):
     The ``MultipartDecoder`` object parses the multipart payload of
     a bytestring into a tuple of ``Response``-like ``BodyPart`` objects.
 
-    Parameters
-    ----------
-    content : bytes
-        The bytestring to be parsed
-    content_type : str
-        The string value of the Content-Type header
-    encoding : str
-        The encoding to use for the ``BodyPart`` objects, defaults to utf-8
+    :param content: The bytestring to parse
+    :type content: bytes
+    :param content_type: The value of the Content-Type header
+    :type content_type: str
+    :param encoding: The encoding of the response body, defaults to ``'utf-8'``
+    :type encoding: str
+    :returns: A tuple of ``BodyPart`` objects
+    :rtype: tuple
 
     The basic usage is::
 
