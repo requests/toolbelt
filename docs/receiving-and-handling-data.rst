@@ -21,7 +21,7 @@ The basic usage is::
         for part in decoder.parts:
             print(part.headers['content-type'])
 
-If the multipart content is from a response, there's the option of using the ``from_response`` class method:
+If the multipart content is from a response, there's the option of using the ``from_response`` method:
 
 .. code-block:: python
         import requests
@@ -37,4 +37,5 @@ a string, which is the name of the unicode codec to use (default is
 ``'utf-8'``.
 
 .. autoclass:: requests_toolbelt.multipart.encoder.MultipartDecoder
-    
+    Parameters: ``content``: bytes:
+        
