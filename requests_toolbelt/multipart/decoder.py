@@ -86,19 +86,19 @@ class MultipartDecoder(object):
 
     The basic usage is::
 
+        from requests_toolbelt import MultipartDecoder
+
+        decoder = MultipartDecoder(content, content_type)
+        for part in decoder.parts:
+            print(part.headers['content-type'])
+
+    If the multipart content is from a response, basic usage is::
+
         import requests
         from requests_toolbelt import MultipartDecoder
 
         response = requests.get(url)
         decoder = MultipartDecoder.from_response(response)
-        for part in decoder.parts:
-            print(part.headers['content-type'])
-
-    If the multipart content is not from a response, basic usage is::
-
-        from requests_toolbelt import MultipartDecoder
-
-        decoder = MultipartDecoder(content, content_type)
         for part in decoder.parts:
             print(part.headers['content-type'])
 
