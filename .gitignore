@@ -12,6 +12,7 @@ htmlcov/
 .tox/
 venv/
 venv*/
+.venv/
 build/
 *.egg
 .env
