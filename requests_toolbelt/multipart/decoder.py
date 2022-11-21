@@ -83,8 +83,6 @@ class MultipartDecoder(object):
     :type content_type: str
     :param encoding: The encoding of the response body, defaults to ``'utf-8'``
     :type encoding: str
-    :returns: A tuple of ``BodyPart`` objects
-    :rtype: tuple
 
     The basic usage is::
 
