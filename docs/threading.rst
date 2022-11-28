@@ -44,9 +44,9 @@ Here's an example:
     ]
 
     for url in urls:
-        queue.put({'method': 'GET', 'url': url})
+        jobs.put({'method': 'GET', 'url': url})
 
-    p = pool.Pool(job_queue=q)
+    p = pool.Pool(job_queue=jobs)
     p.join_all()
 
     for response in p.responses():
