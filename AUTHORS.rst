@@ -55,3 +55,5 @@ Patches and Suggestions
 - Sam Bull (@greatestape)
 
 - Florence Blanc-Renaud <flo@redhat.com> (@flo-renaud)
+
+- Theron Luhn (https://github.com/luhn)

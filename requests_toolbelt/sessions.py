@@ -70,13 +70,6 @@ class BaseUrlSession(requests.Session):
             self.base_url = base_url
         super(BaseUrlSession, self).__init__()
 
-    def request(self, method, url, *args, **kwargs):
-        """Send the request after generating the complete URL."""
-        url = self.create_url(url)
-        return super(BaseUrlSession, self).request(
-            method, url, *args, **kwargs
-        )
-
     def prepare_request(self, request, *args, **kwargs):
         """Prepare the request after generating the complete URL."""
         request.url = self.create_url(request.url)
