@@ -7,8 +7,6 @@ The toolbelt comes with several different transport adapters for you to use
 with requests. The transport adapters are all kept in
 :mod:`requests_toolbelt.adapters` and include
 
-- :class:`requests_toolbelt.adapters.appengine.AppEngineAdapter`
-
 - :class:`requests_toolbelt.adapters.fingerprint.FingerprintAdapter`
 
 - :class:`requests_toolbelt.adapters.socket_options.SocketOptionsAdapter`
@@ -22,61 +20,6 @@ with requests. The transport adapters are all kept in
 - :class:`requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`
 
 - :class:`requests_toolbelt.adapters.x509.X509Adapter`
-
-AppEngineAdapter
-----------------
-
-.. versionadded:: 0.6.0
-
-As of version 2.10.0, Requests will be capable of supporting Google's App
-Engine platform. In order to use Requests on GAE, however, you will need a
-custom adapter found here as
-:class:`~requests_toolbelt.adapters.appengine.AppEngineAdapter`. There are two
-ways to take advantage of this support at the moment:
-
-#. Using the :class:`~requests_toolbelt.adapters.appengine.AppEngineAdapter`
-   like every other adapter, e.g.,
-
-   .. code-block:: python
-
-       import requests
-       from requests_toolbelt.adapters import appengine
-
-       s = requests.Session()
-       s.mount('http://', appengine.AppEngineAdapter())
-       s.mount('https://', appengine.AppEngineAdapter())
-
-#. By monkey-patching requests to always use the provided adapter:
-
-   .. code-block:: python
-
-       import requests
-       from requests_toolbelt.adapters import appengine
-
-       appengine.monkeypatch()
-
-.. _insecure_appengine:
-
-If you should need to disable certificate validation when monkeypatching (to
-force third-party libraries that use Requests to not validate certificates, if
-they do not provide API surface to do so, for example), you can disable it:
-
-   .. code-block:: python
-
-       from requests_toolbelt.adapters import appengine
-       appengine.monkeypatch(validate_certificate=False)
-
-   .. warning::
-
-       If ``validate_certificate`` is ``False``, the monkeypatched adapter
-       will *not* validate certificates. This effectively sets the
-       ``validate_certificate`` argument to urlfetch.Fetch() to ``False``. You
-       should avoid using this wherever possible. Details can be found in the
-       `documentation for urlfetch.Fetch()`_.
-
-       .. _documentation for urlfetch.Fetch(): https://cloud.google.com/appengine/docs/python/refdocs/google.appengine.api.urlfetch
-
-.. autoclass:: requests_toolbelt.adapters.appengine.AppEngineAdapter
 
 FingerprintAdapter
 ------------------

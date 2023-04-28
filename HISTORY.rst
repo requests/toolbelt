@@ -1,6 +1,17 @@
 History
 =======
 
+1.0.0 -- 2023-XX-XX
+-------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Removed Google App Engine support
+
+Fixed Bugs
+~~~~~~~~~~
+
 0.10.1 -- 2022-10-25
 --------------------
 
