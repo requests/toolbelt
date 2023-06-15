@@ -8,6 +8,7 @@ urllib3 without providing a shim.
     This module is private. If you use it, and something breaks, you were
     warned
 """
+from collections.abc import Mapping, MutableMapping
 import sys
 
 import requests
