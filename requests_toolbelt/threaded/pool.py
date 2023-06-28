@@ -9,16 +9,16 @@ from .._compat import queue
 class Pool(object):
     """Pool that manages the threads containing sessions.
 
-    :param queue:
+    :param job_queue:
         The queue you're expected to use to which you should add items.
-    :type queue: queue.Queue
+    :type job_queue: queue.Queue
     :param initializer:
         Function used to initialize an instance of ``session``.
     :type initializer: collections.Callable
     :param auth_generator:
         Function used to generate new auth credentials for the session.
     :type auth_generator: collections.Callable
-    :param int num_process:
+    :param int num_processes:
         Number of threads to create.
     :param session:
     :type session: requests.Session
