@@ -144,6 +144,31 @@ Example Commit Message
 
     Closes #1234567
 
+Releasing a new version
+-----------------------
+
+#. Prepare the release pull request
+
+   * In ``requests_toolbelt/__init__.py``, bump the version number
+
+   * In ``HISTORY.rst``, include noteworthy changes under the relevant sections
+
+   * Open a pull request with the above changes, and make any changes required
+     to get it approved
+
+#. "Squash and merge" the pull request in GitHub, which will give you a release
+   commit
+
+#. Tag the release with that commit:
+
+   * Create the tag: ``git tag -s -a $VERSION -m "Release v$VERSION"``
+
+   * Push it the main repository (not you fork!): ``git push <remote> --tags``
+
+#. Upload it on PyPI with ``tox -e release``
+
+#. [Optional] Announce it where relevant (social media, GitHub issues...)
+
 Footnotes
 ---------
 

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from requests.adapters import DEFAULT_POOLSIZE, DEFAULT_POOLBLOCK
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 from requests_toolbelt.adapters.source import SourceAddressAdapter
 
 import pytest

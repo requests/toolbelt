@@ -55,3 +55,5 @@ Patches and Suggestions
 - Sam Bull (@greatestape)
 
 - Chris van Marle (https://github.com/qistoph)
+
+- Florence Blanc-Renaud <flo@redhat.com> (@flo-renaud)
