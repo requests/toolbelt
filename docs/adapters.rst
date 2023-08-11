@@ -77,6 +77,8 @@ Requests supports SSL Verification by default. However, it relies on
 the user making a request with the URL that has the hostname in it. If,
 however, the user needs to make a request with the IP address, they cannot
 actually verify a certificate against the hostname they want to request.
+This adapter sets the `Server Name Indication`_ to, and verifies the
+certificate against, the hostname in the Host header.
 
 To accomodate this very rare need, we've added
 :class:`~requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`.
@@ -91,6 +93,8 @@ Example usage:
         s.get("https://93.184.216.34", headers={"Host": "example.org"})
 
 .. autoclass:: requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter
+
+.. _Server Name Indication: https://en.wikipedia.org/wiki/Server_Name_Indication
 
 SourceAddressAdapter
 --------------------
