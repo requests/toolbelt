@@ -431,6 +431,9 @@ def total_len(o):
 
     if hasattr(o, 'len'):
         return o.len
+    
+    if hasattr(o, 'getheader'):
+        return int(o.getheader('Content-Length', 0))
 
     if hasattr(o, 'fileno'):
         try:
