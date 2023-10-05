@@ -4,7 +4,7 @@
 from requests.auth import AuthBase
 
 
-class HTTPBearerAuth(auth.AuthBase):
+class HTTPBearerAuth(AuthBase):
     """HTTP Bearer Token Authentication
     """
 

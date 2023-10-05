@@ -18,7 +18,7 @@ class TestBearerAuth(unittest.TestCase):
     def cassette(self):
         return self.recorder.use_cassette(
             'httpbin_bearer_auth',
-            match_requests_on=['method', 'uri', 'digest-auth']
+            match_requests_on=['method', 'uri']
         )
 
     def test_bearer(self):
