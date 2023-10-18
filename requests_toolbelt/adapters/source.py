@@ -54,6 +54,15 @@ class SourceAddressAdapter(HTTPAdapter):
 
         super(SourceAddressAdapter, self).__init__(**kwargs)
 
+    def __getstate__(self):
+        state = super(SourceAddressAdapter, self).__getstate__()
+        state['source_address'] = self.source_address
+        return state
+
+    def __setstate__(self, state):
+        self.source_address = state['source_address']
+        super(SourceAddressAdapter, self).__setstate__(state)
+
     def init_poolmanager(self, connections, maxsize, block=False):
         self.poolmanager = poolmanager.PoolManager(
             num_pools=connections,
