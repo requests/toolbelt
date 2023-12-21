@@ -67,7 +67,7 @@ class TestGuessProxyAuth(unittest.TestCase):
     def test_handle_407_header_basic(self, extract_cookies_to_jar, proxy_auth_call):
         req = mock.Mock()
         r = mock.Mock()
-        r.headers = dict()
+        r.headers = {}
         r.request.copy.return_value = req
 
         proxy_auth_call.return_value = requests.Response()

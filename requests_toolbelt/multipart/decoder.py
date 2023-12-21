@@ -106,7 +106,7 @@ class MultipartDecoder(object):
         #: Response body encoding
         self.encoding = encoding
         #: Parsed parts of the multipart response body
-        self.parts = tuple()
+        self.parts = ()
         self._find_boundary()
         self._parse_body(content)
 
