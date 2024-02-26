@@ -1,6 +1,45 @@
 History
 =======
 
+1.0.0 -- 2023-05-01
+-------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Removed Google App Engine support to allow using urllib3 2.0
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Ensured the test suite no longer reaches the Internet
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+- Added explicit support for Python 3.11
+
+0.10.1 -- 2022-10-25
+--------------------
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fix urllib3 warning to only emit on X509Adapter usage
+
+0.10.0 -- 2022-10-06
+--------------------
+
+New Features
+~~~~~~~~~~~~
+
+- Add support for preparing requests in BaseUrlSession
+
+Fixed Bugs
+~~~~~~~~~~
+
+- Fixing missing newline in dump utility
+
 0.9.1 -- 2019-01-29
 -------------------
 

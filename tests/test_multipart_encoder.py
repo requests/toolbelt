@@ -3,6 +3,7 @@ import io
 import unittest
 
 import requests
+
 from requests_toolbelt._compat import filepost
 from requests_toolbelt.multipart.encoder import (
     CustomBytesIO,
@@ -94,14 +95,14 @@ class TestCustomBytesIO(unittest.TestCase):
 
 class TestFileFromURLWrapper(unittest.TestCase):
     def setUp(self):
-        s = requests.Session()
-        self.recorder = get_betamax(s)
+        self.session = requests.Session()
+        self.recorder = get_betamax(self.session)
 
     def test_read_file(self):
         url = ('https://stxnext.com/static/img/logo.830ebe551641.svg')
         with self.recorder.use_cassette(
                 'file_for_download', **preserve_bytes):
-            self.instance = FileFromURLWrapper(url)
+            self.instance = FileFromURLWrapper(url, session=self.session)
             assert self.instance.len == 5177
             chunk = self.instance.read(20)
             assert chunk == b'<svg xmlns="http://w'
@@ -119,9 +120,9 @@ class TestFileFromURLWrapper(unittest.TestCase):
             'assets/37944'
         )
         with self.recorder.use_cassette(
-                'stream_response_to_file', **preserve_bytes):
+                'stream_response_without_content_length_to_file', **preserve_bytes):
             with self.assertRaises(FileNotSupportedError) as context:
-                FileFromURLWrapper(url)
+                FileFromURLWrapper(url, session=self.session)
             assert context.exception.__str__() == (
                 'Data from provided URL https://api.github.com/repos/s'
                 'igmavirus24/github3.py/releases/assets/37944 is not '
@@ -201,7 +202,7 @@ class TestMultipartEncoder(unittest.TestCase):
         with recorder.use_cassette(
                 'file_for_download'):
             m = MultipartEncoder(
-                [('field', 'foo'), ('file', FileFromURLWrapper(url))])
+                [('field', 'foo'), ('file', FileFromURLWrapper(url, session=s))])
         assert m.read() is not None
 
     def test_reads_open_file_objects_with_a_specified_filename(self):
