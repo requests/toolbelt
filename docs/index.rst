@@ -22,6 +22,7 @@ Overview
 
     user
     contributing
+    security
 
 Full Documentation
 ------------------
