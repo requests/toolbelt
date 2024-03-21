@@ -4,7 +4,7 @@ The Requests Toolbelt
 This is just a collection of utilities for `python-requests`_, but don't
 really belong in ``requests`` proper. The minimum tested requests version is
 ``2.1.0``. In reality, the toolbelt should work with ``2.0.1`` as well, but
-some idiosyncracies prevent effective or sane testing on that version.
+some idiosyncrasies prevent effective or sane testing on that version.
 
 ``pip install requests-toolbelt`` to get started!
 
