@@ -20,5 +20,4 @@ specified so all future requests need not specify the complete URL. To create
 one simplified and easy to configure version, we've added the
 :class:`requests_toolbelt.sessions.BaseUrlSession` object to the Toolbelt.
 
-.. autoclass:: requests_toolbelt.sessions.BaseUrlSession
-    :members:
+.. class:: requests_toolbelt.sessions.BaseUrlSession
