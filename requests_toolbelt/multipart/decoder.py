@@ -77,21 +77,28 @@ class MultipartDecoder(object):
     The ``MultipartDecoder`` object parses the multipart payload of
     a bytestring into a tuple of ``Response``-like ``BodyPart`` objects.
 
+    :param content: The bytestring to parse
+    :type content: bytes
+    :param content_type: The value of the Content-Type header
+    :type content_type: str
+    :param encoding: The encoding of the response body, defaults to ``'utf-8'``
+    :type encoding: str
+
     The basic usage is::
+
+        from requests_toolbelt import MultipartDecoder
+
+        decoder = MultipartDecoder(content, content_type)
+        for part in decoder.parts:
+            print(part.headers['content-type'])
+
+    If the multipart content is from a response, basic usage is::
 
         import requests
         from requests_toolbelt import MultipartDecoder
 
         response = requests.get(url)
         decoder = MultipartDecoder.from_response(response)
-        for part in decoder.parts:
-            print(part.headers['content-type'])
-
-    If the multipart content is not from a response, basic usage is::
-
-        from requests_toolbelt import MultipartDecoder
-
-        decoder = MultipartDecoder(content, content_type)
         for part in decoder.parts:
             print(part.headers['content-type'])
 
