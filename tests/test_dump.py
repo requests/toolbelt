@@ -29,7 +29,7 @@ HTTP_UNKNOWN = 5000
 
 class TestSimplePrivateFunctions(object):
 
-    """Excercise simple private functions in one logical place."""
+    """Exercise simple private functions in one logical place."""
 
     def test_coerce_to_bytes_skips_byte_strings(self):
         """Show that _coerce_to_bytes skips bytes input."""
@@ -150,7 +150,7 @@ class RequestResponseMixin(object):
 
 class TestResponsePrivateFunctions(RequestResponseMixin):
 
-    """Excercise private functions using responses."""
+    """Exercise private functions using responses."""
 
     def test_get_proxy_information_sans_proxy(self):
         """Show no information is returned when not using a proxy."""
@@ -333,7 +333,7 @@ class TestResponsePrivateFunctions(RequestResponseMixin):
 
 class TestResponsePublicFunctions(RequestResponseMixin):
 
-    """Excercise public functions using responses."""
+    """Exercise public functions using responses."""
 
     def test_dump_response_fails_without_request(self):
         """Show that a response without a request raises a ValueError."""

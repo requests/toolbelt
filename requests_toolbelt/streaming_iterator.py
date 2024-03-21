@@ -26,7 +26,7 @@ class StreamingIterator(object):
     support well. Additionally, you may want to set the content-length
     yourself to avoid this but that will not work. The only way to preempt
     requests using a chunked transfer-encoding and forcing it to stream the
-    uploads is to mimic a very specific interace. Instead of having to know
+    uploads is to mimic a very specific interface. Instead of having to know
     these details you can instead just use this class. You simply provide the
     size and iterator and pass the instance of StreamingIterator to requests
     via the data parameter like so:
