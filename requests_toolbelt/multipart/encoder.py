@@ -127,6 +127,12 @@ class MultipartEncoder(object):
         # Load boundary into buffer
         self._write_boundary()
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, bytes):
+            return self.to_string() == other
+        else:
+            super().__eq__(other)
+
     @property
     def len(self):
         """Length of the multipart/form-data body.
@@ -227,6 +233,8 @@ class MultipartEncoder(object):
                     file_name, file_pointer, file_type = v
                 else:
                     file_name, file_pointer, file_type, file_headers = v
+            elif v is None:
+                continue
             else:
                 file_pointer = v
 
