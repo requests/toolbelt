@@ -21,7 +21,6 @@ Fixed Bugs
 ~~~~~~~~~~
 
 - Ensured the test suite no longer reaches the Internet
-- Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
 
 Miscellaneous
 ~~~~~~~~~~~~~
