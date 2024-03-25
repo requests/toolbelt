@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
+import pickle
 import pytest
 
 from requests_toolbelt import sessions
@@ -53,3 +54,9 @@ class TestBasedSession(unittest.TestCase):
             response = session.send(prepared_request)
         response.raise_for_status()
         assert response.json()['headers']['Host'] == 'httpbin.org'
+
+    def test_pickle_unpickle_session(self):
+        session = sessions.BaseUrlSession('https://www.google.com')
+        pickled_session = pickle.dumps(session)
+        unpickled_session = pickle.loads(pickled_session)
+        assert session.base_url == unpickled_session.base_url

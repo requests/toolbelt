@@ -87,3 +87,15 @@ class BaseUrlSession(requests.Session):
     def create_url(self, url):
         """Create the URL based off this partial path."""
         return urljoin(self.base_url, url)
+
+    def __getstate__(self):
+        """Save base URL as well during the pickle"""
+        states = super(BaseUrlSession, self).__getstate__()
+        states.update({"base_url": self.base_url})
+        return states
+
+    def __setstate__(self, state):
+        """Load base URL as well during the unpickle"""
+        super(BaseUrlSession, self).__setstate__(state)
+        if "base_url" in state:
+            self.base_url = state["base_url"]
