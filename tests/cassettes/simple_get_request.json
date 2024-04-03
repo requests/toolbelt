@@ -1,1 +1,64 @@
-{"recorded_with": "betamax/0.5.1", "http_interactions": [{"request": {"body": {"encoding": "utf-8", "string": ""}, "uri": "https://httpbin.org/get", "headers": {"Connection": ["keep-alive"], "User-Agent": ["python-requests/2.8.1"], "Accept": ["*/*"], "Accept-Encoding": ["gzip, deflate"]}, "method": "GET"}, "recorded_at": "2015-11-14T22:33:32", "response": {"status": {"code": 200, "message": "OK"}, "url": "https://httpbin.org/get", "body": {"encoding": null, "string": "{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"python-requests/2.8.1\"\n  }, \n  \"origin\": \"<IPADDR>\", \n  \"url\": \"https://httpbin.org/get\"\n}\n"}, "headers": {"Content-Type": ["application/json"], "Date": ["Sat, 14 Nov 2015 22:33:30 GMT"], "Connection": ["keep-alive"], "Server": ["nginx"], "Access-Control-Allow-Credentials": ["true"], "Content-Length": ["239"], "Access-Control-Allow-Origin": ["*"]}}}]}
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2023-04-28T18:04:48",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.28.1"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://httpbin.org/get"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"python-requests/2.28.1\", \n    \"X-Amzn-Trace-Id\": \"Root=1-644c0ac0-4986bed42b965a007af785e1\"\n  }, \n  \"origin\": \"83.198.52.66\", \n  \"url\": \"https://httpbin.org/get\"\n}\n"
+        },
+        "headers": {
+          "Access-Control-Allow-Credentials": [
+            "true"
+          ],
+          "Access-Control-Allow-Origin": [
+            "*"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "306"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 28 Apr 2023 18:04:48 GMT"
+          ],
+          "Server": [
+            "gunicorn/19.9.0"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://httpbin.org/get"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.2"
+}
