@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.serialization import (load_pem_private_key,
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.backends import default_backend
 
-from datetime import datetime
+from datetime import datetime, timezone
 from requests.adapters import HTTPAdapter
 import requests
 
@@ -149,8 +149,8 @@ class X509Adapter(HTTPAdapter):
 def check_cert_dates(cert):
     """Verify that the supplied client cert is not invalid."""
 
-    now = datetime.utcnow()
-    if cert.not_valid_after < now or cert.not_valid_before > now:
+    now = datetime.now(timezone.utc)
+    if cert.not_valid_after_utc < now or cert.not_valid_before_utc > now:
         raise ValueError('Client certificate expired: Not After: '
                          '{:%Y-%m-%d %H:%M:%SZ} '
                          'Not Before: {:%Y-%m-%d %H:%M:%SZ}'
