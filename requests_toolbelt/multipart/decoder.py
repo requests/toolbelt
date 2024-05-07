@@ -33,7 +33,7 @@ def _header_parser(string, encoding):
         string = string.decode(encoding)
     headers = email.parser.HeaderParser().parsestr(string).items()
     return (
-        (encode_with(k, encoding), encode_with(v, encoding))
+        (k, encode_with(v, encoding))
         for k, v in headers
     )
 
