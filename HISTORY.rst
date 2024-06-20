@@ -104,7 +104,7 @@ New Features
 Fixed Bugs
 ~~~~~~~~~~
 
-- Include ``_validate_certificate`` in the lits of picked attributes on the
+- Include ``_validate_certificate`` in the list of picked attributes on the
   ``AppEngineAdapter``.
 - Fix backwards incompatibility in ``get_encodings_from_content``
 
@@ -278,7 +278,7 @@ on the project's page.
 New Features
 ~~~~~~~~~~~~
 
-- A naive implemenation of a thread pool is now included in the toolbelt. See
+- A naive implementation of a thread pool is now included in the toolbelt. See
   the docs in ``docs/threading.rst`` or on `Read The Docs
   <https://toolbelt.readthedocs.io/>`_.
 
