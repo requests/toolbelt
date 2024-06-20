@@ -35,6 +35,10 @@ class HostHeaderSSLAdapter(HTTPAdapter):
         connection_pool_kwargs = self.poolmanager.connection_pool_kw
 
         if host_header:
+            # host header can include port, but we should not include it in the
+            # assert_hostname
+            host_header = host_header.split(':')[0]
+
             connection_pool_kwargs["assert_hostname"] = host_header
             connection_pool_kwargs["server_hostname"] = host_header
         elif "assert_hostname" in connection_pool_kwargs:
