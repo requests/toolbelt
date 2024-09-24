@@ -539,13 +539,18 @@ class Part(object):
         return written
 
 
-class CustomBytesIO(io.BytesIO):
-    def __init__(self, buffer=None, encoding='utf-8', no_content=False):
+class ContentIO(object):
+    def __init__(self, no_content=False):
         self.no_content = no_content
+
+
+class CustomBytesIO(ContentIO, io.BytesIO):
+    def __init__(self, buffer=None, encoding='utf-8', no_content=False):
+        ContentIO.__init__(self, no_content=no_content)
         if self.no_content:
             buffer = None
         buffer = encode_with(buffer, encoding)
-        super(CustomBytesIO, self).__init__(buffer)
+        io.BytesIO.__init__(self, buffer)
 
     def _get_end(self):
         current_pos = self.tell()
@@ -576,8 +581,9 @@ class CustomBytesIO(io.BytesIO):
             self.seek(0, 0)  # We want to be at the beginning
 
 
-class FileWrapper(object):
+class FileWrapper(ContentIO):
     def __init__(self, file_object):
+        ContentIO.__init__(self)
         self.fd = file_object
 
     @property
@@ -588,7 +594,7 @@ class FileWrapper(object):
         return self.fd.read(length)
 
 
-class FileFromURLWrapper(object):
+class FileFromURLWrapper(ContentIO):
     """File from URL wrapper.
 
     The :class:`FileFromURLWrapper` object gives you the ability to stream file
@@ -635,6 +641,7 @@ class FileFromURLWrapper(object):
     """
 
     def __init__(self, file_url, session=None):
+        ContentIO.__init__(self)
         self.session = session or requests.Session()
         requested_file = self._request_for_file(file_url)
         self.len = int(requested_file.headers['content-length'])

@@ -92,7 +92,7 @@ class TestBodyPart(unittest.TestCase):
         assert part_3.content == b'No headers\r\nTwo lines'
 
     def test_no_crlf_crlf_in_content(self):
-        content = b'no CRLF CRLF here!\r\n'
+        content = b'no CRLF CRLF here!'
         with pytest.raises(ImproperBodyPartContentException):
             BodyPart(content, 'utf-8')
 
@@ -191,3 +191,25 @@ class TestMultipartDecoder(unittest.TestCase):
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
+    def test_no_content(self):
+        dec = MultipartDecoder(
+            b'\r\n'.join([
+                b'--boundary',
+                b'Header-1: Header-Value-1',
+                b'Header-2: Header-Value-2',
+                b'\r\n'
+                b'--boundary',
+                b'Header-3: Header-Value-3',
+                b'Header-4: Header-Value-4',
+                b'\r\n'
+                b'some contents',
+                b'--boundary--',
+
+            ]),
+            content_type='multipart/mixed; boundary="boundary"'
+        )
+        assert dec.parts[0].headers == {b'Header-1': b'Header-Value-1', b'Header-2': b'Header-Value-2'}
+        assert dec.parts[0].content is None
+        assert dec.parts[1].headers == {b'Header-3': b'Header-Value-3', b'Header-4': b'Header-Value-4'}
+        assert dec.parts[1].content == b'some contents'
