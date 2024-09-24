@@ -201,14 +201,11 @@ class MultipartEncoder(ContentIO):
         while amount == -1 or amount > 0:
             written = 0
             if part and not part.bytes_left_to_write():
-                next_part = self._next_part()
                 # distinguish no content from empty string
-                # also, avoid superfluous newlines if multipart is done
-                # this is mostly relevant when nesting multipart
-                if not part.body.no_content and next_part is not None:
+                if not part.body.no_content:
                     written += self._write(b'\r\n')
                 written += self._write_boundary()
-                part = next_part
+                part = self._next_part()
 
             if not part:
                 written += self._write_closing_boundary()
