@@ -84,12 +84,15 @@ class MultipartEncoder(object):
 
     """
 
-    def __init__(self, fields, boundary=None, encoding='utf-8'):
+    def __init__(self, fields, boundary=None, encoding='utf-8', content_type='multipart/form-data'):
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
 
         # Computed boundary
         self.boundary = '--{}'.format(self.boundary_value)
+
+        # Multipart content
+        self._content_type = content_type
 
         #: Encoding of the data being passed in
         self.encoding = encoding
@@ -191,7 +194,9 @@ class MultipartEncoder(object):
         while amount == -1 or amount > 0:
             written = 0
             if part and not part.bytes_left_to_write():
-                written += self._write(b'\r\n')
+                # distinguish no content from empty string
+                if not part.body.no_content:
+                    written += self._write(b'\r\n')
                 written += self._write_boundary()
                 part = self._next_part()
 
@@ -227,6 +232,9 @@ class MultipartEncoder(object):
                     file_name, file_pointer, file_type = v
                 else:
                     file_name, file_pointer, file_type, file_headers = v
+            elif isinstance(v, Part):
+                file_pointer = v.body
+                file_headers = v.headers
             else:
                 file_pointer = v
 
@@ -272,9 +280,7 @@ class MultipartEncoder(object):
 
     @property
     def content_type(self):
-        return str(
-            'multipart/form-data; boundary={}'.format(self.boundary_value)
-            )
+        return '{}; boundary={}'.format(self._content_type, self.boundary_value)
 
     def to_string(self):
         """Return the entirety of the data in the encoder.
@@ -461,6 +467,9 @@ def reset(buffer):
 
 def coerce_data(data, encoding):
     """Ensure that every object's __len__ behaves uniformly."""
+    if data is None:
+        return CustomBytesIO(no_content=True)
+
     if not isinstance(data, CustomBytesIO):
         if hasattr(data, 'getvalue'):
             return CustomBytesIO(data.getvalue(), encoding)
@@ -531,7 +540,10 @@ class Part(object):
 
 
 class CustomBytesIO(io.BytesIO):
-    def __init__(self, buffer=None, encoding='utf-8'):
+    def __init__(self, buffer=None, encoding='utf-8', no_content=False):
+        self.no_content = no_content
+        if self.no_content:
+            buffer = None
         buffer = encode_with(buffer, encoding)
         super(CustomBytesIO, self).__init__(buffer)
 

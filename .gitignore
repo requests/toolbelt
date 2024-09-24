@@ -16,3 +16,5 @@ build/
 *.egg
 .env
 .cache/
+.vscode
+.idea
