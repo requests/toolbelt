@@ -21,7 +21,12 @@ class FileNotSupportedError(Exception):
     """File not supported error."""
 
 
-class MultipartEncoder(object):
+class ContentIO(object):
+    def __init__(self, no_content=False):
+        self.no_content = no_content
+
+
+class MultipartEncoder(ContentIO):
 
     """
 
@@ -85,6 +90,8 @@ class MultipartEncoder(object):
     """
 
     def __init__(self, fields, boundary=None, encoding='utf-8', content_type='multipart/form-data'):
+        ContentIO.__init__(self)
+
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
 
@@ -194,11 +201,14 @@ class MultipartEncoder(object):
         while amount == -1 or amount > 0:
             written = 0
             if part and not part.bytes_left_to_write():
+                next_part = self._next_part()
                 # distinguish no content from empty string
-                if not part.body.no_content:
+                # also, avoid superfluous newlines if multipart is done
+                # this is mostly relevant when nesting multipart
+                if not part.body.no_content and next_part is not None:
                     written += self._write(b'\r\n')
                 written += self._write_boundary()
-                part = self._next_part()
+                part = next_part
 
             if not part:
                 written += self._write_closing_boundary()
@@ -325,7 +335,7 @@ def IDENTITY(monitor):
     return monitor
 
 
-class MultipartEncoderMonitor(object):
+class MultipartEncoderMonitor(ContentIO):
 
     """
     An object used to monitor the progress of a :class:`MultipartEncoder`.
@@ -377,6 +387,8 @@ class MultipartEncoderMonitor(object):
     """
 
     def __init__(self, encoder, callback=None):
+        ContentIO.__init__(self)
+
         #: Instance of the :class:`MultipartEncoder` being monitored
         self.encoder = encoder
 
@@ -509,6 +521,9 @@ class Part(object):
         :returns: bool -- ``True`` if there are bytes left to write, otherwise
             ``False``
         """
+        if getattr(self.body, "finished", False):  # part is a nested multipart and has finished reading
+            return False
+
         to_read = 0
         if self.headers_unread:
             to_read += len(self.headers)
@@ -535,13 +550,10 @@ class Part(object):
             if size != -1:
                 amount_to_read = size - written
             written += buffer.append(self.body.read(amount_to_read))
+            if getattr(self, 'bytes_left_to_write', False):
+                return written
 
         return written
-
-
-class ContentIO(object):
-    def __init__(self, no_content=False):
-        self.no_content = no_content
 
 
 class CustomBytesIO(ContentIO, io.BytesIO):
