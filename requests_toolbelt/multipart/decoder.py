@@ -59,9 +59,7 @@ class BodyPart(object):
             first, self.content = _split_on_find(content, b'\r\n\r\n')
             if first != b'':
                 headers = _header_parser(first.lstrip(), encoding)
-        # because pre-split by boundary was done,
-        # having only a single newline and the '--'
-        # means that this is a 'no content' part
+        # process 'no content' part
         elif content.endswith(b'\r\n') and not content.endswith(b'\r\n\r\n'):
             self.content = None
             headers = _header_parser(content.strip(), encoding)
