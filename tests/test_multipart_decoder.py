@@ -92,7 +92,7 @@ class TestBodyPart(unittest.TestCase):
         assert part_3.content == b'No headers\r\nTwo lines'
 
     def test_no_crlf_crlf_in_content(self):
-        content = b'no CRLF CRLF here!\r\n'
+        content = b'no CRLF CRLF here!'
         with pytest.raises(ImproperBodyPartContentException):
             BodyPart(content, 'utf-8')
 
@@ -191,3 +191,40 @@ class TestMultipartDecoder(unittest.TestCase):
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
+    def test_no_content_empty_string_and_contents(self):
+        contents = b'\r\n'.join([
+            b'--boundary',
+            b'Header-1: Header-Value-1',
+            b'Header-2: Header-Value-2',
+            b'',
+            b'--boundary',
+            b'Header-3: Header-Value-3',
+            b'Header-4: Header-Value-4',
+            b'',
+            b'some contents',
+            b'--boundary',
+            b'Header-5: Header-Value-5',
+            b'Header-6: Header-Value-6',
+            b'',
+            b'',
+            b'--boundary--',
+        ])
+        dec = MultipartDecoder(contents, content_type='multipart/mixed; boundary="boundary"')
+        assert dec.parts[0].headers == {b'Header-1': b'Header-Value-1', b'Header-2': b'Header-Value-2'}
+        assert dec.parts[0].content is None
+        assert dec.parts[1].headers == {b'Header-3': b'Header-Value-3', b'Header-4': b'Header-Value-4'}
+        assert dec.parts[1].content == b'some contents'
+        assert dec.parts[2].headers == {b'Header-5': b'Header-Value-5', b'Header-6': b'Header-Value-6'}
+        assert dec.parts[2].content == b''
+
+    def test_no_content_crlf_separator_required(self):
+        contents = b'\r\n'.join([
+            b'--boundary',
+            b'Header-1: Header-Value-1',
+            b'Header-2: Header-Value-2',
+            # missing CRLF here
+            b'--boundary',
+        ])
+        with pytest.raises(ImproperBodyPartContentException):
+            MultipartDecoder(contents, content_type='multipart/mixed; boundary="boundary"')

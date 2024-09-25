@@ -59,6 +59,14 @@ class BodyPart(object):
             first, self.content = _split_on_find(content, b'\r\n\r\n')
             if first != b'':
                 headers = _header_parser(first.lstrip(), encoding)
+        # process 'no content' part
+        elif content.endswith(b'\r\n') and not content.endswith(b'\r\n\r\n'):
+            self.content = None
+            headers = _header_parser(content.strip(), encoding)
+            if not headers:
+                raise ImproperBodyPartContentException(
+                    'No contents part without any header is invalid.'
+                )
         else:
             raise ImproperBodyPartContentException(
                 'content does not contain CR-LF-CR-LF'
@@ -68,6 +76,8 @@ class BodyPart(object):
     @property
     def text(self):
         """Content of the ``BodyPart`` in unicode."""
+        if self.content is None:
+            return None
         return self.content.decode(self.encoding)
 
 

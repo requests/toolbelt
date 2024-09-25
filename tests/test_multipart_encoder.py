@@ -319,5 +319,51 @@ class TestMultipartEncoder(unittest.TestCase):
         output = m.read().decode('utf-8')
         assert output == '----90967316f8404798963cce746a4f4ef9--\r\n'
 
+    def test_nested_multipart(self):
+        sub_fields = {
+            'item1': (None, b'data', 'text/plain', {'Extra-Header': 'data'}),
+            'item2': (None, b'[1,2,3]', 'application/json', {'Extra-Header': 'json'}),
+        }
+        sub_multi = MultipartEncoder(fields=sub_fields, content_type='multipart/mixed')
+        fields = {
+            'file': ('filename', b'{"item1": "data", "item2": [1,2,3]}', 'application/json', {'Extra-Header': 'file'}),
+            'multi': (None, sub_multi, sub_multi.content_type, {'Extra-Header': 'multi'}),
+        }
+        multi = MultipartEncoder(fields=fields, content_type='multipart/alternate')
+        sub_boundary = sub_multi.boundary.encode().strip()
+        top_boundary = multi.boundary.encode().strip()
+        content = multi.read()
+        expect = b'\r\n'.join([
+            top_boundary,
+            b'Content-Disposition: form-data; name="file"; filename="filename"',
+            b'Content-Type: application/json',
+            b'Extra-Header: file',
+            b'',
+            b'{"item1": "data", "item2": [1,2,3]}',
+            top_boundary,
+            b'Content-Disposition: form-data; name="multi"',
+            b'Content-Type: multipart/mixed; boundary=' + sub_boundary.strip(b'-'),
+            b'Extra-Header: multi',
+            b'',
+            sub_boundary,
+            b'Content-Disposition: form-data; name="item1"',
+            b'Content-Type: text/plain',
+            b'Extra-Header: data',
+            b'',
+            b'data',
+            sub_boundary,
+            b'Content-Disposition: form-data; name="item2"',
+            b'Content-Type: application/json',
+            b'Extra-Header: json',
+            b'',
+            b'[1,2,3]',
+            sub_boundary + b'--',
+            b'',
+            top_boundary + b'--',
+            b'',
+        ])
+        assert content == expect
+
+
 if __name__ == '__main__':
     unittest.main()
