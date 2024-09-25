@@ -70,7 +70,6 @@ class BodyPart(object):
                     'No contents part without any header is invalid.'
                 )
         else:
-            print("==" + content.decode() + "===")
             raise ImproperBodyPartContentException(
                 'content does not contain CR-LF-CR-LF'
             )
