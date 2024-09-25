@@ -13,6 +13,7 @@ import os
 from uuid import uuid4
 
 import requests
+from requests.structures import CaseInsensitiveDict
 
 from .._compat import fields
 
@@ -248,6 +249,7 @@ class MultipartEncoder(ContentIO):
             field = fields.RequestField(name=k, data=file_pointer,
                                         filename=file_name,
                                         headers=file_headers)
+            file_headers = CaseInsensitiveDict(file_headers or {})
             file_type = file_type or file_headers.get("Content-Type")
             file_loc = file_headers.get("Content-Location")
             file_dis = (file_headers.get("Content-Disposition") or "").split(";", 1)[0].strip()
