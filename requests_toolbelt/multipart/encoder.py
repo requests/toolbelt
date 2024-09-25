@@ -248,7 +248,14 @@ class MultipartEncoder(ContentIO):
             field = fields.RequestField(name=k, data=file_pointer,
                                         filename=file_name,
                                         headers=file_headers)
-            field.make_multipart(content_type=file_type)
+            file_type = file_type or file_headers.get("Content-Type")
+            file_loc = file_headers.get("Content-Location")
+            file_dis = (file_headers.get("Content-Disposition") or "").split(";", 1)[0].strip()
+            field.make_multipart(
+                content_type=file_type,
+                content_location=file_loc,
+                content_disposition=file_dis,
+            )
             yield field
 
     def _prepare_parts(self):
