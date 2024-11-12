@@ -12,9 +12,9 @@ class SessionThread(object):
                  exception_queue):
         self._session = initialized_session
         self._jobs = job_queue
-        self._create_worker()
         self._responses = response_queue
         self._exceptions = exception_queue
+        self._create_worker()
 
     def _create_worker(self):
         self._worker = threading.Thread(
