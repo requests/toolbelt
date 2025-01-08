@@ -41,6 +41,7 @@ GitLab's API, you would set up and use your
 
     def gitlab_auth(request):
         request.headers['PRIVATE-TOKEN'] = 'asecrettoken'
+        return request
 
     handler = AuthHandler({
         'https://api.github.com': ('sigmavirus24', 'apassword'),
