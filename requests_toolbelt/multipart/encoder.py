@@ -13,6 +13,7 @@ import os
 from uuid import uuid4
 
 import requests
+from requests.structures import CaseInsensitiveDict
 
 from .._compat import fields
 
@@ -21,7 +22,12 @@ class FileNotSupportedError(Exception):
     """File not supported error."""
 
 
-class MultipartEncoder(object):
+class ContentIO(object):
+    def __init__(self, no_content=False):
+        self.no_content = no_content
+
+
+class MultipartEncoder(ContentIO):
 
     """
 
@@ -84,12 +90,17 @@ class MultipartEncoder(object):
 
     """
 
-    def __init__(self, fields, boundary=None, encoding='utf-8'):
+    def __init__(self, fields, boundary=None, encoding='utf-8', content_type='multipart/form-data'):
+        ContentIO.__init__(self)
+
         #: Boundary value either passed in by the user or created
         self.boundary_value = boundary or uuid4().hex
 
         # Computed boundary
         self.boundary = '--{}'.format(self.boundary_value)
+
+        # Multipart content
+        self._content_type = content_type
 
         #: Encoding of the data being passed in
         self.encoding = encoding
@@ -191,7 +202,9 @@ class MultipartEncoder(object):
         while amount == -1 or amount > 0:
             written = 0
             if part and not part.bytes_left_to_write():
-                written += self._write(b'\r\n')
+                # distinguish no content from empty string
+                if not part.body.no_content:
+                    written += self._write(b'\r\n')
                 written += self._write_boundary()
                 part = self._next_part()
 
@@ -227,13 +240,24 @@ class MultipartEncoder(object):
                     file_name, file_pointer, file_type = v
                 else:
                     file_name, file_pointer, file_type, file_headers = v
+            elif isinstance(v, Part):
+                file_pointer = v.body
+                file_headers = v.headers
             else:
                 file_pointer = v
 
             field = fields.RequestField(name=k, data=file_pointer,
                                         filename=file_name,
                                         headers=file_headers)
-            field.make_multipart(content_type=file_type)
+            file_headers = CaseInsensitiveDict(file_headers or {})
+            file_type = file_type or file_headers.get("Content-Type")
+            file_loc = file_headers.get("Content-Location")
+            file_dis = (file_headers.get("Content-Disposition") or "").split(";", 1)[0].strip()
+            field.make_multipart(
+                content_type=file_type,
+                content_location=file_loc,
+                content_disposition=file_dis,
+            )
             yield field
 
     def _prepare_parts(self):
@@ -272,9 +296,7 @@ class MultipartEncoder(object):
 
     @property
     def content_type(self):
-        return str(
-            'multipart/form-data; boundary={}'.format(self.boundary_value)
-            )
+        return '{}; boundary={}'.format(self._content_type, self.boundary_value)
 
     def to_string(self):
         """Return the entirety of the data in the encoder.
@@ -319,7 +341,7 @@ def IDENTITY(monitor):
     return monitor
 
 
-class MultipartEncoderMonitor(object):
+class MultipartEncoderMonitor(ContentIO):
 
     """
     An object used to monitor the progress of a :class:`MultipartEncoder`.
@@ -371,6 +393,8 @@ class MultipartEncoderMonitor(object):
     """
 
     def __init__(self, encoder, callback=None):
+        ContentIO.__init__(self)
+
         #: Instance of the :class:`MultipartEncoder` being monitored
         self.encoder = encoder
 
@@ -461,6 +485,9 @@ def reset(buffer):
 
 def coerce_data(data, encoding):
     """Ensure that every object's __len__ behaves uniformly."""
+    if data is None:
+        return CustomBytesIO(no_content=True)
+
     if not isinstance(data, CustomBytesIO):
         if hasattr(data, 'getvalue'):
             return CustomBytesIO(data.getvalue(), encoding)
@@ -500,6 +527,9 @@ class Part(object):
         :returns: bool -- ``True`` if there are bytes left to write, otherwise
             ``False``
         """
+        if getattr(self.body, "finished", False):  # part is a nested multipart and has finished reading
+            return False
+
         to_read = 0
         if self.headers_unread:
             to_read += len(self.headers)
@@ -526,14 +556,19 @@ class Part(object):
             if size != -1:
                 amount_to_read = size - written
             written += buffer.append(self.body.read(amount_to_read))
+            if getattr(self, 'bytes_left_to_write', False):
+                return written
 
         return written
 
 
-class CustomBytesIO(io.BytesIO):
-    def __init__(self, buffer=None, encoding='utf-8'):
+class CustomBytesIO(ContentIO, io.BytesIO):
+    def __init__(self, buffer=None, encoding='utf-8', no_content=False):
+        ContentIO.__init__(self, no_content=no_content)
+        if self.no_content:
+            buffer = None
         buffer = encode_with(buffer, encoding)
-        super(CustomBytesIO, self).__init__(buffer)
+        io.BytesIO.__init__(self, buffer)
 
     def _get_end(self):
         current_pos = self.tell()
@@ -564,8 +599,9 @@ class CustomBytesIO(io.BytesIO):
             self.seek(0, 0)  # We want to be at the beginning
 
 
-class FileWrapper(object):
+class FileWrapper(ContentIO):
     def __init__(self, file_object):
+        ContentIO.__init__(self)
         self.fd = file_object
 
     @property
@@ -576,7 +612,7 @@ class FileWrapper(object):
         return self.fd.read(length)
 
 
-class FileFromURLWrapper(object):
+class FileFromURLWrapper(ContentIO):
     """File from URL wrapper.
 
     The :class:`FileFromURLWrapper` object gives you the ability to stream file
@@ -623,6 +659,7 @@ class FileFromURLWrapper(object):
     """
 
     def __init__(self, file_url, session=None):
+        ContentIO.__init__(self)
         self.session = session or requests.Session()
         requested_file = self._request_for_file(file_url)
         self.len = int(requested_file.headers['content-length'])
