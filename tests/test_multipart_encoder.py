@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
-import unittest
 import io
+import unittest
 
 import requests
 
-import pytest
-from requests_toolbelt.multipart.encoder import (
-    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError)
 from requests_toolbelt._compat import filepost
-from . import get_betamax
+from requests_toolbelt.multipart.encoder import (
+    CustomBytesIO,
+    FileFromURLWrapper,
+    FileNotSupportedError,
+    MultipartEncoder,
+)
 
+from . import get_betamax
 
 preserve_bytes = {'preserve_exact_body_bytes': True}
 
@@ -272,6 +275,18 @@ class TestMultipartEncoder(unittest.TestCase):
             read_so_far += len(data)
 
         assert read_so_far == total_size
+
+    def test_empty_files_key(self):
+        """Ensure empty `fields` keys are stripped from the request"""
+
+        fields = {
+            "test": "this is a test", 
+            "empty": None
+        }
+
+        m = MultipartEncoder(fields=fields)
+
+        assert len(m.parts) == 1
 
     def test_handles_empty_unicode_values(self):
         """Verify that the Encoder can handle empty unicode strings.
