@@ -80,7 +80,7 @@ actually verify a certificate against the hostname they want to request.
 This adapter sets the `Server Name Indication`_ to, and verifies the
 certificate against, the hostname in the Host header.
 
-To accomodate this very rare need, we've added
+To accommodate this very rare need, we've added
 :class:`~requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter`.
 Example usage:
 
@@ -102,7 +102,7 @@ SourceAddressAdapter
 .. versionadded:: 0.3.0
 
 The :class:`~requests_toolbelt.adapters.source.SourceAddressAdapter` allows a
-user to specify a source address for their connnection.
+user to specify a source address for their connection.
 
 .. autoclass:: requests_toolbelt.adapters.source.SourceAddressAdapter
 
