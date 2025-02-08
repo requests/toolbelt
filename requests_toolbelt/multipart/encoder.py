@@ -228,6 +228,7 @@ class MultipartEncoder(object):
                 else:
                     file_name, file_pointer, file_type, file_headers = v
             else:
+                file_name = requests.utils.guess_filename(v)
                 file_pointer = v
 
             field = fields.RequestField(name=k, data=file_pointer,
