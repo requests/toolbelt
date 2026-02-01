@@ -71,35 +71,29 @@ class BodyPart(object):
         return self.content.decode(self.encoding)
 
 
-class MultipartDecoder(object):
-    """
+class MultipartDecoder:
+    class MultipartDecoder:
+        """
+        Decode multipart HTTP response bodies.
 
-    The ``MultipartDecoder`` object parses the multipart payload of
-    a bytestring into a tuple of ``Response``-like ``BodyPart`` objects.
+        This class takes a multipart HTTP response body and provides
+        access to each individual part contained in the response.
 
-    The basic usage is::
+        Parameters
+        ----------
+        content : bytes
+        Raw response content.
+        content_type : str
+        The Content-Type header value from the HTTP response.
+        encoding : str, optional
+        Encoding used to decode the response body. Defaults to "utf-8".
 
-        import requests
-        from requests_toolbelt import MultipartDecoder
+        Attributes
+        ----------
+        parts : list
+        List of decoded multipart sections.
+        """
 
-        response = requests.get(url)
-        decoder = MultipartDecoder.from_response(response)
-        for part in decoder.parts:
-            print(part.headers['content-type'])
-
-    If the multipart content is not from a response, basic usage is::
-
-        from requests_toolbelt import MultipartDecoder
-
-        decoder = MultipartDecoder(content, content_type)
-        for part in decoder.parts:
-            print(part.headers['content-type'])
-
-    For both these usages, there is an optional ``encoding`` parameter. This is
-    a string, which is the name of the unicode codec to use (default is
-    ``'utf-8'``).
-
-    """
     def __init__(self, content, content_type, encoding='utf-8'):
         #: Original Content-Type header
         self.content_type = content_type
