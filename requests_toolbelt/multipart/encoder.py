@@ -130,6 +130,16 @@ class MultipartEncoder(object):
         # Load boundary into buffer
         self._write_boundary()
 
+    def __iter__(self):
+        # Need to implement iterator protocol otherwise requests won't set
+        # `is_stream` to `True` and won't rewind the body on redirects.
+        return self
+
+    def __next__(self):
+        if self.finished:
+            raise StopIteration()
+        return self.read(8192)
+
     def _reset(self):
         """Reset the encoder to the beginning."""
         self.finished = False
