@@ -130,6 +130,17 @@ class MultipartEncoder(object):
         # Load boundary into buffer
         self._write_boundary()
 
+    def _reset(self):
+        """Reset the encoder to the beginning."""
+        self.finished = False
+        for part in self.parts:
+            part.reset()
+        self._iter_parts = iter(self.parts)
+        self._current_part = None
+        self._buffer = CustomBytesIO(encoding=self.encoding)
+        self._bytes_read = 0
+        self._write_boundary()
+
     @property
     def len(self):
         """Length of the multipart/form-data body.
@@ -321,6 +332,17 @@ class MultipartEncoder(object):
         # type: () -> int
         return self._bytes_read
 
+    def seek(self, offset, whence=0):
+        # type: (int, int) -> int
+        if (offset, whence) == (0, 0):
+            self._reset()
+        elif (offset, whence) == (0, self._bytes_read) or (offset, whence) == (0, 1):
+            pass
+        else:
+            raise io.UnsupportedOperation(
+                "MultipartEncoder only supports seeking to the beginning")
+        return self.tell()
+
 
 def IDENTITY(monitor):
     return monitor
@@ -493,6 +515,10 @@ class Part(object):
         self.body = body
         self.headers_unread = True
         self.len = len(self.headers) + total_len(self.body)
+        try:
+            self.initial_pos = body.tell()
+        except (AttributeError, OSError, NotImplementedError):
+            self.initial_pos = None
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -535,6 +561,20 @@ class Part(object):
             written += buffer.append(self.body.read(amount_to_read))
 
         return written
+
+    def reset(self):
+        """Reset the part to the beginning."""
+        if self.headers_unread:
+            return
+        if self.initial_pos is None:
+            raise io.UnsupportedOperation(
+                "Underlying body object does not support tell(). Cannot reset.")
+        try:
+            self.body.seek(self.initial_pos)
+        except AttributeError as e:
+            raise io.UnsupportedOperation(
+                "Underlying body object does not support seek(). Cannot reset.") from e
+        self.headers_unread = True
 
 
 class CustomBytesIO(io.BytesIO):

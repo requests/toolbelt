@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 import io
+import os
+import tempfile
 
 import requests
 
@@ -129,6 +131,17 @@ class TestFileFromURLWrapper(unittest.TestCase):
             )
 
 
+EXPECTED = (
+    b'--this-is-a-boundary\r\n'
+    b'Content-Disposition: form-data; name="field"\r\n\r\n'
+    b'value\r\n'
+    b'--this-is-a-boundary\r\n'
+    b'Content-Disposition: form-data; name="other_field"\r\n\r\n'
+    b'other_value\r\n'
+    b'--this-is-a-boundary--\r\n'
+)
+
+
 class TestMultipartEncoder(unittest.TestCase):
     def setUp(self):
         self.parts = [('field', 'value'), ('other_field', 'other_value')]
@@ -136,15 +149,7 @@ class TestMultipartEncoder(unittest.TestCase):
         self.instance = MultipartEncoder(self.parts, boundary=self.boundary)
 
     def test_to_string(self):
-        assert self.instance.to_string() == (
-            '--this-is-a-boundary\r\n'
-            'Content-Disposition: form-data; name="field"\r\n\r\n'
-            'value\r\n'
-            '--this-is-a-boundary\r\n'
-            'Content-Disposition: form-data; name="other_field"\r\n\r\n'
-            'other_value\r\n'
-            '--this-is-a-boundary--\r\n'
-        ).encode()
+        assert self.instance.to_string() == EXPECTED
 
     def test_content_type(self):
         expected = 'multipart/form-data; boundary=this-is-a-boundary'
@@ -202,6 +207,9 @@ class TestMultipartEncoder(unittest.TestCase):
             m = MultipartEncoder(
                 [('field', 'foo'), ('file', FileFromURLWrapper(url, session=s))])
         assert m.read() is not None
+
+        with pytest.raises(OSError):
+            m.seek(0, 0)
 
     def test_reads_open_file_objects_with_a_specified_filename(self):
         with open('setup.py', 'rb') as fd:
@@ -319,6 +327,34 @@ class TestMultipartEncoder(unittest.TestCase):
         m = MultipartEncoder(fields=fields, boundary=boundary)
         output = m.read().decode('utf-8')
         assert output == '----90967316f8404798963cce746a4f4ef9--\r\n'
+
+    def test_seeking(self):
+        field_data = self.parts[0][1].encode('utf-8')
+
+        tmpfile = tempfile.TemporaryFile()
+        tmpfile.write(field_data)
+        tmpfile.seek(0)
+        parts = self.parts.copy()
+        parts[0] = (self.parts[0][0], tmpfile)
+        m = MultipartEncoder(parts, boundary=self.boundary)
+
+        tmpfile = tempfile.TemporaryFile()
+        gunk = b"Some gunk at the beginning"
+        tmpfile.write(gunk)
+        tmpfile.write(field_data)
+        tmpfile.seek(len(gunk))
+        parts = self.parts.copy()
+        parts[0] = (self.parts[0][0], tmpfile)
+        m2 = MultipartEncoder(parts, boundary=self.boundary)
+
+        for instance in (self.instance, m, m2):
+            assert instance.tell() == 0
+            assert instance.read() == EXPECTED
+            # Exhausted:
+            assert instance.read() == b''
+            assert instance.seek(0) == 0
+            assert instance.read() == EXPECTED
+
 
 if __name__ == '__main__':
     unittest.main()
