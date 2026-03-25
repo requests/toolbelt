@@ -583,6 +583,12 @@ class FileWrapper(object):
     def read(self, length=-1):
         return self.fd.read(length)
 
+    def tell(self):
+        return self.fd.tell()
+
+    def seek(self, offset, whence=0):
+        return self.fd.seek(offset, whence)
+
 
 class FileFromURLWrapper(object):
     """File from URL wrapper.
