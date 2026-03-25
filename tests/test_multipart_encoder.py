@@ -6,7 +6,8 @@ import requests
 
 import pytest
 from requests_toolbelt.multipart.encoder import (
-    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError)
+    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError,
+    smart_truncate)
 from requests_toolbelt._compat import filepost
 from . import get_betamax
 
@@ -78,7 +79,7 @@ class TestCustomBytesIO(unittest.TestCase):
         self.instance.write(b'abcdefghijklmnopqrstuvwxyzabcd')  # 30 bytes
         assert self.instance.tell() == 30
         self.instance.seek(-10, 2)
-        self.instance.smart_truncate()
+        smart_truncate(self.instance)
         assert self.instance.len == 10
         assert self.instance.read() == b'uvwxyzabcd'
         assert self.instance.tell() == 10

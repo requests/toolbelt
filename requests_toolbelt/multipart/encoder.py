@@ -189,7 +189,7 @@ class MultipartEncoder(object):
 
     def _load(self, amount):
         """Load ``amount`` number of bytes into the buffer."""
-        self._buffer.smart_truncate()
+        smart_truncate(self._buffer)
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
@@ -559,16 +559,17 @@ class CustomBytesIO(io.BytesIO):
             written = self.write(bytes)
         return written
 
-    def smart_truncate(self):
-        to_be_read = total_len(self)
-        already_read = self._get_end() - to_be_read
 
-        if already_read >= to_be_read:
-            old_bytes = self.read()
-            self.seek(0, 0)
-            self.truncate()
-            self.write(old_bytes)
-            self.seek(0, 0)  # We want to be at the beginning
+def smart_truncate(buf):
+    to_be_read = buf.len
+    already_read = buf.tell()
+
+    if already_read >= to_be_read:
+        old_bytes = buf.read()
+        buf.seek(0, 0)
+        buf.truncate()
+        buf.write(old_bytes)
+        buf.seek(0, 0)  # We want to be at the beginning
 
 
 class FileWrapper(object):
