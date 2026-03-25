@@ -121,6 +121,9 @@ class MultipartEncoder(object):
         # Our buffer
         self._buffer = CustomBytesIO(encoding=encoding)
 
+        # Number of bytes read from the encoder
+        self._bytes_read = 0
+
         # Pre-compute each part's headers
         self._prepare_parts()
 
@@ -304,15 +307,19 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
-        if self.finished:
-            return self._buffer.read(size)
+        if not self.finished:
+            bytes_to_load = size
+            if bytes_to_load != -1 and bytes_to_load is not None:
+                bytes_to_load = self._calculate_load_amount(int(size))
 
-        bytes_to_load = size
-        if bytes_to_load != -1 and bytes_to_load is not None:
-            bytes_to_load = self._calculate_load_amount(int(size))
+            self._load(bytes_to_load)
+        string = self._buffer.read(size)
+        self._bytes_read += len(string)
+        return string
 
-        self._load(bytes_to_load)
-        return self._buffer.read(size)
+    def tell(self):
+        # type: () -> int
+        return self._bytes_read
 
 
 def IDENTITY(monitor):
@@ -377,10 +384,6 @@ class MultipartEncoderMonitor(object):
         #: Optionally function to call after a read
         self.callback = callback or IDENTITY
 
-        #: Number of bytes already read from the :class:`MultipartEncoder`
-        #: instance
-        self.bytes_read = 0
-
         #: Avoid the same problem in bug #80
         self.len = self.encoder.len
 
@@ -394,12 +397,16 @@ class MultipartEncoderMonitor(object):
     def content_type(self):
         return self.encoder.content_type
 
+    @property
+    def bytes_read(self):
+        """Number of bytes already read from the :class:`MultipartEncoder` instance."""
+        return self.encoder._bytes_read
+
     def to_string(self):
         return self.read()
 
     def read(self, size=-1):
         string = self.encoder.read(size)
-        self.bytes_read += len(string)
         self.callback(self)
         return string
 
