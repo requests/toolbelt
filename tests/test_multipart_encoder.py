@@ -362,13 +362,13 @@ class TestMultipartEncoder(unittest.TestCase):
         tmpfile.seek(0)
 
         m = MultipartEncoder([('field', 'foo'), ('myfile', tmpfile)])
-        s = requests.Session()
-        recorder = get_betamax(s)
-        with recorder.use_cassette(
-                'upload_file_with_redirect'):
-            resp = s.post(
-                'https://httpbin.org/redirect-to?status_code=307&url=/post',
-                data=m, headers={'Content-Type': m.content_type})
+        # Can't use betamax here - it responds too quickly and requests doesn't
+        # have time to start reading from the MultipartEncoder before the
+        # redirect response is returned - so the seek never happens.
+        resp = requests.post(
+            'https://httpbin.org/redirect-to?status_code=307&url=/post',
+            data=m, headers={'Content-Type': m.content_type},
+            timeout=10)
         resp.raise_for_status()
         print(resp.json())
         assert resp.json()['form']['myfile'] == 'from-file'
