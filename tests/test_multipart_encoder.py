@@ -355,6 +355,25 @@ class TestMultipartEncoder(unittest.TestCase):
             assert instance.seek(0) == 0
             assert instance.read() == EXPECTED
 
+    def test_redirect(self):
+        """Verifies integration with requests."""
+        tmpfile = tempfile.TemporaryFile()
+        tmpfile.write(b'from-file')
+        tmpfile.seek(0)
+
+        m = MultipartEncoder([('field', 'foo'), ('myfile', tmpfile)])
+        s = requests.Session()
+        recorder = get_betamax(s)
+        with recorder.use_cassette(
+                'upload_file_with_redirect'):
+            resp = s.post(
+                'https://httpbin.org/redirect-to?status_code=307&url=/post',
+                data=m, headers={'Content-Type': m.content_type})
+        resp.raise_for_status()
+        print(resp.json())
+        assert resp.json()['form']['myfile'] == 'from-file'
+        assert resp.json()['form']['field'] == 'foo'
+
 
 if __name__ == '__main__':
     unittest.main()

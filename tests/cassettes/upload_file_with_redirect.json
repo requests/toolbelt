@@ -1,0 +1,138 @@
+{
+    "http_interactions": [
+        {
+            "request": {
+                "body": {
+                    "encoding": "utf-8",
+                    "string": ""
+                },
+                "headers": {
+                    "User-Agent": [
+                        "python-requests/2.25.1"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Type": [
+                        "multipart/form-data; boundary=74d6ab2726de4688a16c8c02d8ef3626"
+                    ],
+                    "Content-Length": [
+                        "223"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://httpbin.org/redirect-to?status_code=307&url=/post"
+            },
+            "response": {
+                "body": {
+                    "encoding": "utf-8",
+                    "string": ""
+                },
+                "headers": {
+                    "Date": [
+                        "Thu, 26 Mar 2026 12:04:41 GMT"
+                    ],
+                    "Content-Type": [
+                        "text/html; charset=utf-8"
+                    ],
+                    "Content-Length": [
+                        "0"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Server": [
+                        "gunicorn/19.9.0"
+                    ],
+                    "Location": [
+                        "/post"
+                    ],
+                    "Access-Control-Allow-Origin": [
+                        "*"
+                    ],
+                    "Access-Control-Allow-Credentials": [
+                        "true"
+                    ]
+                },
+                "status": {
+                    "code": 307,
+                    "message": "TEMPORARY REDIRECT"
+                },
+                "url": "https://httpbin.org/redirect-to?status_code=307&url=/post"
+            },
+            "recorded_at": "2026-03-26T12:04:41"
+        },
+        {
+            "request": {
+                "body": {
+                    "encoding": "utf-8",
+                    "string": ""
+                },
+                "headers": {
+                    "User-Agent": [
+                        "python-requests/2.25.1"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Type": [
+                        "multipart/form-data; boundary=74d6ab2726de4688a16c8c02d8ef3626"
+                    ],
+                    "Content-Length": [
+                        "223"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://httpbin.org/post"
+            },
+            "response": {
+                "body": {
+                    "encoding": "utf-8",
+                    "string": "{\n  \"args\": {}, \n  \"data\": \"\", \n  \"files\": {}, \n  \"form\": {\n    \"field\": \"foo\", \n    \"myfile\": \"from-file\"\n  }, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Content-Length\": \"223\", \n    \"Content-Type\": \"multipart/form-data; boundary=74d6ab2726de4688a16c8c02d8ef3626\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"python-requests/2.25.1\", \n    \"X-Amzn-Trace-Id\": \"Root=1-69c520d9-04aad22c2f49f14e6e3cb2b6\"\n  }, \n  \"json\": null, \n  \"origin\": \"62.64.204.18\", \n  \"url\": \"https://httpbin.org/post\"\n}\n"
+                },
+                "headers": {
+                    "Date": [
+                        "Thu, 26 Mar 2026 12:04:41 GMT"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "Content-Length": [
+                        "537"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Server": [
+                        "gunicorn/19.9.0"
+                    ],
+                    "Access-Control-Allow-Origin": [
+                        "*"
+                    ],
+                    "Access-Control-Allow-Credentials": [
+                        "true"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                },
+                "url": "https://httpbin.org/post"
+            },
+            "recorded_at": "2026-03-26T12:04:41"
+        }
+    ],
+    "recorded_with": "betamax/0.8.1"
+}
