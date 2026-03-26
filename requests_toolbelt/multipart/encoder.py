@@ -121,10 +121,34 @@ class MultipartEncoder(object):
         # Our buffer
         self._buffer = CustomBytesIO(encoding=encoding)
 
+        # Number of bytes read from the encoder
+        self._bytes_read = 0
+
         # Pre-compute each part's headers
         self._prepare_parts()
 
         # Load boundary into buffer
+        self._write_boundary()
+
+    def __iter__(self):
+        # Need to implement iterator protocol otherwise requests won't set
+        # `is_stream` to `True` and won't rewind the body on redirects.
+        return self
+
+    def __next__(self):
+        if self.finished:
+            raise StopIteration()
+        return self.read(8192)
+
+    def _reset(self):
+        """Reset the encoder to the beginning."""
+        self.finished = False
+        for part in self.parts:
+            part.reset()
+        self._iter_parts = iter(self.parts)
+        self._current_part = None
+        self._buffer = CustomBytesIO(encoding=self.encoding)
+        self._bytes_read = 0
         self._write_boundary()
 
     @property
@@ -186,7 +210,7 @@ class MultipartEncoder(object):
 
     def _load(self, amount):
         """Load ``amount`` number of bytes into the buffer."""
-        self._buffer.smart_truncate()
+        smart_truncate(self._buffer)
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
@@ -304,15 +328,30 @@ class MultipartEncoder(object):
             remaining bytes.
         :returns: bytes
         """
-        if self.finished:
-            return self._buffer.read(size)
+        if not self.finished:
+            bytes_to_load = size
+            if bytes_to_load != -1 and bytes_to_load is not None:
+                bytes_to_load = self._calculate_load_amount(int(size))
 
-        bytes_to_load = size
-        if bytes_to_load != -1 and bytes_to_load is not None:
-            bytes_to_load = self._calculate_load_amount(int(size))
+            self._load(bytes_to_load)
+        string = self._buffer.read(size)
+        self._bytes_read += len(string)
+        return string
 
-        self._load(bytes_to_load)
-        return self._buffer.read(size)
+    def tell(self):
+        # type: () -> int
+        return self._bytes_read
+
+    def seek(self, offset, whence=0):
+        # type: (int, int) -> int
+        if (offset, whence) == (0, 0):
+            self._reset()
+        elif (offset, whence) == (0, self._bytes_read) or (offset, whence) == (0, 1):
+            pass
+        else:
+            raise io.UnsupportedOperation(
+                "MultipartEncoder only supports seeking to the beginning")
+        return self.tell()
 
 
 def IDENTITY(monitor):
@@ -377,10 +416,6 @@ class MultipartEncoderMonitor(object):
         #: Optionally function to call after a read
         self.callback = callback or IDENTITY
 
-        #: Number of bytes already read from the :class:`MultipartEncoder`
-        #: instance
-        self.bytes_read = 0
-
         #: Avoid the same problem in bug #80
         self.len = self.encoder.len
 
@@ -394,12 +429,16 @@ class MultipartEncoderMonitor(object):
     def content_type(self):
         return self.encoder.content_type
 
+    @property
+    def bytes_read(self):
+        """Number of bytes already read from the :class:`MultipartEncoder` instance."""
+        return self.encoder._bytes_read
+
     def to_string(self):
         return self.read()
 
     def read(self, size=-1):
         string = self.encoder.read(size)
-        self.bytes_read += len(string)
         self.callback(self)
         return string
 
@@ -486,6 +525,10 @@ class Part(object):
         self.body = body
         self.headers_unread = True
         self.len = len(self.headers) + total_len(self.body)
+        try:
+            self.initial_pos = body.tell()
+        except (AttributeError, OSError, NotImplementedError):
+            self.initial_pos = None
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -529,6 +572,20 @@ class Part(object):
 
         return written
 
+    def reset(self):
+        """Reset the part to the beginning."""
+        if self.headers_unread:
+            return
+        if self.initial_pos is None:
+            raise io.UnsupportedOperation(
+                "Underlying body object does not support tell(). Cannot reset.")
+        try:
+            self.body.seek(self.initial_pos)
+        except AttributeError as e:
+            raise io.UnsupportedOperation(
+                "Underlying body object does not support seek(). Cannot reset.") from e
+        self.headers_unread = True
+
 
 class CustomBytesIO(io.BytesIO):
     def __init__(self, buffer=None, encoding='utf-8'):
@@ -552,16 +609,17 @@ class CustomBytesIO(io.BytesIO):
             written = self.write(bytes)
         return written
 
-    def smart_truncate(self):
-        to_be_read = total_len(self)
-        already_read = self._get_end() - to_be_read
 
-        if already_read >= to_be_read:
-            old_bytes = self.read()
-            self.seek(0, 0)
-            self.truncate()
-            self.write(old_bytes)
-            self.seek(0, 0)  # We want to be at the beginning
+def smart_truncate(buf):
+    to_be_read = buf.len
+    already_read = buf.tell()
+
+    if already_read >= to_be_read:
+        old_bytes = buf.read()
+        buf.seek(0, 0)
+        buf.truncate()
+        buf.write(old_bytes)
+        buf.seek(0, 0)  # We want to be at the beginning
 
 
 class FileWrapper(object):
@@ -574,6 +632,12 @@ class FileWrapper(object):
 
     def read(self, length=-1):
         return self.fd.read(length)
+
+    def tell(self):
+        return self.fd.tell()
+
+    def seek(self, offset, whence=0):
+        return self.fd.seek(offset, whence)
 
 
 class FileFromURLWrapper(object):
