@@ -39,3 +39,10 @@ def test_source_address_adapter_type_error(poolmanager):
         SourceAddressAdapter({'10.10.10.10': 80})
 
     assert not poolmanager.PoolManager.called
+
+
+def test_source_address_adapter_pickle():
+    import pickle
+    adapter = SourceAddressAdapter('10.10.10.10')
+    restored = pickle.loads(pickle.dumps(adapter))
+    assert restored.source_address == ('10.10.10.10', 0)
