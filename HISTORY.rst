@@ -8,6 +8,7 @@ Fixed Bugs
 ~~~~~~~~~~
 
 - Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
+- Apply ``idle`` via ``TCP_KEEPALIVE`` on macOS in ``TCPKeepAliveAdapter``
 
 1.0.0 -- 2023-05-01
 -------------------

@@ -165,11 +165,14 @@ options as keyword parameters as well as arbitrary socket options.
     constants:
 
     - ``socket.TCP_KEEPIDLE``
+    - ``socket.TCP_KEEPALIVE`` (macOS idle-time equivalent of ``TCP_KEEPIDLE``)
     - ``socket.TCP_KEEPCNT``
     - ``socket.TCP_KEEPINTVL``
 
     The adapter will silently ignore any option passed for a non-existent
-    option.
+    option. On macOS, which does not define ``TCP_KEEPIDLE``, ``idle`` is
+    applied via ``TCP_KEEPALIVE`` (falling back to the ``0x10`` constant
+    from ``netinet/tcp.h`` if the socket module does not export it).
 
 An example usage of the adapter:
 

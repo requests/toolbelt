@@ -79,6 +79,7 @@ def test_options_not_passed_on_older_requests(PoolManager):
                    reason="Windows does not have TCP_KEEPINTVL in Python 2")
 @mock.patch.object(requests, '__build__', 0x020500)
 @mock.patch.object(poolmanager, 'PoolManager')
+@mock.patch.object(socket_options.sys, 'platform', 'linux')
 def test_keep_alive_on_newer_requests_no_idle(PoolManager):
     """Show that options are generated correctly from kwargs."""
     socket_opts = [
@@ -86,6 +87,35 @@ def test_keep_alive_on_newer_requests_no_idle(PoolManager):
         (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
         (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10),
         (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 10),
+    ]
+    with remove_keepidle():
+        adapter = socket_options.TCPKeepAliveAdapter(
+            idle=30, interval=10, count=10,
+            pool_connections=10,
+            pool_maxsize=5,
+            pool_block=True,
+        )
+    PoolManager.assert_called_once_with(
+        num_pools=10, maxsize=5, block=True,
+        socket_options=socket_opts
+    )
+    assert adapter.socket_options == socket_opts
+
+
+@pytest.mark.xfail(sys.version_info.major == 2 and platform.system() == "Windows",
+                   reason="Windows does not have TCP_KEEPINTVL in Python 2")
+@mock.patch.object(requests, '__build__', 0x020500)
+@mock.patch.object(poolmanager, 'PoolManager')
+@mock.patch.object(socket_options.sys, 'platform', 'darwin')
+def test_keep_alive_idle_uses_tcp_keepalive_on_darwin(PoolManager):
+    """macOS has no TCP_KEEPIDLE; TCP_KEEPALIVE sets the idle time."""
+    TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
+    socket_opts = [
+        (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),
+        (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+        (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10),
+        (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 10),
+        (socket.IPPROTO_TCP, TCP_KEEPALIVE, 30),
     ]
     with remove_keepidle():
         adapter = socket_options.TCPKeepAliveAdapter(

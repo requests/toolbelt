@@ -79,8 +79,9 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
     - ``SOL_SOCKET`` ``SO_KEEPALIVE`` - This turns on TCP Keep-Alive
     - ``IPPROTO_TCP`` ``TCP_KEEPINTVL`` 20 - Sets the keep alive interval
     - ``IPPROTO_TCP`` ``TCP_KEEPCNT`` 5 - Sets the number of keep alive probes
-    - ``IPPROTO_TCP`` ``TCP_KEEPIDLE`` 60 - Sets the keep alive time if the
-      socket library has the ``TCP_KEEPIDLE`` constant
+    - ``IPPROTO_TCP`` ``TCP_KEEPIDLE`` 60 - Sets the keep alive idle time if
+      the socket library has the ``TCP_KEEPIDLE`` constant. On macOS, which
+      does not define ``TCP_KEEPIDLE``, ``TCP_KEEPALIVE`` is used instead.
 
     The latter three can be overridden by keyword arguments (respectively):
 
@@ -112,17 +113,18 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
         if getattr(socket, 'TCP_KEEPINTVL', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
                                 interval)]
-        elif sys.platform == 'darwin':
-            # On OSX, TCP_KEEPALIVE from netinet/tcp.h is not exported
-            # by python's socket module
-            TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
-            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval)]
 
         if getattr(socket, 'TCP_KEEPCNT', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count)]
 
         if getattr(socket, 'TCP_KEEPIDLE', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle)]
+        elif sys.platform == 'darwin':
+            # macOS has no TCP_KEEPIDLE. TCP_KEEPALIVE (netinet/tcp.h) is
+            # the idle-time option, equivalent to Linux TCP_KEEPIDLE.
+            # Python 3.10+ exports it; older versions need the 0x10 fallback.
+            TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
+            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, idle)]
 
         super(TCPKeepAliveAdapter, self).__init__(
             socket_options=socket_options, **kwargs
