@@ -7,6 +7,8 @@ History
 Fixed Bugs
 ~~~~~~~~~~
 
+- Decode extended ``filename*`` parameters when streaming downloads to files
+
 - Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
 
 1.0.0 -- 2023-05-01

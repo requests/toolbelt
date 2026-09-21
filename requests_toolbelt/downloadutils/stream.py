@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 """Utilities for dealing with streamed requests."""
+import ntpath
 import os.path
 import re
+
+try:
+    from urllib.parse import unquote_to_bytes
+except ImportError:  # Python 2
+    from urllib import unquote as unquote_to_bytes
 
 from .. import exceptions as exc
 
@@ -16,12 +22,26 @@ _DEFAULT_CHUNKSIZE = 512
 
 
 def _get_filename(content_disposition):
+    filename = None
     for match in _OPTION_HEADER_PIECE_RE.finditer(content_disposition):
         k, v = match.groups()
-        if k == 'filename':
-            # ignore any directory paths in the filename
-            return os.path.split(v)[1]
-    return None
+        if k.lower() == 'filename' and v is not None and filename is None:
+            # Keep the ordinary filename as a fallback for invalid filename*.
+            filename = os.path.split(v)[1]
+        elif k.lower() == 'filename*' and v is not None:
+            try:
+                charset, language, encoded = v.strip().split("'", 2)
+                # Invalid escapes must not silently become literal filenames.
+                if re.search(r'%(?![0-9a-fA-F]{2})', encoded):
+                    continue
+                value = unquote_to_bytes(encoded).decode(charset)
+            except (ValueError, LookupError, UnicodeError):
+                continue
+            # Strip path components after decoding, including Windows paths.
+            value = os.path.basename(ntpath.basename(value))
+            if value and value not in ('.', '..') and '\x00' not in value:
+                return value
+    return filename
 
 
 def get_download_file_path(response, path):
@@ -32,6 +52,9 @@ def get_download_file_path(response, path):
     ``Content-Disposition`` header on the response to determine the name of the
     file as reported by the server, and return a file path in the specified
     directory.
+
+    RFC 5987 encoded ``filename*`` values take precedence over ``filename``.
+    Invalid extended values fall back to the ordinary filename.
 
     If ``path`` is empty or None, this function will return a path relative
     to the process' current working directory.
