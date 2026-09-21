@@ -221,3 +221,44 @@ def test_tee_to_bytearray(streamed_response):
 def test_tee_to_bytearray_only_accepts_bytearrays():
     with pytest.raises(TypeError):
         tee.tee_to_bytearray(None, object())
+
+
+@pytest.mark.parametrize('header,expected', [
+    ("attachment; filename*=UTF-8''caf%C3%A9.txt", u'caf\u00e9.txt'),
+    ("attachment; filename*=UTF-8'tr'%C4%B0stanbul.txt", u'\u0130stanbul.txt'),
+    ("attachment; filename*=ISO-8859-1'en'%A3rates.txt", u'\u00a3rates.txt'),
+    ("attachment; FILENAME*=UTF-8''report+notes.txt", 'report+notes.txt'),
+    ("attachment; filename=fallback.txt; filename*=UTF-8''caf%C3%A9.txt",
+     u'caf\u00e9.txt'),
+    ("attachment; filename*=UTF-8''caf%C3%A9.txt; filename=fallback.txt",
+     u'caf\u00e9.txt'),
+    ("attachment; filename*=UTF-8''..%2Ffolder%2Freport.txt", 'report.txt'),
+    ("attachment; filename*=UTF-8''..%5Cfolder%5Creport.txt", 'report.txt'),
+    ("attachment; filename*=UTF-8''C%3Areport.txt", 'report.txt'),
+])
+def test_extended_download_filename(header, expected):
+    response = requests.Response()
+    response.headers['Content-Disposition'] = header
+    assert stream.get_download_file_path(response, None) == expected
+
+
+@pytest.mark.parametrize('extended', [
+    "missing-separators", "unknown''file.txt", "UTF-8''%FF.txt",
+    "UTF-8''bad%ZZ.txt", "UTF-8''bad%.txt", "UTF-8''bad%00.txt",
+    "UTF-8''..", "UTF-8''",
+])
+def test_invalid_extended_filename_falls_back(extended):
+    header = 'attachment; filename=fallback.txt; filename*=' + extended
+    assert stream._get_filename(header) == 'fallback.txt'
+
+
+def test_stream_response_to_extended_filename(tmpdir):
+    response = requests.Response()
+    response.headers['Content-Disposition'] = (
+        "attachment; filename*=UTF-8''caf%C3%A9.txt")
+    response._content = b'file contents'
+    response._content_consumed = True
+    filename = stream.stream_response_to_file(response, str(tmpdir))
+    assert filename == os.path.join(str(tmpdir), u'caf\u00e9.txt')
+    with open(filename, 'rb') as downloaded:
+        assert downloaded.read() == b'file contents'
