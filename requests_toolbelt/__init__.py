@@ -13,7 +13,8 @@ from .adapters import SSLAdapter, SourceAddressAdapter
 from .auth.guess import GuessAuth
 from .multipart import (
     MultipartEncoder, MultipartEncoderMonitor, MultipartDecoder,
-    ImproperBodyPartContentException, NonMultipartContentTypeException
+    ImproperBodyPartContentException, NonMultipartContentTypeException,
+    MissingBoundaryException
     )
 from .streaming_iterator import StreamingIterator
 from .utils.user_agent import user_agent
@@ -29,6 +30,7 @@ __all__ = [
     'GuessAuth', 'MultipartEncoder', 'MultipartEncoderMonitor',
     'MultipartDecoder', 'SSLAdapter', 'SourceAddressAdapter',
     'StreamingIterator', 'user_agent', 'ImproperBodyPartContentException',
-    'NonMultipartContentTypeException', '__title__', '__authors__',
+    'NonMultipartContentTypeException', 'MissingBoundaryException',
+    '__title__', '__authors__',
     '__license__', '__copyright__', '__version__', '__version_info__',
 ]

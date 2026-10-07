@@ -8,11 +8,14 @@ except ImportError:
     import mock
 import pytest
 import requests
+import requests_toolbelt
+from requests_toolbelt import multipart
 from requests_toolbelt.multipart.decoder import BodyPart
 from requests_toolbelt.multipart.decoder import (
     ImproperBodyPartContentException
 )
 from requests_toolbelt.multipart.decoder import MultipartDecoder
+from requests_toolbelt.multipart.decoder import MissingBoundaryException
 from requests_toolbelt.multipart.decoder import (
     NonMultipartContentTypeException
 )
@@ -191,3 +194,106 @@ class TestMultipartDecoder(unittest.TestCase):
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
+
+MULTIPART_BODY = (
+    b'--Test-bound\r\nContent-Disposition: form-data; name="x"\r\n'
+    b'\r\nok\r\n--Test-bound--\r\n'
+)
+
+
+@pytest.fixture(params=[False, True], ids=['constructor', 'response'])
+def decode(request):
+    def decode_content(content, content_type, encoding='utf-8'):
+        if request.param:
+            response = requests.Response()
+            response._content = content
+            if content_type is not None:
+                response.headers['Content-Type'] = content_type
+            return MultipartDecoder.from_response(response, encoding)
+        return MultipartDecoder(content, content_type, encoding)
+    return decode_content
+
+
+@pytest.mark.parametrize('content_type', [
+    'multipart/form-data',
+    'Multipart/Related; charset=utf-8',
+    'multipart/form-data; boundary',
+])
+def test_missing_boundary_fails_before_parsing_body(decode, content_type):
+    with mock.patch.object(
+        MultipartDecoder, '_parse_body', autospec=True,
+        side_effect=MultipartDecoder._parse_body
+    ) as parse_body:
+        with pytest.raises(MissingBoundaryException, match='[Bb]oundary'):
+            decode(b'not a multipart body', content_type)
+    parse_body.assert_not_called()
+
+
+@pytest.mark.parametrize('content_type', [
+    'image/jpeg', 'image/jpeg; boundary=Test-bound',
+])
+def test_non_multipart_error_precedes_boundary_discovery(decode, content_type):
+    with pytest.raises(NonMultipartContentTypeException):
+        decode(MULTIPART_BODY, content_type)
+
+
+@pytest.mark.parametrize('content_type', [
+    'multipart/form-data; boundary=Test-bound',
+    'multipart/form-data; boundary="Test-bound"',
+    'Multipart/Related; BOUNDARY=Test-bound',
+    'multipart/related; charset=utf-8; boundary="Test-bound"; ignored=1',
+    'multipart/form-data; boundary=first; boundary=Test-bound',
+    'multipart/form-data; boundary=; boundary=Test-bound',
+])
+def test_recognised_boundary_decodes_content_and_headers(decode, content_type):
+    decoder = decode(MULTIPART_BODY, content_type)
+    assert decoder.boundary == b'Test-bound'
+    assert len(decoder.parts) == 1
+    assert decoder.parts[0].content == b'ok'
+    assert decoder.parts[0].headers[b'Content-Disposition'] == (
+        b'form-data; name="x"'
+    )
+
+
+@pytest.mark.parametrize('content_type', [
+    'multipart/form-data; boundary=',
+    'multipart/form-data; boundary=""',
+    'multipart/form-data; boundary=Test-bound; boundary=',
+])
+def test_empty_boundary_retains_body_parsing(decode, content_type):
+    decoder = decode(b'', content_type)
+    assert decoder.boundary == b''
+    assert decoder.parts == ()
+    with pytest.raises(ImproperBodyPartContentException):
+        decode(MULTIPART_BODY, content_type)
+
+
+def test_missing_content_type_keeps_existing_failure(decode):
+    with pytest.raises(AttributeError):
+        decode(MULTIPART_BODY, None)
+
+
+def test_recognised_boundary_keeps_body_part_error(decode):
+    with pytest.raises(ImproperBodyPartContentException):
+        decode(b'--Test-bound\r\nno separator',
+               'multipart/form-data; boundary=Test-bound')
+
+
+def test_decoder_preserves_explicit_encoding(decode):
+    content = MULTIPART_BODY.replace(b'\r\n\r\nok\r\n', b'\r\n\r\ncaf\xe9\r\n')
+    decoder = decode(content, 'multipart/form-data; boundary=Test-bound',
+                     encoding='latin-1')
+    assert decoder.encoding == 'latin-1'
+    assert len(decoder.parts) == 1
+    assert decoder.parts[0].encoding == 'latin-1'
+    assert decoder.parts[0].content == b'caf\xe9'
+    assert decoder.parts[0].text == u'caf\xe9'
+
+
+def test_missing_boundary_exception_exports():
+    assert (requests_toolbelt.MissingBoundaryException
+            is MissingBoundaryException)
+    assert multipart.MissingBoundaryException is MissingBoundaryException
+    assert 'MissingBoundaryException' in requests_toolbelt.__all__
+    assert 'MissingBoundaryException' in multipart.__all__

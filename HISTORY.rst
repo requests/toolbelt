@@ -7,6 +7,11 @@ History
 Fixed Bugs
 ~~~~~~~~~~
 
+- Raise ``MissingBoundaryException`` instead of ``AttributeError`` when a
+  multipart Content-Type has no recognised boundary parameter, through both
+  ``MultipartDecoder`` and ``from_response``. Explicit empty boundary handling
+  is unchanged by this fix.
+
 - Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
 
 1.0.0 -- 2023-05-01

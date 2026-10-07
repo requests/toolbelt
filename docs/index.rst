@@ -32,6 +32,7 @@ Full Documentation
 
     adapters
     authentication
+    decoding-data
     deprecated
     downloadutils
     dumputils
