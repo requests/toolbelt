@@ -108,7 +108,7 @@ class AuthHandler(AuthBase):
         .. code-block:: python
 
             import requests
-            a = AuthHandler({'example.com', ('foo', 'bar')})
+            a = AuthHandler({'http://example.com': ('foo', 'bar')})
             strategy = a.get_strategy_for('http://example.com/example')
             assert isinstance(strategy, requests.auth.HTTPBasicAuth)
 
@@ -124,8 +124,8 @@ class AuthHandler(AuthBase):
 
         .. code-block:: python
 
-            a = AuthHandler({'example.com', ('foo', 'bar')})
-            a.remove_strategy('example.com')
+            a = AuthHandler({'https://example.com': ('foo', 'bar')})
+            a.remove_strategy('https://example.com')
             assert a.strategies == {}
 
         """
