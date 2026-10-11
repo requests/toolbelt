@@ -51,6 +51,25 @@ Or, you can just create the string and examine the data:
     m.to_string()  # Always returns unicode
 
 
+multipart Decoder
+-----------------
+
+Use ``MultipartDecoder`` to access the individual parts of a multipart response:
+
+.. code-block:: python
+
+    from requests_toolbelt import MultipartDecoder
+
+    decoder = MultipartDecoder.from_response(response)
+    for part in decoder.parts:
+        print(part.headers.get(b'Content-Type'), part.content)
+
+See the `multipart decoding guide`_ for complete examples, text encoding,
+and binary attachments. The decoder buffers the complete response body.
+
+.. _multipart decoding guide: https://toolbelt.readthedocs.io/en/latest/multipart-decoder.html
+
+
 User-Agent constructor
 ----------------------
 

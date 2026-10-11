@@ -36,6 +36,7 @@ Full Documentation
     downloadutils
     dumputils
     formdata
+    multipart-decoder
     exceptions
     sessions
     threading
