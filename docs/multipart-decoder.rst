@@ -88,8 +88,21 @@ use a different encoding, or set ``part.encoding`` before accessing
     text_part.encoding = 'utf-8'
     text = text_part.text
 
+The ``encoding`` argument is also used to decode each part's header block, so
+header values come back as the same bytes only when it matches the encoding the
+headers were written in.
+
 Do not use ``part.text`` for arbitrary binary attachments: decoding can raise
 ``UnicodeDecodeError`` or interpret binary bytes as text.
+
+Invalid bodies
+--------------
+
+A ``Content-Type`` whose main type is not ``multipart`` raises
+``NonMultipartContentTypeException``. A part without the blank line that
+separates its headers from its content raises
+``ImproperBodyPartContentException``. Both can be imported from
+``requests_toolbelt``.
 
 API reference
 -------------
