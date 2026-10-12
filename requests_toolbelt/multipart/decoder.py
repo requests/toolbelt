@@ -85,7 +85,7 @@ class MultipartDecoder(object):
         response = requests.get(url)
         decoder = MultipartDecoder.from_response(response)
         for part in decoder.parts:
-            print(part.headers['content-type'])
+            print(part.headers[b'content-type'])
 
     If the multipart content is not from a response, basic usage is::
 
@@ -93,7 +93,7 @@ class MultipartDecoder(object):
 
         decoder = MultipartDecoder(content, content_type)
         for part in decoder.parts:
-            print(part.headers['content-type'])
+            print(part.headers[b'content-type'])
 
     For both these usages, there is an optional ``encoding`` parameter. This is
     a string, which is the name of the unicode codec to use (default is
