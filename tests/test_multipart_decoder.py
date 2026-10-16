@@ -118,6 +118,49 @@ class TestMultipartDecoder(unittest.TestCase):
         with pytest.raises(NonMultipartContentTypeException):
             MultipartDecoder.from_response(jpeg_response)
 
+    def test_empty_response_without_content_type_has_no_parts(self):
+        response = mock.NonCallableMagicMock(spec=requests.Response)
+        response.headers = {}
+        response.content = b''
+
+        decoder = MultipartDecoder.from_response(response, encoding='latin-1')
+
+        assert decoder.content_type is None
+        assert decoder.encoding == 'latin-1'
+        assert decoder.boundary is None
+        assert decoder.parts == ()
+
+    def test_empty_content_without_content_type_can_be_decoded_directly(self):
+        decoder = MultipartDecoder(b'', None)
+
+        assert decoder.boundary is None
+        assert decoder.parts == ()
+
+    def test_empty_multipart_body_with_boundary_remains_supported(self):
+        decoder = MultipartDecoder(
+            b'', 'multipart/form-data; boundary=abc'
+        )
+
+        assert decoder.boundary == b'abc'
+        assert decoder.parts == ()
+
+    def test_nonempty_response_without_content_type_still_fails(self):
+        response = mock.NonCallableMagicMock(spec=requests.Response)
+        response.headers = {}
+        response.content = b'body'
+
+        with pytest.raises(AttributeError):
+            MultipartDecoder.from_response(response)
+
+    def test_empty_response_with_explicit_nonmultipart_type_fails(self):
+        for content_type in ['image/jpeg', '']:
+            response = mock.NonCallableMagicMock(spec=requests.Response)
+            response.headers = {'content-type': content_type}
+            response.content = b''
+
+            with pytest.raises(NonMultipartContentTypeException):
+                MultipartDecoder.from_response(response)
+
     def test_length_of_parts(self):
         assert len(self.sample_1) == len(self.decoded_1.parts)
 

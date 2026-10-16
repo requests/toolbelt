@@ -7,6 +7,8 @@ History
 Fixed Bugs
 ~~~~~~~~~~
 
+- Allow an empty response without Content-Type to produce no multipart parts
+
 - Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
 
 1.0.0 -- 2023-05-01
