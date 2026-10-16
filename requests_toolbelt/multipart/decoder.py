@@ -99,6 +99,9 @@ class MultipartDecoder(object):
     a string, which is the name of the unicode codec to use (default is
     ``'utf-8'``).
 
+    A response with an exactly empty body and no Content-Type is accepted with
+    ``parts == ()``. An explicit non-multipart Content-Type remains an error.
+
     """
     def __init__(self, content, content_type, encoding='utf-8'):
         #: Original Content-Type header
@@ -107,6 +110,9 @@ class MultipartDecoder(object):
         self.encoding = encoding
         #: Parsed parts of the multipart response body
         self.parts = tuple()
+        if content == b'' and content_type is None:
+            self.boundary = None
+            return
         self._find_boundary()
         self._parse_body(content)
 
