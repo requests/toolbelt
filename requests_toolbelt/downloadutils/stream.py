@@ -163,9 +163,12 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
         filename = getattr(fd, 'name', None)
     else:
         filename = get_download_file_path(response, path)
-        if os.path.exists(filename):
-            raise exc.StreamingError("File already exists: %s" % filename)
-        fd = open(filename, 'wb')
+        try:
+            fd = open(filename, 'xb')
+        except FileExistsError as error:
+            raise exc.StreamingError(
+                "File already exists: %s" % filename
+            ) from error
 
     for chunk in response.iter_content(chunk_size=chunksize):
         fd.write(chunk)
