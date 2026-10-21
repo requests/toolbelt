@@ -117,6 +117,9 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
             # by python's socket module
             TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
             socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval)]
+        else:
+            socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
+                                interval)]
 
         if getattr(socket, 'TCP_KEEPCNT', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count)]
