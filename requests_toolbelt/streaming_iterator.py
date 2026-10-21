@@ -110,7 +110,7 @@ class _IteratorAsBinaryFile(object):
     def read(self, size=-1):
         size = int(size)
         if size == -1:
-            return b''.join(self.iterator)
+            return self._buffer.read() + b''.join(self.iterator)
 
         self._load_bytes(size)
         return self._buffer.read(size)

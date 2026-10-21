@@ -28,6 +28,24 @@ class TestStreamingIterator(object):
     def test_read_returns_all_chunks_in_one(self):
         assert self.uploader.read() == b''.join(self.chunks)
 
+    @pytest.mark.parametrize('size', [1, 4, 7, 17, 50])
+    def test_read_all_preserves_bytes_after_sized_read(self, size):
+        first = self.uploader.read(size)
+        remaining = self.uploader.read()
+
+        assert first + remaining == b''.join(self.chunks)
+        assert self.uploader.read() == b''
+        assert self.uploader.read(8192) == b''
+
+    def test_read_all_consumes_buffer_after_iterator_is_exhausted(self):
+        first = self.uploader.read(self.size - 1)
+        remaining = self.uploader.read(-1)
+
+        assert first + remaining == b''.join(self.chunks)
+        assert remaining == b's'
+        assert self.uploader.read() == b''
+        assert self.uploader.read(1) == b''
+
     def test_read_returns_empty_string_after_exhausting_the_iterator(self):
         for i in range(0, 4):
             self.uploader.read(8192)
@@ -66,3 +84,12 @@ class TestStreamingIteratorWithLargeChunks(object):
             bytes_read += len(b)
 
         assert bytes_read == self.size
+
+
+@pytest.mark.parametrize('chunks', [[], [b''], [b'', b'']])
+def test_empty_stream_read_all_after_zero_read(get_iterable, chunks):
+    uploader = StreamingIterator(0, get_iterable(chunks))
+    assert uploader.read(0) == b''
+    assert uploader.read() == b''
+    assert uploader.read() == b''
+    assert uploader.read(1) == b''
