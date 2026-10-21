@@ -112,17 +112,19 @@ class TCPKeepAliveAdapter(SocketOptionsAdapter):
         if getattr(socket, 'TCP_KEEPINTVL', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
                                 interval)]
-        elif sys.platform == 'darwin':
-            # On OSX, TCP_KEEPALIVE from netinet/tcp.h is not exported
-            # by python's socket module
-            TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', 0x10)
-            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval)]
 
         if getattr(socket, 'TCP_KEEPCNT', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, count)]
 
         if getattr(socket, 'TCP_KEEPIDLE', None) is not None:
             socket_options += [(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle)]
+
+        # On OSX, TCP_KEEPALIVE is the equivalent of TCP_KEEPIDLE and needs to be set.
+        TCP_KEEPALIVE = getattr(socket, 'TCP_KEEPALIVE', None)
+        if TCP_KEEPALIVE is not None:
+            socket_options += [(socket.IPPROTO_TCP, TCP_KEEPALIVE, idle)]
+        elif sys.platform == 'darwin':
+            socket_options += [(socket.IPPROTO_TCP, 0x10, idle)]
 
         super(TCPKeepAliveAdapter, self).__init__(
             socket_options=socket_options, **kwargs
