@@ -94,7 +94,10 @@ class _IteratorAsBinaryFile(object):
 
     def _get_bytes(self):
         try:
-            return encode_with(next(self.iterator), self.encoding)
+            while True:
+                chunk = encode_with(next(self.iterator), self.encoding)
+                if chunk != b'':
+                    return chunk
         except StopIteration:
             return b''
 

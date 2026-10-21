@@ -1,4 +1,5 @@
 import io
+import unittest
 
 from requests_toolbelt.streaming_iterator import StreamingIterator
 
@@ -93,3 +94,63 @@ def test_empty_stream_read_all_after_zero_read(get_iterable, chunks):
     assert uploader.read() == b''
     assert uploader.read() == b''
     assert uploader.read(1) == b''
+
+
+class TestStreamingIteratorEmptyChunks(unittest.TestCase):
+    chunks = (
+        (b'', b'ab', b'cd'),
+        (b'ab', b'', b'cd'),
+        (b'ab', b'', b'', b'cd'),
+        (b'ab', b'cd', b''),
+        (b'', b'', b''),
+    )
+
+    def test_sized_reads_do_not_treat_empty_chunks_as_eof(self):
+        for chunks in self.chunks:
+            for size in (1, 2, 8192):
+                expected = b''.join(chunks)
+                stream = StreamingIterator(len(expected), iter(chunks))
+                actual = b''.join(iter(lambda: stream.read(size), b''))
+                self.assertEqual(actual, expected, (chunks, size))
+                self.assertEqual(stream.read(size), b'')
+
+    def test_read_all_handles_empty_chunks(self):
+        for chunks in self.chunks:
+            expected = b''.join(chunks)
+            stream = StreamingIterator(len(expected), iter(chunks))
+            self.assertEqual(stream.read(), expected)
+            self.assertEqual(stream.read(), b'')
+            self.assertEqual(stream.read(1), b'')
+
+    def test_zero_read_does_not_consume_iterator(self):
+        chunks = iter((b'', b'abc'))
+        stream = StreamingIterator(3, chunks)
+        self.assertEqual(stream.read(0), b'')
+        self.assertEqual(next(chunks), b'')
+        self.assertEqual(stream.read(3), b'abc')
+
+    def test_read_all_preserves_buffer_with_empty_chunks(self):
+        stream = StreamingIterator(8, iter((b'', b'abcdef', b'', b'gh')))
+        self.assertEqual(stream.read(2), b'ab')
+        self.assertEqual(stream.read(), b'cdefgh')
+        self.assertEqual(stream.read(), b'')
+        self.assertEqual(stream.read(1), b'')
+
+    def test_finite_empty_iterator_has_stable_eof(self):
+        stream = StreamingIterator(0, iter((b'', b'', b'')))
+        for size in (1, 8192, 0, -1, 1):
+            self.assertEqual(stream.read(size), b'')
+
+    def test_file_like_behavior_is_unchanged(self):
+        for data in (b'', b'abcd'):
+            for size in (1, 2, 8192):
+                stream = StreamingIterator(len(data), io.BytesIO(data))
+                self.assertEqual(stream.read(0), b'')
+                actual = b''.join(iter(lambda: stream.read(size), b''))
+                self.assertEqual(actual, data)
+                self.assertEqual(stream.read(), b'')
+
+    def test_invalid_chunks_still_raise(self):
+        for chunk, error in ((None, TypeError), (42, AttributeError)):
+            stream = StreamingIterator(1, iter((chunk,)))
+            self.assertRaises(error, stream.read, 1)
