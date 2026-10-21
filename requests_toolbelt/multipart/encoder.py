@@ -126,6 +126,9 @@ class MultipartEncoder(object):
 
         # Load boundary into buffer
         self._write_boundary()
+        if not self.parts:
+            self._write_closing_boundary()
+            self.finished = True
 
     @property
     def len(self):

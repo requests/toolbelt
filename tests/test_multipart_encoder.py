@@ -319,5 +319,30 @@ class TestMultipartEncoder(unittest.TestCase):
         output = m.read().decode('utf-8')
         assert output == '----90967316f8404798963cce746a4f4ef9--\r\n'
 
+
+@pytest.mark.parametrize('fields', [{}, []])
+@pytest.mark.parametrize('read_size', [1, 2, 3, 4, 5, 6, 10, 12, 14, 20])
+def test_empty_encoder_preserves_closing_boundary(fields, read_size):
+    encoder = MultipartEncoder(fields, boundary='boundary')
+    expected = b'--boundary--\r\n'
+    chunks = []
+    while True:
+        chunk = encoder.read(read_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    assert b''.join(chunks) == expected
+    assert encoder.len == len(expected)
+    assert encoder.read() == b''
+
+
+@pytest.mark.parametrize('fields', [{}, []])
+def test_empty_encoder_partial_then_read_all(fields):
+    encoder = MultipartEncoder(fields, boundary='boundary')
+    prefix = encoder.read(12)
+    assert prefix + encoder.read() == b'--boundary--\r\n'
+    assert encoder.read() == b''
+
+
 if __name__ == '__main__':
     unittest.main()
