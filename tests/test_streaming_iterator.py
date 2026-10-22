@@ -154,3 +154,57 @@ class TestStreamingIteratorEmptyChunks(unittest.TestCase):
         for chunk, error in ((None, TypeError), (42, AttributeError)):
             stream = StreamingIterator(1, iter((chunk,)))
             self.assertRaises(error, stream.read, 1)
+
+
+@pytest.mark.parametrize('chunks,encoding', [
+    ([u'\u00e9\u00e9', '', u'\u7d42'], 'utf-8'),
+    ([u'\u00e9\u00e9', '', 'fin'], 'latin-1'),
+    ([b'abc', '', u'\u00e9', b'def'], 'utf-8'),
+    ([b'abc', b'', b'def'], 'utf-8'),
+])
+@pytest.mark.parametrize('mode', ['all', 'prefix_then_all', 'sized'])
+def test_read_modes_preserve_encoded_content(chunks, encoding, mode):
+    expected = b''.join(c if isinstance(c, bytes) else c.encode(encoding) for c in chunks)
+    stream = StreamingIterator(len(expected), iter(chunks), encoding=encoding)
+    if mode == 'all':
+        actual = stream.read()
+    elif mode == 'prefix_then_all':
+        actual = stream.read(1) + stream.read()
+    else:
+        actual = b''.join(iter(lambda: stream.read(1), b''))
+    assert actual == expected
+    assert stream.read() == b''
+    assert stream.read(1) == b''
+
+@pytest.mark.parametrize('size', [-1, 1, 8192])
+def test_bytes_file_like_control(size):
+    data = u'\u00e9\u7d42'.encode('utf-8')
+    stream = StreamingIterator(len(data), io.BytesIO(data))
+    actual = b''.join(iter(lambda: stream.read(size), b''))
+    assert actual == data
+
+
+@pytest.mark.parametrize('chunks', [
+    [bytearray(b'abc'), bytearray(b'def')],
+    [memoryview(b'abc'), memoryview(b'def')],
+    [b'abc', bytearray(b'def'), memoryview(b'ghi')],
+])
+def test_read_all_preserves_bytes_like_chunks(chunks):
+    expected = b''.join(chunks)
+    stream = StreamingIterator(len(expected), iter(chunks))
+    assert stream.read() == expected
+    assert stream.read() == b''
+
+
+@pytest.mark.parametrize('chunk', [None, 42, object()])
+def test_read_all_invalid_chunk_type_is_unchanged(chunk):
+    stream = StreamingIterator(1, iter([chunk]))
+    with pytest.raises(TypeError):
+        stream.read()
+
+
+@pytest.mark.parametrize('size', [-1, 1])
+def test_text_encoding_errors_are_not_suppressed(size):
+    stream = StreamingIterator(1, iter([u'\u7d42']), encoding='ascii')
+    with pytest.raises(UnicodeEncodeError):
+        stream.read(size)
