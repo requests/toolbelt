@@ -10,6 +10,7 @@ need to provide the data as an iterator. This class will allow you to specify
 the size and stream the data without using a chunked transfer-encoding.
 
 """
+from requests.compat import str as text_type
 from requests.utils import super_len
 
 from .multipart.encoder import CustomBytesIO, encode_with
@@ -94,7 +95,10 @@ class _IteratorAsBinaryFile(object):
 
     def _get_bytes(self):
         try:
-            return encode_with(next(self.iterator), self.encoding)
+            while True:
+                chunk = encode_with(next(self.iterator), self.encoding)
+                if chunk != b'':
+                    return chunk
         except StopIteration:
             return b''
 
@@ -110,7 +114,10 @@ class _IteratorAsBinaryFile(object):
     def read(self, size=-1):
         size = int(size)
         if size == -1:
-            return b''.join(self.iterator)
+            return self._buffer.read() + b''.join(
+                chunk.encode(self.encoding) if isinstance(chunk, text_type)
+                else chunk for chunk in self.iterator
+            )
 
         self._load_bytes(size)
         return self._buffer.read(size)

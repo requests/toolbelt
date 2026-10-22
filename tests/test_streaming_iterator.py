@@ -1,4 +1,5 @@
 import io
+import unittest
 
 from requests_toolbelt.streaming_iterator import StreamingIterator
 
@@ -27,6 +28,24 @@ class TestStreamingIterator(object):
 
     def test_read_returns_all_chunks_in_one(self):
         assert self.uploader.read() == b''.join(self.chunks)
+
+    @pytest.mark.parametrize('size', [1, 4, 7, 17, 50])
+    def test_read_all_preserves_bytes_after_sized_read(self, size):
+        first = self.uploader.read(size)
+        remaining = self.uploader.read()
+
+        assert first + remaining == b''.join(self.chunks)
+        assert self.uploader.read() == b''
+        assert self.uploader.read(8192) == b''
+
+    def test_read_all_consumes_buffer_after_iterator_is_exhausted(self):
+        first = self.uploader.read(self.size - 1)
+        remaining = self.uploader.read(-1)
+
+        assert first + remaining == b''.join(self.chunks)
+        assert remaining == b's'
+        assert self.uploader.read() == b''
+        assert self.uploader.read(1) == b''
 
     def test_read_returns_empty_string_after_exhausting_the_iterator(self):
         for i in range(0, 4):
@@ -66,3 +85,126 @@ class TestStreamingIteratorWithLargeChunks(object):
             bytes_read += len(b)
 
         assert bytes_read == self.size
+
+
+@pytest.mark.parametrize('chunks', [[], [b''], [b'', b'']])
+def test_empty_stream_read_all_after_zero_read(get_iterable, chunks):
+    uploader = StreamingIterator(0, get_iterable(chunks))
+    assert uploader.read(0) == b''
+    assert uploader.read() == b''
+    assert uploader.read() == b''
+    assert uploader.read(1) == b''
+
+
+class TestStreamingIteratorEmptyChunks(unittest.TestCase):
+    chunks = (
+        (b'', b'ab', b'cd'),
+        (b'ab', b'', b'cd'),
+        (b'ab', b'', b'', b'cd'),
+        (b'ab', b'cd', b''),
+        (b'', b'', b''),
+    )
+
+    def test_sized_reads_do_not_treat_empty_chunks_as_eof(self):
+        for chunks in self.chunks:
+            for size in (1, 2, 8192):
+                expected = b''.join(chunks)
+                stream = StreamingIterator(len(expected), iter(chunks))
+                actual = b''.join(iter(lambda: stream.read(size), b''))
+                self.assertEqual(actual, expected, (chunks, size))
+                self.assertEqual(stream.read(size), b'')
+
+    def test_read_all_handles_empty_chunks(self):
+        for chunks in self.chunks:
+            expected = b''.join(chunks)
+            stream = StreamingIterator(len(expected), iter(chunks))
+            self.assertEqual(stream.read(), expected)
+            self.assertEqual(stream.read(), b'')
+            self.assertEqual(stream.read(1), b'')
+
+    def test_zero_read_does_not_consume_iterator(self):
+        chunks = iter((b'', b'abc'))
+        stream = StreamingIterator(3, chunks)
+        self.assertEqual(stream.read(0), b'')
+        self.assertEqual(next(chunks), b'')
+        self.assertEqual(stream.read(3), b'abc')
+
+    def test_read_all_preserves_buffer_with_empty_chunks(self):
+        stream = StreamingIterator(8, iter((b'', b'abcdef', b'', b'gh')))
+        self.assertEqual(stream.read(2), b'ab')
+        self.assertEqual(stream.read(), b'cdefgh')
+        self.assertEqual(stream.read(), b'')
+        self.assertEqual(stream.read(1), b'')
+
+    def test_finite_empty_iterator_has_stable_eof(self):
+        stream = StreamingIterator(0, iter((b'', b'', b'')))
+        for size in (1, 8192, 0, -1, 1):
+            self.assertEqual(stream.read(size), b'')
+
+    def test_file_like_behavior_is_unchanged(self):
+        for data in (b'', b'abcd'):
+            for size in (1, 2, 8192):
+                stream = StreamingIterator(len(data), io.BytesIO(data))
+                self.assertEqual(stream.read(0), b'')
+                actual = b''.join(iter(lambda: stream.read(size), b''))
+                self.assertEqual(actual, data)
+                self.assertEqual(stream.read(), b'')
+
+    def test_invalid_chunks_still_raise(self):
+        for chunk, error in ((None, TypeError), (42, AttributeError)):
+            stream = StreamingIterator(1, iter((chunk,)))
+            self.assertRaises(error, stream.read, 1)
+
+
+@pytest.mark.parametrize('chunks,encoding', [
+    ([u'\u00e9\u00e9', '', u'\u7d42'], 'utf-8'),
+    ([u'\u00e9\u00e9', '', 'fin'], 'latin-1'),
+    ([b'abc', '', u'\u00e9', b'def'], 'utf-8'),
+    ([b'abc', b'', b'def'], 'utf-8'),
+])
+@pytest.mark.parametrize('mode', ['all', 'prefix_then_all', 'sized'])
+def test_read_modes_preserve_encoded_content(chunks, encoding, mode):
+    expected = b''.join(c if isinstance(c, bytes) else c.encode(encoding) for c in chunks)
+    stream = StreamingIterator(len(expected), iter(chunks), encoding=encoding)
+    if mode == 'all':
+        actual = stream.read()
+    elif mode == 'prefix_then_all':
+        actual = stream.read(1) + stream.read()
+    else:
+        actual = b''.join(iter(lambda: stream.read(1), b''))
+    assert actual == expected
+    assert stream.read() == b''
+    assert stream.read(1) == b''
+
+@pytest.mark.parametrize('size', [-1, 1, 8192])
+def test_bytes_file_like_control(size):
+    data = u'\u00e9\u7d42'.encode('utf-8')
+    stream = StreamingIterator(len(data), io.BytesIO(data))
+    actual = b''.join(iter(lambda: stream.read(size), b''))
+    assert actual == data
+
+
+@pytest.mark.parametrize('chunks', [
+    [bytearray(b'abc'), bytearray(b'def')],
+    [memoryview(b'abc'), memoryview(b'def')],
+    [b'abc', bytearray(b'def'), memoryview(b'ghi')],
+])
+def test_read_all_preserves_bytes_like_chunks(chunks):
+    expected = b''.join(chunks)
+    stream = StreamingIterator(len(expected), iter(chunks))
+    assert stream.read() == expected
+    assert stream.read() == b''
+
+
+@pytest.mark.parametrize('chunk', [None, 42, object()])
+def test_read_all_invalid_chunk_type_is_unchanged(chunk):
+    stream = StreamingIterator(1, iter([chunk]))
+    with pytest.raises(TypeError):
+        stream.read()
+
+
+@pytest.mark.parametrize('size', [-1, 1])
+def test_text_encoding_errors_are_not_suppressed(size):
+    stream = StreamingIterator(1, iter([u'\u7d42']), encoding='ascii')
+    with pytest.raises(UnicodeEncodeError):
+        stream.read(size)

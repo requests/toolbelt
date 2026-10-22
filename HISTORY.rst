@@ -9,6 +9,9 @@ Fixed Bugs
 
 - Save and recover ``base_url`` in ``BaseUrlSession`` during pickle and unpickle
 
+- Preserve buffered data when reading all remaining bytes from ``StreamingIterator``
+  and avoid treating empty iterator chunks as end of stream
+
 1.0.0 -- 2023-05-01
 -------------------
 
