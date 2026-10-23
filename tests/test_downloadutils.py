@@ -221,3 +221,74 @@ def test_tee_to_bytearray(streamed_response):
 def test_tee_to_bytearray_only_accepts_bytearrays():
     with pytest.raises(TypeError):
         tee.tee_to_bytearray(None, object())
+
+
+class DownloadResponse(object):
+    def __init__(self, failure):
+        self.error = requests.exceptions.ChunkedEncodingError('interrupted response')
+        self.failure = failure
+
+    def iter_content(self, chunk_size):
+        yield b'first'
+        if self.failure == 'read':
+            raise self.error
+        yield b'second'
+
+
+class FailingDownloadFile(object):
+    def __init__(self, fileobj):
+        self.fileobj = fileobj
+        self.error = IOError('disk full')
+
+    def write(self, chunk):
+        raise self.error
+
+    def close(self):
+        self.fileobj.close()
+
+    @property
+    def closed(self):
+        return self.fileobj.closed
+
+
+@pytest.mark.parametrize('owned', [True, False])
+@pytest.mark.parametrize('failure', ['none', 'read', 'write'])
+def test_download_destination_lifecycle(tmpdir, monkeypatch, owned, failure):
+    destination = str(tmpdir.join('download.bin'))
+    outputs = []
+    response = DownloadResponse(failure)
+
+    def record_open(path, mode):
+        fileobj = open(path, mode)
+        output = FailingDownloadFile(fileobj) if failure == 'write' else fileobj
+        outputs.append(output)
+        return output
+
+    monkeypatch.setattr(stream, 'open', record_open, raising=False)
+    if owned:
+        argument = destination
+    else:
+        output = FailingDownloadFile(io.BytesIO()) if failure == 'write' else io.BytesIO()
+        outputs.append(output)
+        argument = output
+    try:
+        if failure == 'none':
+            result = stream.stream_response_to_file(response, argument)
+            assert result == (destination if owned else None)
+        else:
+            error_type = requests.exceptions.ChunkedEncodingError if failure == 'read' else IOError
+            with pytest.raises(error_type) as caught:
+                stream.stream_response_to_file(response, argument)
+            error = response.error if failure == 'read' else outputs[0].error
+            assert caught.value is error
+        output = outputs[0]
+        assert output.closed is owned
+        if failure == 'none':
+            if owned:
+                with open(destination, 'rb') as downloaded:
+                    assert downloaded.read() == b'firstsecond'
+            else:
+                assert output.getvalue() == b'firstsecond'
+    finally:
+        for output in outputs:
+            output.close()
