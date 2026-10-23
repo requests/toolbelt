@@ -1,8 +1,10 @@
 """Test module for requests_toolbelt.utils.formdata."""
 try:
-    from urllib.parse import parse_qs
+    from urllib.parse import parse_qs, parse_qsl
+    from urllib.parse import urlencode as standard_urlencode
 except ImportError:
-    from urlparse import parse_qs
+    from urlparse import parse_qs, parse_qsl
+    from urllib import urlencode as standard_urlencode
 
 from requests_toolbelt.utils.formdata import urlencode
 
@@ -74,3 +76,86 @@ def test_urlencode_catches_invalid_input():
 
     with pytest.raises(ValueError):
         urlencode([('foo', 'bar', 'bogus')])
+
+
+@pytest.mark.parametrize("doseq", [False, True])
+@pytest.mark.parametrize("value", [1, 0, True, None, 1.25, b"abc", "abc"])
+@pytest.mark.parametrize("as_mapping", [False, True])
+@pytest.mark.parametrize("shape", ["flat", "leaf", "sibling", "deep_sibling"])
+def test_urlencode_preserves_scalar_leaves(value, as_mapping, shape, doseq):
+    """Nested containers must not change how scalar leaves are encoded."""
+    query = [("page", value)]
+    expected = [("page", value)]
+    if shape == "leaf":
+        query = [("filter", {"page": value})]
+        expected = [("filter[page]", value)]
+    elif shape == "sibling":
+        query.append(("filter", {"name": "report"}))
+        expected.append(("filter[name]", "report"))
+    elif shape == "deep_sibling":
+        query = [("filter", [("page", value), ("match", {"name": "report"})])]
+        expected = [("filter[page]", value), ("filter[match][name]", "report")]
+    if as_mapping:
+        query = dict(query)
+
+    actual_encoded = urlencode(query, doseq=doseq)
+    expected_encoded = standard_urlencode(expected, doseq=doseq)
+    assert parse_qsl(actual_encoded, keep_blank_values=True) == parse_qsl(
+        expected_encoded, keep_blank_values=True
+    )
+
+
+class PairIterable(object):
+    def __iter__(self):
+        return iter([("name", "report")])
+
+
+class PairSequence(object):
+    def __getitem__(self, index):
+        return [("name", "report")][index]
+
+
+def user_dict():
+    try:
+        from collections import UserDict
+    except ImportError:
+        from UserDict import UserDict
+    return UserDict({"name": "report"})
+
+
+@pytest.mark.parametrize("factory", [
+    user_dict, PairIterable, PairSequence,
+    lambda: ((k, v) for k, v in [("name", "report")]),
+])
+def test_urlencode_preserves_existing_pair_iterables(factory):
+    """Retain nonbuiltin pair containers when another value needs expansion."""
+    query = [("filter", factory()), ("trigger", {"name": "other"})]
+    assert parse_qs(urlencode(query)) == {
+        "filter[name]": ["report"], "trigger[name]": ["other"],
+    }
+
+
+class BrokenItems(object):
+    def items(self):
+        raise TypeError("broken items")
+
+
+class BrokenIter(object):
+    def __iter__(self):
+        raise TypeError("broken iter")
+
+
+class BrokenNext(object):
+    def __iter__(self):
+        yield ("name", "report")
+        raise TypeError("broken next")
+
+
+@pytest.mark.parametrize("factory", [
+    BrokenItems, BrokenIter, BrokenNext, lambda: iter([1]),
+])
+def test_urlencode_propagates_pair_container_errors(factory):
+    """Do not silently convert broken pair containers to scalar strings."""
+    query = [("filter", factory()), ("trigger", {"name": "other"})]
+    with pytest.raises(TypeError):
+        urlencode(query)
