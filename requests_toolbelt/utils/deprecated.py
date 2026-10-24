@@ -68,7 +68,7 @@ def get_unicode_from_response(response):
     if encoding:
         try:
             return str(response.content, encoding)
-        except UnicodeError:
+        except (LookupError, UnicodeError):
             tried_encodings.add(encoding.lower())
 
     encodings = get_encodings_from_content(response.content)
@@ -79,13 +79,13 @@ def get_unicode_from_response(response):
             continue
         try:
             return str(response.content, _encoding)
-        except UnicodeError:
+        except (LookupError, UnicodeError):
             tried_encodings.add(_encoding)
 
     # Fall back:
     if encoding:
         try:
             return str(response.content, encoding, errors='replace')
-        except TypeError:
+        except (LookupError, TypeError):
             pass
     return response.text
