@@ -69,18 +69,20 @@ class MultipartEncoder(object):
                       {'X-My-Header': 'my-value'})
         ])
 
-    .. warning::
+    .. note::
 
-        This object will end up directly in :mod:`httplib`. Currently,
-        :mod:`httplib` has a hard-coded read size of **8192 bytes**. This
-        means that it will loop until the file has been read and your upload
-        could take a while. This is **not** a bug in requests. A feature is
-        being considered for this object to allow you, the user, to specify
-        what size should be returned on a read. If you have opinions on this,
-        please weigh in on `this issue`_.
+        The HTTP transport used by requests determines how many bytes to
+        request from the encoder on each read. The read size depends on the
+        transport's version and configuration; it is not fixed by this
+        encoder. For example, Python 3.7 added a ``blocksize`` parameter to
+        `http.client.HTTPConnection`_, and urllib3 exposes its own
+        `HTTPConnection configuration`_. The toolbelt does not create these
+        connections or provide an encoder option to configure their read size.
 
-    .. _this issue:
-        https://github.com/requests/toolbelt/issues/75
+    .. _http.client.HTTPConnection:
+        https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection
+    .. _HTTPConnection configuration:
+        https://urllib3.readthedocs.io/en/stable/reference/urllib3.connection.html
 
     """
 
