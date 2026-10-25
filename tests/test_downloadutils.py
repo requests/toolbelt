@@ -42,7 +42,7 @@ def test_get_download_file_path_directory():
         r = s.get(url, headers={'Accept': 'application/octet-stream'})
         path = stream.get_download_file_path(r, tempfile.tempdir)
         r.close()
-        assert path == os.path.join(tempfile.tempdir, filename)
+        assert path == os.path.join(tempfile.gettempdir(), filename)
 
 
 def test_get_download_file_path_specific_file():
@@ -221,3 +221,91 @@ def test_tee_to_bytearray(streamed_response):
 def test_tee_to_bytearray_only_accepts_bytearrays():
     with pytest.raises(TypeError):
         tee.tee_to_bytearray(None, object())
+
+
+def test_stream_response_to_file_detects_short_write():
+    class ShortWriter:
+        def write(self, data):
+            return max(1, len(data) // 2)
+
+    response = mock.MagicMock()
+    response.iter_content.return_value = [b"abcdefgh"]
+
+    writer = ShortWriter()
+
+    with pytest.raises(OSError, match="short write"):
+        stream.stream_response_to_file(response, path=writer)
+
+
+def test_stream_response_to_file_zero_write():
+    class ZeroWriter:
+        def write(self, data):
+            return 0
+
+    response = mock.MagicMock()
+    response.iter_content.return_value = [b"abcdefgh"]
+
+    with pytest.raises(OSError, match="short write"):
+        stream.stream_response_to_file(response, path=ZeroWriter())
+
+
+def test_stream_response_to_file_full_write():
+    class FullWriter:
+        def __init__(self):
+            self.data = bytearray()
+
+        def write(self, data):
+            self.data.extend(data)
+            return len(data)
+
+    response = mock.MagicMock()
+    response.iter_content.return_value = [b"abcdefgh"]
+    writer = FullWriter()
+
+    stream.stream_response_to_file(response, path=writer)
+
+    assert writer.data == b"abcdefgh"
+
+
+def test_stream_response_to_file_none_write():
+    class NoneWriter:
+        def write(self, data):
+            return None
+
+    response = mock.MagicMock()
+    response.iter_content.return_value = [b"abcdefgh"]
+
+    # None is currently accepted for compatibility.
+    stream.stream_response_to_file(response, path=NoneWriter())
+
+
+def test_stream_response_to_file_closes_file_on_short_write(
+        tmp_path, monkeypatch):
+    class ShortWriter:
+        def __init__(self):
+            self.closed = False
+
+        def write(self, data):
+            return 0
+
+        def close(self):
+            self.closed = True
+
+    response = mock.MagicMock()
+    response.iter_content.return_value = [b"abcdefgh"]
+
+    filename = str(tmp_path / "download.bin")
+    writer = ShortWriter()
+
+    monkeypatch.setattr(
+        stream, "get_download_file_path",
+        lambda response, path: filename
+    )
+    monkeypatch.setattr(
+        stream, "open", lambda filename, mode: writer, raising=False
+    )
+
+    with pytest.raises(OSError, match="short write"):
+        stream.stream_response_to_file(response, path="download.bin")
+
+    assert writer.closed

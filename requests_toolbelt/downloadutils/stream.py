@@ -167,10 +167,14 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
             raise exc.StreamingError("File already exists: %s" % filename)
         fd = open(filename, 'wb')
 
-    for chunk in response.iter_content(chunk_size=chunksize):
-        fd.write(chunk)
+    try:
+        for chunk in response.iter_content(chunk_size=chunksize):
+            written = fd.write(chunk)
+            if written is not None and written != len(chunk):
+                raise OSError('short write')
 
-    if not pre_opened:
-        fd.close()
+    finally:
+        if not pre_opened:
+            fd.close()
 
     return filename
