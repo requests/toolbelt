@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Utilities for dealing with streamed requests."""
+import errno
 import os.path
 import re
 
@@ -13,6 +14,9 @@ _OPTION_HEADER_PIECE_RE = re.compile(
                                                      _QUOTED_STRING_RE)
 )
 _DEFAULT_CHUNKSIZE = 512
+# Create the file only if it does not exist yet, as one atomic step.
+_EXCLUSIVE_CREATE_FLAGS = (os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                           getattr(os, 'O_BINARY', 0))
 
 
 def _get_filename(content_disposition):
@@ -163,9 +167,17 @@ def stream_response_to_file(response, path=None, chunksize=_DEFAULT_CHUNKSIZE):
         filename = getattr(fd, 'name', None)
     else:
         filename = get_download_file_path(response, path)
-        if os.path.exists(filename):
+        try:
+            descriptor = os.open(filename, _EXCLUSIVE_CREATE_FLAGS, 0o666)
+        except OSError as error:
+            if error.errno != errno.EEXIST:
+                raise
             raise exc.StreamingError("File already exists: %s" % filename)
-        fd = open(filename, 'wb')
+        try:
+            fd = os.fdopen(descriptor, 'wb')
+        except BaseException:
+            os.close(descriptor)
+            raise
 
     for chunk in response.iter_content(chunk_size=chunksize):
         fd.write(chunk)
