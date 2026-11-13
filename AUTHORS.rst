@@ -57,3 +57,5 @@ Patches and Suggestions
 - Chris van Marle (https://github.com/qistoph)
 
 - Florence Blanc-Renaud <flo@redhat.com> (@flo-renaud)
+
+- Rajatendu Dey (https://github.com/Rajatendu1)
