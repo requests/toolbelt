@@ -42,6 +42,8 @@ class SourceAddressAdapter(HTTPAdapter):
         s.mount('http://', SourceAddressAdapter('10.10.10.10'))
         s.mount('https://', SourceAddressAdapter(('10.10.10.10', 8999)))
     """
+    __attrs__ = HTTPAdapter.__attrs__ + ['source_address']
+
     def __init__(self, source_address, **kwargs):
         if isinstance(source_address, basestring):
             self.source_address = (source_address, 0)
