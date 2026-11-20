@@ -128,6 +128,44 @@ class TestFileFromURLWrapper(unittest.TestCase):
             )
 
 
+@pytest.mark.parametrize('body,start', [
+    (b'', 0), (b'abcdef', 0), (b'abcdef', 2)])
+@pytest.mark.parametrize('read_size', [-1, 1, 4, 128])
+def test_body_length_is_not_queried_while_streaming(body, start, read_size):
+    class RemoteBody(object):
+        def __init__(self):
+            self.stream = io.BytesIO(body)
+            self.stream.seek(start)
+            self.length_queries = 0
+
+        @property
+        def len(self):
+            self.length_queries += 1
+            return len(body) - self.stream.tell()
+
+        def read(self, size):
+            # Remote streams can return less data than requested.
+            return self.stream.read(2 if size == -1 else min(size, 2))
+
+    stream = RemoteBody()
+    encoder = MultipartEncoder([('field', stream), ('after', 'done')],
+                               boundary='boundary')
+    initial_queries = stream.length_queries
+    expected = filepost.encode_multipart_formdata(
+        [('field', body[start:]), ('after', 'done')], 'boundary')[0]
+    chunks = []
+    assert encoder.read(0) == b''
+    while True:
+        chunk = encoder.read(read_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    assert b''.join(chunks) == expected
+    assert encoder.len == len(expected)
+    assert encoder.read() == b''
+    assert stream.length_queries == initial_queries
+
+
 class TestMultipartEncoder(unittest.TestCase):
     def setUp(self):
         self.parts = [('field', 'value'), ('other_field', 'other_value')]
