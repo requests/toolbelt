@@ -24,6 +24,8 @@ Urllib3
 Patches and Suggestions
 ```````````````````````
 
+- Nash Aschenbath (@Aschenbath)
+
 - Jay De Lanoy <jay@delanoy.co>
 
 - Zhaoyu Luo <luozhaoyu90@gmail.com>

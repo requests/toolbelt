@@ -97,6 +97,25 @@ class TestBodyPart(unittest.TestCase):
             BodyPart(content, 'utf-8')
 
 
+@pytest.mark.parametrize('content_type', [
+    'multipart/form-data',
+    'multipart/form-data; charset=utf-8',
+    'multipart/form-data; boundary=',
+    'multipart/form-data; boundary=""',
+])
+def test_multipart_requires_boundary(content_type):
+    with pytest.raises(NonMultipartContentTypeException, match='boundary'):
+        MultipartDecoder(b'--boundary xxx', content_type)
+
+
+def test_response_requires_boundary():
+    response = requests.Response()
+    response._content = b'--boundary xxx'
+    response.headers['content-type'] = 'multipart/form-data'
+    with pytest.raises(NonMultipartContentTypeException, match='boundary'):
+        MultipartDecoder.from_response(response)
+
+
 class TestMultipartDecoder(unittest.TestCase):
     def setUp(self):
         self.sample_1 = (
