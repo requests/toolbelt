@@ -6,12 +6,70 @@ import requests
 
 import pytest
 from requests_toolbelt.multipart.encoder import (
-    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError)
+    CustomBytesIO, MultipartEncoder, FileFromURLWrapper, FileNotSupportedError,
+    total_len)
 from requests_toolbelt._compat import filepost
 from . import get_betamax
 
 
 preserve_bytes = {'preserve_exact_body_bytes': True}
+
+
+class UnknownLengthStream(object):
+    def read(self, size=-1):
+        raise AssertionError('Constructing the encoder must not read the body')
+
+
+class UnsupportedFilenoStream(UnknownLengthStream):
+    def fileno(self):
+        raise io.UnsupportedOperation('No file descriptor')
+
+    def tell(self):
+        return 0
+
+
+@pytest.mark.parametrize('stream_type', [
+    UnknownLengthStream, UnsupportedFilenoStream])
+def test_unknown_length_stream_error(stream_type):
+    stream = stream_type()
+    assert total_len(stream) is None
+    with pytest.raises(TypeError, match='determine the length'):
+        MultipartEncoder({'file': ('sample.bin', stream)})
+
+
+@pytest.mark.parametrize('payload', [b'', b'content'])
+def test_known_length_stream(payload):
+    fields = [('file', ('sample.bin', io.BytesIO(payload),
+                        'application/octet-stream'))]
+    encoder = MultipartEncoder(fields, boundary='boundary')
+    expected = filepost.encode_multipart_formdata(
+        [('file', ('sample.bin', payload))], boundary='boundary')[0]
+    assert encoder.len == len(expected)
+    assert encoder.to_string() == expected
+
+
+def test_stream_length_exception_propagates():
+    error = TypeError('Broken length implementation')
+
+    class BrokenLengthStream(UnknownLengthStream):
+        def __len__(self):
+            raise error
+
+    with pytest.raises(TypeError) as caught:
+        MultipartEncoder({'file': ('sample.bin', BrokenLengthStream())})
+    assert caught.value is error
+
+
+def test_stream_fileno_exception_propagates():
+    error = OSError('Broken file descriptor')
+
+    class BrokenFilenoStream(UnsupportedFilenoStream):
+        def fileno(self):
+            raise error
+
+    with pytest.raises(OSError) as caught:
+        MultipartEncoder({'file': ('sample.bin', BrokenFilenoStream())})
+    assert caught.value is error
 
 
 class LargeFileMock(object):
