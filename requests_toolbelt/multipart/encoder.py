@@ -28,6 +28,9 @@ class MultipartEncoder(object):
     The ``MultipartEncoder`` object is a generic interface to the engine that
     will create a ``multipart/form-data`` body for you.
 
+    File-like bodies must have a known length. If the length cannot be
+    determined, construction raises ``TypeError`` without reading the body.
+
     The basic usage is:
 
     .. code-block:: python
@@ -485,7 +488,11 @@ class Part(object):
         self.headers = headers
         self.body = body
         self.headers_unread = True
-        self.len = len(self.headers) + total_len(self.body)
+        body_len = total_len(self.body)
+        if body_len is None:
+            raise TypeError(
+                'Could not determine the length of a multipart body')
+        self.len = len(self.headers) + body_len
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -570,7 +577,11 @@ class FileWrapper(object):
 
     @property
     def len(self):
-        return total_len(self.fd) - self.fd.tell()
+        file_len = total_len(self.fd)
+        if file_len is None:
+            raise TypeError(
+                'Could not determine the length of a file-like object')
+        return file_len - self.fd.tell()
 
     def read(self, length=-1):
         return self.fd.read(length)
