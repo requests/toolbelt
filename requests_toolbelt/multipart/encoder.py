@@ -485,7 +485,8 @@ class Part(object):
         self.headers = headers
         self.body = body
         self.headers_unread = True
-        self.len = len(self.headers) + total_len(self.body)
+        self._body_bytes_left = total_len(self.body)
+        self.len = len(self.headers) + self._body_bytes_left
 
     @classmethod
     def from_field(cls, field, encoding):
@@ -504,7 +505,7 @@ class Part(object):
         if self.headers_unread:
             to_read += len(self.headers)
 
-        return (to_read + total_len(self.body)) > 0
+        return (to_read + self._body_bytes_left) > 0
 
     def write_to(self, buffer, size):
         """Write the requested amount of bytes to the buffer provided.
@@ -521,11 +522,13 @@ class Part(object):
             written += buffer.append(self.headers)
             self.headers_unread = False
 
-        while total_len(self.body) > 0 and (size == -1 or written < size):
+        while self._body_bytes_left > 0 and (size == -1 or written < size):
             amount_to_read = size
             if size != -1:
                 amount_to_read = size - written
-            written += buffer.append(self.body.read(amount_to_read))
+            body_written = buffer.append(self.body.read(amount_to_read))
+            self._body_bytes_left -= body_written
+            written += body_written
 
         return written
 
