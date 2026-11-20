@@ -27,6 +27,10 @@ class NonMultipartContentTypeException(Exception):
     pass
 
 
+class MissingBoundaryException(NonMultipartContentTypeException):
+    """A multipart Content-Type has no nonempty boundary parameter."""
+
+
 def _header_parser(string, encoding):
     major = sys.version_info[0]
     if major == 3:
@@ -99,6 +103,9 @@ class MultipartDecoder(object):
     a string, which is the name of the unicode codec to use (default is
     ``'utf-8'``).
 
+    A multipart Content-Type without a nonempty boundary parameter raises
+    :class:`MissingBoundaryException`.
+
     """
     def __init__(self, content, content_type, encoding='utf-8'):
         #: Original Content-Type header
@@ -117,6 +124,7 @@ class MultipartDecoder(object):
             raise NonMultipartContentTypeException(
                 "Unexpected mimetype in content-type: '{}'".format(mimetype)
             )
+        self.boundary = None
         for item in ct_info[1:]:
             attr, value = _split_on_find(
                 item,
@@ -124,6 +132,10 @@ class MultipartDecoder(object):
             )
             if attr.lower() == 'boundary':
                 self.boundary = encode_with(value.strip('"'), self.encoding)
+        if not self.boundary:
+            raise MissingBoundaryException(
+                'Missing multipart boundary in content-type'
+            )
 
     @staticmethod
     def _fix_first_part(part, boundary_marker):
