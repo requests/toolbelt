@@ -201,6 +201,12 @@ is deemed too great a risk to decrypt the certificate into a .pem file.
 
 For such use cases we have created
 :class:`~requests_toolbelt.adapters.x509.X509Adapter`.
+
+This adapter requires Requests 2.12.0 or later and compatible installations of
+urllib3, pyOpenSSL and cryptography. If a ``VersionMismatchError`` reports that
+``PyOpenSSLContext`` could not be imported, check these dependencies even when
+the installed Requests version meets the requirement.
+
 Example usage:
 
 .. code-block:: python

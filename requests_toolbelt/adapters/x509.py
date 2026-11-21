@@ -137,12 +137,19 @@ class X509Adapter(HTTPAdapter):
                     PyOpenSSLContext = None
 
     def _check_version(self):
-        if PyOpenSSLContext is None:
+        if requests.__build__ < 0x021200:
             raise exc.VersionMismatchError(
                 "The X509Adapter requires at least Requests 2.12.0 to be "
                 "installed. Version {} was found instead.".format(
                     requests.__version__
                 )
+            )
+        if PyOpenSSLContext is None:
+            raise exc.VersionMismatchError(
+                "Requests {} is installed, but X509Adapter could not import "
+                "PyOpenSSLContext from urllib3. Verify that urllib3, "
+                "pyOpenSSL and cryptography are installed and compatible."
+                .format(requests.__version__)
             )
 
 

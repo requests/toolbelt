@@ -28,6 +28,58 @@ pytestmark = pytest.mark.filterwarnings(
     "ignore:'urllib3.contrib.pyopenssl' module is deprecated:DeprecationWarning")
 
 
+@pytest.mark.skipif(not PYOPENSSL_AVAILABLE, reason="Requires OpenSSL")
+@pytest.mark.parametrize('build, version', [
+    (0x021200, '2.12.0'),
+    (0x022000, '2.20.0'),
+    (requests.__build__, requests.__version__),
+])
+def test_missing_pyopenssl_context_reports_dependencies(monkeypatch,
+                                                       build, version):
+    from requests_toolbelt.adapters import x509 as adapter_module
+
+    monkeypatch.setattr(requests, '__build__', build)
+    monkeypatch.setattr(requests, '__version__', version)
+    monkeypatch.setattr(adapter_module, 'PyOpenSSLContext', None)
+    monkeypatch.setattr(X509Adapter, '_import_pyopensslcontext',
+                        lambda self: None)
+
+    with pytest.raises(exc.VersionMismatchError,
+                       match='PyOpenSSLContext') as error:
+        X509Adapter()
+
+    message = str(error.value)
+    assert version in message
+    assert 'urllib3' in message
+    assert 'pyOpenSSL' in message
+    assert 'cryptography' in message
+
+
+@pytest.mark.skipif(not PYOPENSSL_AVAILABLE, reason="Requires OpenSSL")
+def test_old_requests_reports_version_requirement(monkeypatch):
+    monkeypatch.setattr(requests, '__build__', 0x021100)
+    monkeypatch.setattr(requests, '__version__', '2.11.0')
+
+    with pytest.raises(exc.VersionMismatchError) as error:
+        X509Adapter()
+
+    assert 'requires at least Requests 2.12.0' in str(error.value)
+    assert '2.11.0' in str(error.value)
+
+
+@pytest.mark.skipif(not PYOPENSSL_AVAILABLE, reason="Requires OpenSSL")
+def test_available_context_reaches_certificate_validation(monkeypatch):
+    from requests_toolbelt.adapters import x509 as adapter_module
+
+    monkeypatch.setattr(requests, '__build__', 0x021200)
+    monkeypatch.setattr(adapter_module, 'PyOpenSSLContext', object())
+    monkeypatch.setattr(X509Adapter, '_import_pyopensslcontext',
+                        lambda self: None)
+
+    with pytest.raises(ValueError, match='Invalid cert content'):
+        X509Adapter()
+
+
 class TestX509Adapter(unittest.TestCase):
     """Tests a simple requests.get() call using a .p12 cert.
     """
