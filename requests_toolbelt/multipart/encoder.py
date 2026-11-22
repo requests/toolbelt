@@ -9,6 +9,7 @@ This holds all of the implementation details of the MultipartEncoder
 """
 import contextlib
 import io
+import mmap
 import os
 from uuid import uuid4
 
@@ -465,7 +466,7 @@ def coerce_data(data, encoding):
         if hasattr(data, 'getvalue'):
             return CustomBytesIO(data.getvalue(), encoding)
 
-        if hasattr(data, 'fileno'):
+        if hasattr(data, 'fileno') or isinstance(data, mmap.mmap):
             return FileWrapper(data)
 
         if not hasattr(data, 'read'):
