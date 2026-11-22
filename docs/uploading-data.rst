@@ -172,7 +172,7 @@ contents of the file without relying on chunking.
 .. autoclass:: requests_toolbelt.streaming_iterator.StreamingIterator
 
 Memory-mapped file bodies
-------------------------
+-------------------------
 
 ``MultipartEncoder`` accepts an ``mmap.mmap`` as a file body. Uploading starts
 at the mapping's current position and continues to the end of the mapping.
