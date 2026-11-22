@@ -24,12 +24,21 @@ class HostHeaderSSLAdapter(HTTPAdapter):
 
     """
 
+    __attrs__ = HTTPAdapter.__attrs__ + ['use_header', 'strip_header']
+
+    def __init__(self, *args, **kwargs):
+        self.use_header = kwargs.pop('use_header', 'Host')
+        self.strip_header = kwargs.pop('strip_header', False)
+        super(HostHeaderSSLAdapter, self).__init__(*args, **kwargs)
+
     def send(self, request, **kwargs):
         # HTTP headers are case-insensitive (RFC 7230)
         host_header = None
         for header in request.headers:
-            if header.lower() == "host":
+            if header.lower() == self.use_header.lower():
                 host_header = request.headers[header]
+                if self.strip_header:
+                    del request.headers[header]
                 break
 
         connection_pool_kwargs = self.poolmanager.connection_pool_kw
