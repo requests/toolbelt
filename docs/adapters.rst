@@ -92,6 +92,22 @@ Example usage:
         s.mount('https://', host_header_ssl.HostHeaderSSLAdapter())
         s.get("https://93.184.216.34", headers={"Host": "example.org"})
 
+To keep the HTTP ``Host`` header independent of TLS certificate verification,
+pass ``use_header`` with a custom header name. Set ``strip_header=True`` to
+remove that header before sending the request::
+
+    adapter = host_header_ssl.HostHeaderSSLAdapter(
+        use_header='X-TLS-Host', strip_header=True)
+    s.mount('https://', adapter)
+    s.get('https://192.0.2.1:8443/', headers={'X-TLS-Host': 'example.org'})
+
+Header names are matched case-insensitively. The selected value controls both
+certificate hostname verification and SNI. The URL still determines the
+connection address and port; a redirect is followed according to Requests'
+normal rules. When the selected header is absent, no hostname override is used.
+The defaults, ``use_header='Host'`` and ``strip_header=False``, preserve the
+existing behavior.
+
 .. autoclass:: requests_toolbelt.adapters.host_header_ssl.HostHeaderSSLAdapter
 
 .. _Server Name Indication: https://en.wikipedia.org/wiki/Server_Name_Indication
