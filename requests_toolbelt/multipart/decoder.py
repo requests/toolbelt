@@ -19,6 +19,24 @@ def _split_on_find(content, bound):
     return content[:point], content[point + len(bound):]
 
 
+def _split_content_type(content_type):
+    """Split parameters without treating quoted semicolons as separators."""
+    start = 0
+    quoted = False
+    escaped = False
+    for index, char in enumerate(content_type):
+        if escaped:
+            escaped = False
+        elif quoted and char == '\\':
+            escaped = True
+        elif char == '"':
+            quoted = not quoted
+        elif char == ';' and not quoted:
+            yield content_type[start:index].strip()
+            start = index + 1
+    yield content_type[start:].strip()
+
+
 class ImproperBodyPartContentException(Exception):
     pass
 
@@ -111,7 +129,7 @@ class MultipartDecoder(object):
         self._parse_body(content)
 
     def _find_boundary(self):
-        ct_info = tuple(x.strip() for x in self.content_type.split(';'))
+        ct_info = tuple(_split_content_type(self.content_type))
         mimetype = ct_info[0]
         if mimetype.split('/')[0].lower() != 'multipart':
             raise NonMultipartContentTypeException(
