@@ -191,3 +191,39 @@ class TestMultipartDecoder(unittest.TestCase):
         assert decoder_2.parts[0].headers[b'Header-1'] == b'Header-Value-1'
         assert len(decoder_2.parts[1].headers) == 0
         assert decoder_2.parts[1].content == b'Body 2, Line 1'
+
+
+@pytest.mark.parametrize('from_response', [False, True])
+@pytest.mark.parametrize('parameters', [
+    'boundary=real',
+    'boundary="real"; start-info="application/soap+xml"',
+    'boundary=real; start-info="application/soap+xml; boundary=decoy"',
+    'start-info="application/soap+xml; boundary=decoy"; boundary=real',
+    r'boundary=real; start-info="a\"; boundary=decoy"',
+    r'start-info="a\\"; boundary=real',
+    'boundary=real; start-info="a; boundary=first"; note="b; boundary=last"',
+    'start-info="a; boundary=decoy"; BOUNDARY="real"',
+])
+def test_boundary_ignores_quoted_parameters(parameters, from_response):
+    content_type = 'multipart/related; type="text/plain"; ' + parameters
+    content = (
+        b'--real\r\nContent-Type: text/plain\r\n\r\none\r\n'
+        b'--real\r\nContent-Type: application/octet-stream\r\n\r\n'
+        b'\x00two\xff\r\n'
+        b'--real--\r\n'
+    )
+    if from_response:
+        response = requests.Response()
+        response.headers['Content-Type'] = content_type
+        response._content = content
+        decoder = MultipartDecoder.from_response(response)
+    else:
+        decoder = MultipartDecoder(content, content_type)
+
+    assert decoder.content_type == content_type
+    assert tuple(part.content for part in decoder.parts) == (
+        b'one', b'\x00two\xff'
+    )
+    assert tuple(part.headers[b'Content-Type'] for part in decoder.parts) == (
+        b'text/plain', b'application/octet-stream'
+    )
